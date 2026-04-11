@@ -10,30 +10,31 @@ A **run** is a single attempt from the first encounter to the final boss. Runs a
 
 Each run takes the player through one or more **acts**. Each act is a branching directed map of **nodes**, in the style of Slay the Spire: the player starts at the bottom, picks a path upward, and each node on the chosen path is an encounter.
 
-- **[Proposal]** v1 ships with **3 acts**, each containing roughly **12–15 nodes**, ending in a boss.
+- **v1 ships with 1 act × 10–12 nodes**, ending in a boss. The full three-act escape arc (Assembly → QA → Showroom) described in `setting.md` §2 is *not* delivered in v1 — only the **Assembly Floor** zone. QA and Showroom are deferred to post-v1 versions. See `open-questions.md` Q-G1.
 - Paths fork and merge — choosing which path to take is a meaningful decision because different node types appear on different routes.
 - Once a node is committed to and resolved, the player moves on. No backtracking.
 
 ### Node types
 
-**[Proposal]** v1 supports the following node types. Distribution is tuned per act.
+v1 supports the following node types. Distribution is tuned per act.
 
 | Node | What happens |
 |---|---|
 | **Combat** | Standard encounter against an enemy squad. Most common node type. |
 | **Elite** | Harder combat encounter against a tougher enemy squad. Better rewards. |
 | **Boss** | Act-ending encounter. Unique enemy composition. |
-| **Repair Bay** | Restore unit HP and optionally apply a small persistent buff or repair. |
+| **Repair Bay** | Heal all living units for a fixed percentage of max HP (starting at 50%, tuned during v0.2). See `open-questions.md` Q-G6. |
 
 
 ### Rewards
 
-After most nodes (especially combat), the player is offered a **choice of upgrade** drawn from a pool. Typical reward options include:
+After most nodes (especially combat), the player is offered a **choice of upgrade** drawn from a pool. **v1 has five reward categories** (see `open-questions.md` Q-G2):
 
-- A **new module** for one of their existing units (class-locked — see §5).
-- A **new unit** added to the squad (up to the cap of 9). This should be rare (a boss always drops this, elite fights may drop it).
-- A **gambit-related upgrade** — e.g., one extra rule slot for a chosen unit, or a new condition/action becoming available.
-- **[TBD]** Healing, rerolls, removing modules, etc.
+1. A **new module** for one of their existing units (class-locked — see §5).
+2. A **new unit** added to the squad (up to the cap of 9). This should be rare (a boss always drops this, elite fights may drop it).
+3. A **heal** — restore HP to one or more units.
+4. **+1 rule slot** for a chosen unit.
+5. A **vocabulary unlock** — a new condition or action becomes available to write in gambits.
 
 The rewards menu is the primary place where the player decides whether to grow wide (more bodies) or grow deep (stronger existing units).
 
@@ -83,7 +84,7 @@ The player does not click during combat. After committing gambits and placement,
 
 - The logic layer resolves the round and produces a **turn event log** (see `architecture.md`).
 - The rendering layer plays the log back as visual events at a readable pace.
-- The player can **pause** and **step** through the playback. **[Proposal]** Speeds are 0.5×, 1×, 2×, 10x.
+- The player can **pause** and **step** through the playback. Speeds are **0.5×, 1×, 2×, 10×** (see `open-questions.md` Q-G4).
 - After combat resolves (one side fully destroyed), the player sees a summary and proceeds to reward selection.
 - If all units of the player are dead, the run ends, no reward is offered.
 
@@ -126,7 +127,7 @@ If no rule fires, the unit idles for the turn.
 
 ### List size
 
-A unit starts with **4 rule slots** and can earn slots through upgrades.
+A unit starts with **4 rule slots** and can earn additional slots through the "+1 rule slot" reward (see §1 Rewards and `open-questions.md` Q-G5).
 
 ### Condition vocabulary — [Proposal] v1 starter set
 
@@ -163,10 +164,11 @@ The gambit editor is a list-based UI. For each unit:
 
 The editor is one of the most important pieces of UI in the game and gets significant design attention.
 
-### Enemy gambits — [TBD]
+### Enemy gambits
 
-Whether enemies are also driven by the same gambit interpreter (clean, dogfoods the system).
-These can e.g. be pre-defined in a list of encounters to start with.
+Enemies are driven by the **same gambit interpreter** as player units — they have their own `GambitList`s and run through the same `chooseAction` function (see `architecture.md` §4). One system, authored per-encounter in content data. No parallel AI system. See `open-questions.md` Q-G3.
+
+Hand-authored encounter gambits live alongside the enemy chassis data (in `src/content/` once content loaders land in v0.2).
 
 ## 8. Win and loss
 

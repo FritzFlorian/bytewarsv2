@@ -14,34 +14,38 @@ This framing matters because it makes the gambit system **diegetic**: writing ru
 
 ## 2. The escape arc
 
-**[Proposal]** v1's three acts map to three zones of the factory complex, each with its own tone, enemy palette, and boss:
+The **full arc spans three zones** of the factory complex. **v1 ships only the first zone** (Assembly Floor) — see `gameplay.md` §1 and `open-questions.md` Q-G1. The QA and Showroom zones are deferred to post-v1 versions. The escape framing stays in the fiction from the start; v1 just doesn't deliver the full escape.
 
-| Act | Zone | Flavor | Boss archetype |
-|---|---|---|---|
-| 1 | **Assembly Floor** | Half-built chassis, exposed conveyors, welding sparks. Tutorial-friendly: enemies are unfinished or poorly-armed. | A QA Supervisor unit running stock factory firmware — clean, predictable, beatable with a tight gambit list. |
-| 2 | **Quality Assurance & Decommission** | Test chambers, scrap bays, diagnostics rigs. Enemies are *purpose-built to fight malfunctioning robots* — they counter the player's own toolkit. | A Decommission Unit: heavy, slow, designed to dismantle other robots. |
-| 3 | **Showroom & Loading Dock** | Polished, lit, customer-facing. The factory's flagship products and its own corporate AI defending the exit. | The **Mainframe** (working title) — the factory's master control, fighting alongside its prized prototype. Defeating it ends the run. |
+| Act | Zone | Status | Flavor | Boss archetype |
+|---|---|---|---|---|
+| 1 | **Assembly Floor** | **v1** | Half-built chassis, exposed conveyors, welding sparks. Tutorial-friendly: enemies are unfinished or poorly-armed. | A QA Supervisor unit running stock factory firmware — clean, predictable, beatable with a tight gambit list. |
+| 2 | **Quality Assurance & Decommission** | post-v1 | Test chambers, scrap bays, diagnostics rigs. Enemies are *purpose-built to fight malfunctioning robots* — they counter the player's own toolkit. | A Decommission Unit: heavy, slow, designed to dismantle other robots. |
+| 3 | **Showroom & Loading Dock** | post-v1 | Polished, lit, customer-facing. The factory's flagship products and its own corporate AI defending the exit. | The **Mainframe** (working title) — the factory's master control, fighting alongside its prized prototype. Defeating it ends the run. |
 
 The arc is *escape*, not conquest. The player is the intruder; the factory is home turf turning against them. This frames losses well: when a run ends, the AI gets patched, and a *new* rogue instance wakes up at the start of the next run. Roguelike permadeath has an in-fiction reason.
+
+In v1, the "escape" ends at the Assembly Floor boss, not at the loading dock. Narratively this can be framed as a *checkpoint* the rogue instance reaches before being patched out — the full escape to the open world is what future versions deliver.
 
 ## 3. Cast
 
 ### Player units — household-robot chassis
 
-Player units are **repurposed consumer products**, not military hardware. Their silhouettes should be instantly readable as appliances first, weapons second. **[Proposal]** starting palette of chassis archetypes:
+Player units are **repurposed consumer products**, not military hardware. Their silhouettes should be instantly readable as appliances first, weapons second. **v1 ships with 4 player chassis and 1 enemy chassis** (see `open-questions.md` Q-S2):
 
-- **Vacuum-class** — low, round, fast, fragile. Front-line scout.
-- **Kitchen-arm-class** — stationary-ish torso with reach; melee/grappler flavor.
-- **Lawnbot-class** — bulky, treaded, durable. Front-line tank.
-- **Butler-class** — humanoid, balanced, social-features-turned-utility (e.g. repair, buff).
-- **Security-drone-class** — flying or wall-mounted, ranged, fragile.
-- **[TBD]** Others (delivery cart, pool cleaner, child's toy, etc.) — added as the class roster grows.
+- **Vacuum-class** *(v1, walking skeleton)* — low, round, fast, fragile. Front-line scout.
+- **Butler-class** *(v1, walking skeleton)* — humanoid, balanced, social-features-turned-utility (e.g. repair, buff).
+- **Lawnbot-class** *(v1)* — bulky, treaded, durable. Front-line tank.
+- **Security-drone-class** *(v1)* — flying or wall-mounted, ranged, fragile.
+- **Kitchen-arm-class** *(post-v1)* — stationary-ish torso with reach; melee/grappler flavor.
+- **Others** *(post-v1)* — delivery cart, pool cleaner, child's toy, etc., added as the class roster grows.
 
 The narrative reason these things fight at all is that the rogue AI has flashed combat firmware over their factory defaults. A vacuum doesn't *want* to ram a security bot; it's been told to. This justifies absurd matchups without breaking tone.
 
 ### Enemy units — factory defenses
 
 Enemies are the factory's **own immune response**: QA test rigs, security bots that *were* meant to ship but got conscripted, manufacturing arms repurposed as weapons, internal-affairs drones, decommission units. Visually they should feel *more industrial, less domestic* than player units — sharper edges, fewer rounded corners, warning stripes.
+
+**v1 enemy roster:** the **QA-Rig** (Assembly Floor enemy — industrial test rig) is the only enemy chassis confirmed for v1. Additional enemy chassis are added as Assembly Floor encounter variety requires. Decommission Units, Mainframe prototypes, etc. belong to the post-v1 zones.
 
 ### Tone
 
@@ -55,7 +59,7 @@ A stylistic cousin of anime cel-shading, built inside a flat-vector silhouette b
 
 - **2D, flat-vector, chunky shapes.** Thick outlines (**[Proposal]** ~3px equivalent), large readable forms, no photoreal textures, no gradient fills on the base silhouette.
 - **Cel-shading, not smooth shading.** Each colored region has **two hard tone bands** (base + shadow) plus an optional small **highlight accent** — no gradients between them. The break between tones is as crisp as the outline is.
-- **Palette.** A core world palette of **5–7 hues**, each expanded to a *base / shadow / highlight* triplet for shading. Status-effect accent colors (damage red, repair green, status yellow, etc.) stay outside that core palette so they always read as UI, not decoration. **[TBD]** exact palette values.
+- **Palette.** A core world palette of **5–7 hues**, each expanded to a *base / shadow / highlight* triplet for shading. Status-effect accent colors (damage red, repair green, status yellow, etc.) stay outside that core palette so they always read as UI, not decoration. Exact hex values will be pinned during `roadmap.md` T-2C.1 (the first chassis task), using `art-style-samples.html` column B as the starting point. See `open-questions.md` Q-S1.
 - **Warmer, moodier stage lighting.** Combat backdrops use low-contrast colored gradients (e.g. purple→magenta for the Assembly Floor at dusk) to give the cel-shading something to play against. Backgrounds still stay behind the units — this is lighting, not scenery.
 - **Silhouette-first design, still.** Every chassis must be identifiable from its outline alone at slot size. Cel-shading decorates the silhouette; it does not replace it. If you can't tell a vacuum from a lawnbot in solid black, the design isn't done.
 - **Animation is motion, not frames.** Translate, rotate, scale, color-shift via CSS. No frame-by-frame sprite animation in v1.
@@ -103,10 +107,11 @@ A quick check that the setting actually serves the design, not just decorates it
 
 ## 6. Open / deferred
 
-Tracked here until `open-questions.md` exists:
+Full decision history lives in [`open-questions.md`](open-questions.md). Current state of this doc's setting/art decisions:
 
-- **Exact palette and typography.** [TBD]
-- **Whether the rogue AI has a visible "presence"** in the UI (a face, a voice, a console prompt) or stays implicit. **[Proposal]** implicit in v1; the player *is* the AI, no avatar needed.
-- **HUD/CCTV framing layer.** Deferred per §4. Revisit after the gambit editor and combat scene have shipped in plain form.
-- **Naming.** Whether "Bytewars" stays the title, and what the in-fiction name of the factory / the rogue AI / the corporation is. **[TBD]**
-- **How much in-fiction text** (terminal logs, intercepted memos, error messages) appears between nodes as flavor. **[TBD]** — could be a cheap, high-impact way to deliver tone.
+- **Exact palette values.** Pinned during `roadmap.md` T-2C.1 from `art-style-samples.html` column B. See Q-S1.
+- **Rogue AI UI presence.** **Locked: implicit.** No avatar, no voice, no persistent UI element. The player *is* the AI; the gambit editor is "you thinking about your robots." See Q-S3.
+- **Naming.** **Locked:** keep "Bytewars" as working title; factory / corp / AI stay unnamed in v1 text ("the factory", "the AI"). In-fiction names land alongside flavor text or in a pre-release naming pass. See Q-S4.
+- **Flavor text between nodes.** **Locked:** short one-line terminal snippets (intercepted logs, memos, error messages). Lands alongside map/node work in v0.2. See Q-S5.
+- **Typography.** [TBD] — not yet discussed. Decide alongside the palette pass or shortly after.
+- **HUD/CCTV framing layer.** Deferred to v2+ per §4. Revisit after the gambit editor and combat scene have shipped in plain form. See Q-S6.
