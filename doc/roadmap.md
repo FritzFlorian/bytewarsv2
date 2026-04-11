@@ -195,7 +195,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 #### Track B — ui
 
 ##### T-2B.1 — Subscribe bridge + `useGameState` (parallel with Track A and Track C)
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-1.5
 - **Inputs:** logic public API (stubbed is fine)
@@ -207,7 +207,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 - **Notes:** No Redux, no Zustand (per `architecture.md` §6). Keep this small.
 
 ##### T-2B.2 — App shell + Combat screen scaffold (parallel)
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-2B.1
 - **Inputs:** state hook

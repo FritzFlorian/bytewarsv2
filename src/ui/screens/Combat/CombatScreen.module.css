@@ -1,0 +1,117 @@
+/* CombatScreen layout */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: monospace;
+  background: #0a0a0f;
+  color: #c8d0e0;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+  color: #7eb8f0;
+}
+
+.startButton {
+  padding: 0.5rem 1.25rem;
+  background: #1a3a5c;
+  color: #7eb8f0;
+  border: 1px solid #7eb8f0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
+
+.startButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Battlefield: player grid | scene mount | enemy grid */
+.battlefield {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+/* 3×3 slot grid using CSS grid */
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 5rem);
+  grid-template-rows: repeat(3, 5rem);
+  gap: 0.25rem;
+}
+
+.slot {
+  background: #111520;
+  border: 1px solid #222a40;
+  border-radius: 2px;
+}
+
+/* Mount point where <CombatScene> will be plugged in (T-3.1) */
+.sceneMountPoint {
+  width: 6rem;
+  min-height: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3a4260;
+  font-size: 0.7rem;
+  border: 1px dashed #3a4260;
+}
+
+/* Inert playback controls */
+.controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.controlButton {
+  padding: 0.35rem 0.75rem;
+  background: #111520;
+  color: #c8d0e0;
+  border: 1px solid #3a4260;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.controlButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.speedSelect {
+  padding: 0.35rem 0.5rem;
+  background: #111520;
+  color: #c8d0e0;
+  border: 1px solid #3a4260;
+  font-family: inherit;
+  font-size: 0.85rem;
+}
+
+.speedSelect:disabled {
+  opacity: 0.35;
+}
+
+.status {
+  font-size: 0.8rem;
+  color: #7eb8f0;
+  letter-spacing: 0.05em;
+}

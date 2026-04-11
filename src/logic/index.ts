@@ -19,3 +19,6 @@ export { createRng } from './rng'
 // --- Public API functions ---
 
 export { createCombat, resolveRound, isCombatOver } from './combat/resolver'
+
+export { walkingSkeletonFixture } from './content/fixtures'
+export type { WalkingSkeletonFixture } from './content/fixtures'
