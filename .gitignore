@@ -23,3 +23,7 @@ node_modules/.tmp/
 # OS
 .DS_Store
 Thumbs.db
+
+# Playwright output (generated artifacts — not source)
+tests/e2e/.output/
+playwright-report/
