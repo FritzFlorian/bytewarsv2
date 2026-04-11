@@ -2,6 +2,8 @@
 
 A roguelike auto-battler where you program robot squads with gambit-style priority rules, then watch the fights unfold. No manual control — write the plan, commit, watch it execute.
 
+**[Play now →](https://fritzflorian.github.io/bytewarsv2/)**
+
 ## Getting Started
 
 ```bash
