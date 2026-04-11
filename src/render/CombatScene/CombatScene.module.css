@@ -21,7 +21,10 @@
 .mainContent {
   display: flex;
   gap: 1.5rem;
-  align-items: flex-start;
+  /* stretch fills the scene width; align-items:stretch makes the log panel
+     match the battlefield container height (not grow with log content). */
+  align-self: stretch;
+  align-items: stretch;
 }
 
 /* Wraps the battlefield grid pair; `position: relative` anchors the projectile. */
@@ -228,9 +231,13 @@
 /* ── Combat log panel (T-2.4) ───────────────────────────────────────────────── */
 
 .logPanel {
-  width: 15rem;
-  max-height: 21rem;
+  /* Grow to fill remaining horizontal space; min-height:0 prevents log
+     content from inflating the row — vertical scroll handles overflow. */
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   background: #0d1020;
   border: 1px solid #1e2840;
   border-radius: 4px;
@@ -238,7 +245,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
-  flex-shrink: 0;
   scrollbar-width: thin;
   scrollbar-color: #2a3658 transparent;
 }
