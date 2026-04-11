@@ -116,6 +116,61 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 
 ---
 
-## v0.3 and beyond
+## v0.3 — Audio
 
-To be planned after v0.2 ships. Likely themes: content data + Zod loaders, vocabulary expansion, modules, cooldowns, reach rules, run map + node progression, reward selection screen, additional chassis (Lawnbot, Security-drone), Repair Bay node, flavor text, status effects.
+**Goal.** Every combat action, hit, and destruction has a synthesized sound effect. A looping background beat plays through the fight. A short win or lose stinger plays at the end.
+
+**Approach.** Web Audio API synthesis — pure TypeScript, no audio asset files. Claude generates all synthesis code on request. Audio is treated as part of display logic (`ui` track).
+
+**Scope.** Sounds: `action_used` (one sound per action kind), `damage_dealt` (hit), `unit_destroyed` (destroy). Music: looping background beat, win stinger, lose stinger. No mute/volume control for now.
+
+**Done bar.** All tasks done, `pnpm check` passes. Booting `pnpm dev`, clicking Run, and watching a fight produces synchronized sound effects and music.
+
+### M1 — Audio
+
+#### T-1.1 — Audio engine foundation
+- **Status:** todo
+- **Track:** ui
+- **Depends on:** v0.2 done
+- **Inputs:** `src/ui/screens/Combat/CombatScreen.tsx`
+- **Outputs:**
+  - `src/audio/engine.ts` — lazy `AudioContext` init (initialized on the "Run" click, which satisfies the browser user-gesture requirement), and a `playSound(id: SoundId)` dispatcher.
+  - `src/audio/sounds.ts` — `SoundId` type union covering all in-scope sounds: `attack`, `damage`, `destroy`, `beat`, `win`, `lose`.
+- **Acceptance:** `AudioContext` is not created until Run is clicked. Calling `playSound` before init does not throw. Compiles under strict TS. No sounds yet — stubs only.
+
+#### T-1.2 — Combat sound synthesis
+- **Status:** todo
+- **Track:** ui
+- **Depends on:** T-1.1
+- **Inputs:** `src/audio/engine.ts`, `src/audio/sounds.ts`
+- **Outputs:**
+  - Web Audio API synthesis functions for: `attack` (action sound), `damage` (hit sound), `destroy` (unit destroyed sound). Each is a self-contained function using the shared `AudioContext` from the engine.
+  - Registered in `playSound` dispatcher.
+- **Acceptance:** Calling `playSound('attack')`, `playSound('damage')`, `playSound('destroy')` in the browser each produces a distinct, recognizable sound. No audio files used.
+
+#### T-1.3 — Music synthesis
+- **Status:** todo
+- **Track:** ui
+- **Depends on:** T-1.1
+- **Inputs:** `src/audio/engine.ts`, `src/audio/sounds.ts`
+- **Outputs:**
+  - `beat` — a looping rhythmic background track that starts when combat playback begins and stops when it ends.
+  - `win` and `lose` — short stingers (2–4 seconds) triggered at `combat_ended` depending on outcome.
+  - All synthesized via Web Audio API. Registered in the engine.
+- **Acceptance:** Background beat loops without gaps during fight playback. Win/lose stinger plays correctly at fight end. Beat does not overlap with the stinger.
+
+#### T-1.4 — Wire audio to combat playback
+- **Status:** todo
+- **Track:** ui
+- **Depends on:** T-1.2, T-1.3
+- **Inputs:** `CombatScreen.tsx`, `CombatEvent[]`, playback timing from `src/render/playback.ts`
+- **Outputs:**
+  - `CombatScreen` starts the background beat when playback begins and calls `playSound` for each relevant event in sync with the playback timeline: `action_used` → `attack`, `damage_dealt` → `damage`, `unit_destroyed` → `destroy`, `combat_ended` → `win` or `lose`.
+  - Audio is triggered from `CombatScreen`, not from inside `CombatScene` (render layer stays audio-free).
+- **Acceptance:** Watching a fight in `pnpm dev`, every hit, action, and destroy has a synchronized sound. Win/lose stinger plays at the correct moment. `pnpm check` passes.
+
+---
+
+## v0.4 and beyond
+
+To be planned after v0.3 ships. Likely themes: content data + Zod loaders, vocabulary expansion, modules, cooldowns, reach rules, run map + node progression, reward selection screen, additional chassis (Lawnbot, Security-drone), Repair Bay node, flavor text, status effects.
