@@ -5,7 +5,7 @@
 //   - condition=target_exists shows condition target selector
 //   - condition=always shows neither
 //   - action=idle hides action target selector
-//   - action=attack shows action target selector
+//   - action=named_attack shows action target selector
 //   - Selecting a new condition via the dropdown fires onChange with the correct rule
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
@@ -23,7 +23,7 @@ afterEach(() => cleanup())
 describe('GambitSlot — conditional field visibility', () => {
   it('always + idle: no pct, no target selectors', () => {
     const rule: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} />)
+    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
     expect(screen.queryByLabelText('HP threshold 1')).toBeNull()
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
@@ -31,7 +31,7 @@ describe('GambitSlot — conditional field visibility', () => {
 
   it('self_hp_below + idle: shows pct input, no target selectors', () => {
     const rule: Rule = { condition: { kind: 'self_hp_below', pct: 50 }, action: { kind: 'idle' } }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} />)
+    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
     expect(screen.getByLabelText('HP threshold 1')).toBeTruthy()
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
@@ -42,18 +42,18 @@ describe('GambitSlot — conditional field visibility', () => {
       condition: { kind: 'target_exists', target: 'nearest_enemy' },
       action: { kind: 'idle' },
     }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} />)
+    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
     expect(screen.queryByLabelText('HP threshold 1')).toBeNull()
     expect(screen.getByLabelText('Condition target 1')).toBeTruthy()
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
   })
 
-  it('always + attack: shows action target selector, no condition extras', () => {
+  it('always + named attack: shows action target selector, no condition extras', () => {
     const rule: Rule = {
       condition: { kind: 'always' },
-      action: { kind: 'attack', target: 'nearest_enemy' },
+      action: { kind: 'quick_jab', target: 'nearest_enemy' },
     }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} />)
+    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
     expect(screen.queryByLabelText('HP threshold 1')).toBeNull()
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
     expect(screen.getByLabelText('Action target 1')).toBeTruthy()
@@ -64,9 +64,9 @@ describe('GambitSlot — conditional field visibility', () => {
 // Interaction — stateful wrapper so the slot reflects prop changes
 // ---------------------------------------------------------------------------
 
-function SlotWrapper({ initialRule }: { initialRule: Rule }) {
+function SlotWrapper({ initialRule, chassis = 'vacuum' as const }: { initialRule: Rule; chassis?: 'vacuum' | 'butler' | 'qa-rig' | 'overseer' }) {
   const [rule, setRule] = useState(initialRule)
-  return <GambitSlot index={0} rule={rule} onChange={setRule} />
+  return <GambitSlot index={0} rule={rule} onChange={setRule} chassis={chassis} />
 }
 
 describe('GambitSlot — interaction', () => {
@@ -115,7 +115,7 @@ describe('GambitSlot — interaction', () => {
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
   })
 
-  it('selecting attack shows action target selector; switching to idle hides it', () => {
+  it('selecting a named attack shows action target selector; switching to idle hides it', () => {
     const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
     render(<SlotWrapper initialRule={initial} />)
 
@@ -123,7 +123,10 @@ describe('GambitSlot — interaction', () => {
 
     const actionInput = screen.getByLabelText('Action 1')
     fireEvent.focus(actionInput)
-    fireEvent.mouseDown(screen.getByRole('option', { name: 'attack' }))
+    // Quick Jab is the first attack option for vacuum
+    const option = screen.getAllByRole('option').find(o => o.textContent?.includes('Quick Jab'))
+    expect(option).toBeTruthy()
+    fireEvent.mouseDown(option!)
 
     expect(screen.getByLabelText('Action target 1')).toBeTruthy()
 
@@ -134,10 +137,38 @@ describe('GambitSlot — interaction', () => {
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
   })
 
+  it('only shows chassis-appropriate attacks for vacuum', () => {
+    const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
+    render(<SlotWrapper initialRule={initial} chassis="vacuum" />)
+
+    const actionInput = screen.getByLabelText('Action 1')
+    fireEvent.focus(actionInput)
+
+    const options = screen.getAllByRole('option').map(o => o.textContent ?? '')
+    expect(options.some(o => o.includes('Quick Jab'))).toBe(true)
+    expect(options.some(o => o.includes('Sweep'))).toBe(true)
+    // Butler/QA-Rig attacks should NOT appear
+    expect(options.some(o => o.includes('Taser'))).toBe(false)
+    expect(options.some(o => o.includes('Clamp'))).toBe(false)
+  })
+
+  it('only shows chassis-appropriate attacks for butler', () => {
+    const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
+    render(<SlotWrapper initialRule={initial} chassis="butler" />)
+
+    const actionInput = screen.getByLabelText('Action 1')
+    fireEvent.focus(actionInput)
+
+    const options = screen.getAllByRole('option').map(o => o.textContent ?? '')
+    expect(options.some(o => o.includes('Taser'))).toBe(true)
+    expect(options.some(o => o.includes('Overload'))).toBe(true)
+    expect(options.some(o => o.includes('Quick Jab'))).toBe(false)
+  })
+
   it('onChange is called with the correct new rule value', () => {
     const onChange = vi.fn()
     const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
-    render(<GambitSlot index={0} rule={initial} onChange={onChange} />)
+    render(<GambitSlot index={0} rule={initial} onChange={onChange} chassis="vacuum" />)
 
     const conditionInput = screen.getByLabelText('Condition 1')
     fireEvent.focus(conditionInput)

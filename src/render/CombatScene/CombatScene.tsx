@@ -18,6 +18,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { CombatEvent } from '../../logic/combat/events'
 import type { Row, Column } from '../../logic/state/types'
+import { isAttackAction } from '../../logic/gambits/types'
+import { getAttackDef } from '../../logic/content/attackLoader'
 import { type UnitInfo, type PlaybackSpeed, buildSchedule } from '../playback'
 import { Vacuum } from '../units/Vacuum'
 import { Butler } from '../units/Butler'
@@ -127,7 +129,7 @@ function deriveCurrentAttack(
   let pending: { attackerId: string; targetId: string } | null = null
   for (let i = 0; i < count; i++) {
     const e = events[i]
-    if (e.kind === 'action_used' && e.action.kind === 'attack' && e.targets.length > 0) {
+    if (e.kind === 'action_used' && isAttackAction(e.action) && e.targets.length > 0) {
       pending = { attackerId: e.unitId, targetId: e.targets[0] }
     }
     if (e.kind === 'damage_dealt' || e.kind === 'turn_ended') pending = null
@@ -179,7 +181,7 @@ function buildLogEntries(
       entries.push({ kind: 'round', text: `Round ${e.round}` })
     } else if (e.kind === 'action_used') {
       const attackerName = nameMap.get(e.unitId) ?? e.unitId
-      if (e.action.kind === 'attack' && e.targets.length > 0) {
+      if (isAttackAction(e.action) && e.targets.length > 0) {
         const targetName = nameMap.get(e.targets[0]) ?? e.targets[0]
         // Look ahead within applied window for the damage amount.
         let dmgText = ''
@@ -191,7 +193,8 @@ function buildLogEntries(
           }
           if (ne.kind === 'turn_ended') break
         }
-        entries.push({ kind: 'attack', text: `${attackerName} → attack → ${targetName}${dmgText}` })
+        const attackName = getAttackDef(e.action.kind).name
+        entries.push({ kind: 'attack', text: `${attackerName} → ${attackName} → ${targetName}${dmgText}` })
       } else if (e.action.kind === 'idle') {
         entries.push({ kind: 'idle', text: `${attackerName} → idle` })
       }

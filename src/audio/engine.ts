@@ -12,7 +12,12 @@
  */
 
 import type { SoundId } from './sounds'
-import { playAttack } from './attack'
+import { playQuickJab } from './quickJab'
+import { playSweep } from './sweep'
+import { playTaser } from './taser'
+import { playOverload } from './overload'
+import { playClamp } from './clamp'
+import { playSuppression } from './suppression'
 import { playDamage } from './damage'
 import { playDestroy } from './destroy'
 import { startBeat } from './beat'
@@ -34,12 +39,17 @@ export function initAudio(): void {
 export function playSound(id: SoundId): void {
   if (!ctx) return
   switch (id) {
-    case 'attack':  playAttack(ctx);  break
-    case 'damage':  playDamage(ctx);  break
-    case 'destroy': playDestroy(ctx); break
-    case 'win':     playWin(ctx);     break
-    case 'lose':    playLose(ctx);    break
-    case 'beat':    /* managed via startMusic() */ break
+    case 'quick_jab':   playQuickJab(ctx);   break
+    case 'sweep':       playSweep(ctx);       break
+    case 'taser':       playTaser(ctx);       break
+    case 'overload':    playOverload(ctx);    break
+    case 'clamp':       playClamp(ctx);       break
+    case 'suppression': playSuppression(ctx); break
+    case 'damage':      playDamage(ctx);      break
+    case 'destroy':     playDestroy(ctx);     break
+    case 'win':         playWin(ctx);         break
+    case 'lose':        playLose(ctx);        break
+    case 'beat':        /* managed via startMusic() */ break
   }
 }
 

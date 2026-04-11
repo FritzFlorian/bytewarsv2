@@ -1,0 +1,56 @@
+[
+  {
+    "id": "quick_jab",
+    "name": "Quick Jab",
+    "damage": 8,
+    "cooldown": 0,
+    "initialCooldown": 0,
+    "sound": "quick_jab",
+    "chassis": ["vacuum"]
+  },
+  {
+    "id": "sweep",
+    "name": "Sweep",
+    "damage": 18,
+    "cooldown": 2,
+    "initialCooldown": 0,
+    "sound": "sweep",
+    "chassis": ["vacuum"]
+  },
+  {
+    "id": "taser",
+    "name": "Taser",
+    "damage": 7,
+    "cooldown": 0,
+    "initialCooldown": 0,
+    "sound": "taser",
+    "chassis": ["butler"]
+  },
+  {
+    "id": "overload",
+    "name": "Overload",
+    "damage": 30,
+    "cooldown": 3,
+    "initialCooldown": 1,
+    "sound": "overload",
+    "chassis": ["butler"]
+  },
+  {
+    "id": "clamp",
+    "name": "Clamp",
+    "damage": 15,
+    "cooldown": 1,
+    "initialCooldown": 0,
+    "sound": "clamp",
+    "chassis": ["qa-rig"]
+  },
+  {
+    "id": "suppression",
+    "name": "Suppression",
+    "damage": 20,
+    "cooldown": 1,
+    "initialCooldown": 0,
+    "sound": "suppression",
+    "chassis": ["overseer"]
+  }
+]

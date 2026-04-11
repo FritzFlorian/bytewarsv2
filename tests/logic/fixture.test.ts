@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { walkingSkeletonFixture } from '../../src/logic/content/fixtures'
-import type { Condition, Action } from '../../src/logic/gambits/types'
+import type { Condition } from '../../src/logic/gambits/types'
+import { isAttackAction } from '../../src/logic/gambits/types'
 
 // V0.1 vocabulary constraints
 const VALID_CONDITION_KINDS: Condition['kind'][] = ['always', 'self_hp_below', 'target_exists']
-const VALID_ACTION_KINDS: Action['kind'][] = ['attack', 'idle']
 const VALID_TARGET_SELECTORS = ['self', 'nearest_enemy', 'any_enemy'] as const
 
 describe('walkingSkeletonFixture', () => {
@@ -54,10 +54,12 @@ describe('walkingSkeletonFixture', () => {
     }
   })
 
-  it('all gambits use only v0.1 action kinds', () => {
+  it('all gambits use only named attack IDs or idle', () => {
     for (const unit of [...playerUnits, ...enemyUnits]) {
       for (const rule of unit.gambits) {
-        expect(VALID_ACTION_KINDS).toContain(rule.action.kind)
+        // Every action is either a named attack or idle — no generic 'attack'
+        const validKinds = ['quick_jab', 'sweep', 'taser', 'overload', 'clamp', 'suppression', 'idle']
+        expect(validKinds).toContain(rule.action.kind)
       }
     }
   })
@@ -68,7 +70,7 @@ describe('walkingSkeletonFixture', () => {
         if (rule.condition.kind === 'target_exists') {
           expect(VALID_TARGET_SELECTORS).toContain(rule.condition.target)
         }
-        if (rule.action.kind === 'attack') {
+        if (isAttackAction(rule.action)) {
           expect(VALID_TARGET_SELECTORS).toContain(rule.action.target)
         }
       }

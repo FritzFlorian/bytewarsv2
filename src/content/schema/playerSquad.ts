@@ -2,6 +2,7 @@
 // Any structural mismatch throws a descriptive error at startup.
 
 import { z } from 'zod'
+import { AttackIdSchema } from './attack'
 
 const TargetSelectorSchema = z.enum(['self', 'nearest_enemy', 'any_enemy'])
 
@@ -11,8 +12,8 @@ const ConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('target_exists'), target: TargetSelectorSchema }),
 ])
 
-const ActionSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('attack'), target: TargetSelectorSchema }),
+const ActionSchema = z.union([
+  z.object({ kind: AttackIdSchema, target: TargetSelectorSchema }),
   z.object({ kind: z.literal('idle') }),
 ])
 

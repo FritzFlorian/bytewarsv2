@@ -39,13 +39,9 @@ v0.4 shipped the full run loop: player squad loaded from editable `src/content/p
 
 ---
 
-## v0.5 — Named Attacks, Cooldowns, and Per-Attack Sound
+## v0.5 — Named Attacks, Cooldowns, and Per-Attack Sound (done)
 
-**Goal.** Replace the single generic `attack` action with a roster of named attacks. Each attack has distinct damage, cooldown, and synthesized sound. Available attacks are chassis-specific. The gambit editor only shows attacks valid for the selected unit. Higher-damage attacks have longer cooldowns; some have an initial warmup before they're usable.
-
-**Scope.** 6 attacks across 4 chassis (see T-5.1). Cooldowns tracked in combat state; the interpreter falls through a rule silently if the attack is on cooldown. No new conditions or target selectors. No modules or reach rules.
-
-**Done bar.** All milestones done. `pnpm check` passes. A fight shows distinct named attacks, each with its own sound and damage value. Cooldowns visibly gate reuse. The gambit editor only offers attacks valid for the selected chassis.
+v0.5 replaced the generic `attack` action with 6 named attacks across 4 chassis (`quick_jab`, `sweep`, `taser`, `overload`, `clamp`, `suppression`). Each attack has its own damage value, cooldown, initial cooldown, and synthesized Web Audio sound. Cooldowns are tracked in `CombatState` and gate reuse; the gambit interpreter falls through blocked rules silently. The gambit editor shows only chassis-valid attacks with damage/cooldown info and a round-1 warning for `overload`. Combat log displays human-readable attack names. All tasks done, `pnpm check` passes.
 
 ### Attack roster
 
@@ -61,7 +57,7 @@ v0.4 shipped the full run loop: player squad loaded from editable `src/content/p
 ### M1 — Foundation
 
 #### T-5.1 — Attack content JSON + Zod schema + loader
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** v0.4 done
 - **Inputs:** `src/content/schema/` (existing pattern from playerSquad), `src/logic/content/`
@@ -77,7 +73,7 @@ v0.4 shipped the full run loop: player squad loaded from editable `src/content/p
 M2 begins after T-5.1 is done. T-5.2 and T-5.5 are **(parallel)**.
 
 #### T-5.2 — Gambit type refactor: named attack discriminants
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-5.1
 - **Inputs:** `src/logic/gambits/types.ts`, `src/content/schema/attack.ts`, `src/logic/gambits/interpreter.ts`, all tests referencing `{ kind: 'attack' }`
@@ -89,7 +85,7 @@ M2 begins after T-5.1 is done. T-5.2 and T-5.5 are **(parallel)**.
 - **Acceptance:** No TypeScript errors. `pnpm check` passes (tests still reference valid action kinds).
 
 #### T-5.5 — Per-attack sound synthesis
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-5.1
 - **Inputs:** `src/audio/sounds.ts`, `src/audio/engine.ts`, existing synthesis files for reference
@@ -104,7 +100,7 @@ M2 begins after T-5.1 is done. T-5.2 and T-5.5 are **(parallel)**.
 M3 begins after T-5.2 is done. All four tasks are **(parallel)**. T-5.7 also requires T-5.5 to be done before it can wire sounds.
 
 #### T-5.3 — Cooldown tracking in CombatState + resolver
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-5.2
 - **Inputs:** `src/logic/state/types.ts`, `src/logic/combat/resolver.ts`, `src/logic/content/attackLoader.ts`
@@ -120,7 +116,7 @@ M3 begins after T-5.2 is done. All four tasks are **(parallel)**. T-5.7 also req
 - **Acceptance:** Tests pass. `pnpm check` passes.
 
 #### T-5.4 — Update fixtures + player-squad.json
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-5.2
 - **Inputs:** `src/logic/content/fixtures.ts`, `src/content/player-squad.json`, `src/content/schema/playerSquad.ts`
@@ -131,7 +127,7 @@ M3 begins after T-5.2 is done. All four tasks are **(parallel)**. T-5.7 also req
 - **Acceptance:** `pnpm dev` loads without errors. All gambit entries reference valid named attacks. `pnpm check` passes.
 
 #### T-5.6 — Gambit editor: chassis-filtered attack picker
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-5.2
 - **Inputs:** `src/ui/screens/GambitEditor/GambitSlot.tsx`, `src/logic/content/attackLoader.ts`, unit chassis information available in editor context
@@ -142,7 +138,7 @@ M3 begins after T-5.2 is done. All four tasks are **(parallel)**. T-5.7 also req
 - **Acceptance:** Opening the editor for a Vacuum unit shows exactly Quick Jab and Sweep. Opening for a Butler unit shows Taser and Overload. No cross-chassis attacks appear. `pnpm check` passes.
 
 #### T-5.7 — Combat log + playback: named attacks and sounds
-- **Status:** todo
+- **Status:** done
 - **Track:** render + ui
 - **Depends on:** T-5.2, T-5.5
 - **Inputs:** combat log component in `src/render/CombatScene/`, `CombatScreen.tsx`, `src/logic/content/attackLoader.ts`

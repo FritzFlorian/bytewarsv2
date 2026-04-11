@@ -1,36 +1,37 @@
-// Walking-skeleton fixture for Bytewars v0.1.
+// Walking-skeleton fixture for Bytewars v0.5.
 //
-// Hardcoded only — no JSON loaders, no Zod. Content data files land in v0.2.
-// HP values are per Q-V0.1-2: player units at 80 HP, enemy units at 60 HP.
-// Damage is fixed at 10 per attack (no variance) — revisit when modules land in v0.2.
+// Updated from v0.1: gambits now use named attack IDs instead of the generic
+// `{ kind: 'attack' }` action. HP values remain unchanged.
 //
 // Chassis used:
-//   - vacuum  : player melee attacker
-//   - butler  : player support attacker (gambit exercises self_hp_below)
-//   - qa-rig  : enemy attacker × 2
+//   - vacuum  : player melee attacker — uses quick_jab / sweep
+//   - butler  : player support attacker — uses taser / overload
+//   - qa-rig  : enemy attacker × 2 — uses clamp
+//   - overseer: boss chassis × 3 — uses suppression
 
 import type { Unit } from '../state/types'
 import type { GambitList } from '../gambits/types'
 
 const vacuumGambits: GambitList = [
-  // Primary: always attack the nearest enemy
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'attack', target: 'nearest_enemy' } },
+  // Primary: sweep if available (high damage), otherwise quick_jab
+  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'sweep', target: 'nearest_enemy' } },
+  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'quick_jab', target: 'nearest_enemy' } },
   // Fallback: idle
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
 
 const butlerGambits: GambitList = [
-  // When below 50% HP, strike any enemy (exercises self_hp_below + any_enemy)
-  { condition: { kind: 'self_hp_below', pct: 50 }, action: { kind: 'attack', target: 'any_enemy' } },
-  // Otherwise, attack nearest enemy
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'attack', target: 'nearest_enemy' } },
+  // When below 50% HP, strike any enemy with overload if available
+  { condition: { kind: 'self_hp_below', pct: 50 }, action: { kind: 'overload', target: 'any_enemy' } },
+  // Otherwise, taser nearest enemy
+  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'taser', target: 'nearest_enemy' } },
   // Fallback: idle
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
 
 const qaRigGambits: GambitList = [
-  // Attack nearest enemy unconditionally
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'attack', target: 'nearest_enemy' } },
+  // Attack nearest enemy with clamp
+  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'clamp', target: 'nearest_enemy' } },
   // Fallback: idle
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
@@ -90,13 +91,12 @@ export function walkingSkeletonFixture(): WalkingSkeletonFixture {
   return { playerUnits, enemyUnits }
 }
 
-// v0.4 boss encounter — 3 Overseer units at 120 HP each.
-// Gambits exercise the full v0.1 vocabulary in an aggressive priority order.
+// v0.5 boss encounter — 3 Overseer units at 120 HP each using suppression.
 const overseerGambits: GambitList = [
-  // Primary: attack nearest enemy when one exists
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'attack', target: 'nearest_enemy' } },
-  // Fallback: attack any enemy unconditionally
-  { condition: { kind: 'always' }, action: { kind: 'attack', target: 'any_enemy' } },
+  // Primary: suppression on nearest enemy
+  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'suppression', target: 'nearest_enemy' } },
+  // Fallback: suppression on any enemy
+  { condition: { kind: 'always' }, action: { kind: 'suppression', target: 'any_enemy' } },
 ]
 
 export function bossEncounterFixture(): BossEncounterFixture {

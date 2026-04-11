@@ -6,15 +6,17 @@
 
 import { useRef } from 'react'
 import type { Rule } from '../../../logic'
+import type { Chassis } from '../../../logic'
 import { GambitSlot } from './GambitSlot'
 import styles from './GambitList.module.css'
 
 export interface GambitListProps {
   rules: Rule[]
   onChange: (rules: Rule[]) => void
+  chassis: Chassis
 }
 
-export function GambitList({ rules, onChange }: GambitListProps) {
+export function GambitList({ rules, onChange, chassis }: GambitListProps) {
   /** Index of the slot currently being dragged. */
   const dragIndex = useRef<number | null>(null)
 
@@ -58,6 +60,7 @@ export function GambitList({ rules, onChange }: GambitListProps) {
             index={i}
             rule={rule}
             onChange={updated => handleSlotChange(i, updated)}
+            chassis={chassis}
           />
         </div>
       ))}

@@ -6,16 +6,25 @@
 // carry-over damage when planning their strategy.
 
 import { useState } from 'react'
-import type { Rule, GambitList } from '../../../logic'
+import type { Rule, GambitList, AttackId } from '../../../logic'
+import type { Chassis } from '../../../logic'
+import { getAttacksForChassis } from '../../../logic'
 import { GambitList as GambitListComponent } from './GambitList'
 import styles from './GambitEditorScreen.module.css'
 
 const SLOT_COUNT = 4
 
-/** Default gambit list for a new unit tab. */
-function defaultGambits(): Rule[] {
+/** Default gambit list for a new unit tab — uses the first available attack for the chassis. */
+function defaultGambits(chassis: Chassis): Rule[] {
+  const attacks = getAttacksForChassis(chassis)
+  const firstAttack = attacks[0]?.id as AttackId | undefined
   return [
-    { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'attack', target: 'nearest_enemy' } },
+    {
+      condition: { kind: 'target_exists', target: 'nearest_enemy' },
+      action: firstAttack != null
+        ? { kind: firstAttack, target: 'nearest_enemy' as const }
+        : { kind: 'idle' as const },
+    },
     ...Array.from({ length: SLOT_COUNT - 1 }, (): Rule => ({
       condition: { kind: 'always' },
       action: { kind: 'idle' },
@@ -44,7 +53,7 @@ export function GambitEditorScreen({ units, onRun }: Props) {
   const [gambitMap, setGambitMap] = useState<Record<string, Rule[]>>(() => {
     const map: Record<string, Rule[]> = {}
     for (const u of units) {
-      map[u.id] = u.gambits.length > 0 ? [...u.gambits] : defaultGambits()
+      map[u.id] = u.gambits.length > 0 ? [...u.gambits] : defaultGambits(u.chassis as Chassis)
     }
     return map
   })
@@ -90,8 +99,9 @@ export function GambitEditorScreen({ units, onRun }: Props) {
         <section className={styles.gambitSection}>
           <h2 className={styles.unitName}>{activeUnit.name}</h2>
           <GambitListComponent
-            rules={gambitMap[activeUnit.id] ?? defaultGambits()}
+            rules={gambitMap[activeUnit.id] ?? defaultGambits(activeUnit.chassis as Chassis)}
             onChange={rules => setGambits(activeUnit.id, rules)}
+            chassis={activeUnit.chassis as Chassis}
           />
         </section>
       )}

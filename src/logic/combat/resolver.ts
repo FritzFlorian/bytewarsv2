@@ -1,21 +1,19 @@
-// Combat resolver for Bytewars v0.1.
+// Combat resolver for Bytewars v0.5.
 //
-// Simplifications that are in place for the walking skeleton only:
-//   - Damage is fixed at 10 per attack (no variance, no crit, no modules).
-//   - Row/column reach rules are NOT enforced — any unit can attack any other
-//     unit regardless of row. Reach rules land in v0.2 with content data.
-//   - Turn order is interleaved: player units and enemy units sorted by
-//     front→middle→back row, then column 0→2. If one side has more units they
-//     act consecutively at the end. No player-configurable ordering yet.
+// v0.5 changes:
+//   - Damage is per-attack (from attackDef.damage); ATTACK_DAMAGE constant removed.
+//   - Cooldowns tracked in CombatState.cooldowns; initialCooldown applied at combat start.
+//   - Gambit interpreter: if the chosen attack is on cooldown, fall through to next rule.
+//   - Row/column reach rules are still NOT enforced (deferred to v0.6+).
 
-import type { Unit, Battlefield, CombatState, SlotMap, Side } from '../state/types'
+import type { Unit, Battlefield, CombatState, SlotMap, Side, CooldownMap } from '../state/types'
 import { slotKey } from '../state/types'
 import type { CombatEvent } from './events'
-import { chooseRule, resolveTarget } from '../gambits/interpreter'
+import { evaluateCondition, resolveTarget } from '../gambits/interpreter'
+import { isAttackAction, type Action } from '../gambits/types'
 import { createRng } from '../rng'
-
-/** Fixed damage per attack in v0.1. Revisit once modules exist in v0.2. */
-const ATTACK_DAMAGE = 10
+import { getAttackDef, getAttacksForChassis } from '../content/attackLoader'
+import type { AttackId } from '../../content/schema/attack'
 
 const ROW_ORDER = ['front', 'middle', 'back'] as const
 
@@ -29,11 +27,6 @@ function getUnitsBySide(slots: SlotMap, side: Side): Unit[] {
     .sort((a, b) => unitSortKey(a) - unitSortKey(b))
 }
 
-/**
- * Build the interleaved turn order for the round.
- * player[0], enemy[0], player[1], enemy[1], …
- * Extra units from the longer side are appended at the end.
- */
 function buildTurnOrder(slots: SlotMap): Unit[] {
   const players = getUnitsBySide(slots, 'player')
   const enemies = getUnitsBySide(slots, 'enemy')
@@ -54,6 +47,35 @@ function checkWinner(slots: SlotMap): 'player' | 'enemy' | null {
   return null
 }
 
+/**
+ * Build initial cooldown map.
+ *
+ * Stored value semantics: the counter is decremented at the start of each
+ * round; an attack is blocked when cd > 0 AFTER decrementing.
+ *
+ * To make "initialCooldown=N" mean "unavailable for N rounds at battle start"
+ * we store N+1 so that the round-1 decrement leaves the counter at N (still > 0).
+ * After N more decrements (N rounds) the counter reaches 0 and the attack is
+ * available. The same logic applies to cooldown after use: we store cooldown+1.
+ */
+function buildInitialCooldowns(units: Unit[]): CooldownMap {
+  const map: CooldownMap = new Map()
+  for (const unit of units) {
+    const unitMap = new Map<AttackId, number>()
+    for (const atk of getAttacksForChassis(unit.chassis)) {
+      if (atk.initialCooldown > 0) {
+        unitMap.set(atk.id, atk.initialCooldown + 1)
+      }
+    }
+    map.set(unit.id, unitMap)
+  }
+  return map
+}
+
+function getCooldown(cooldowns: CooldownMap, unitId: string, attackId: AttackId): number {
+  return cooldowns.get(unitId)?.get(attackId) ?? 0
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -63,11 +85,13 @@ export function createCombat(
   playerUnits: Unit[],
   enemyUnits: Unit[],
 ): CombatState {
+  const allUnits = [...playerUnits, ...enemyUnits]
   const slots: SlotMap = new Map()
-  for (const unit of [...playerUnits, ...enemyUnits]) {
+  for (const unit of allUnits) {
     slots.set(slotKey(unit.slot), unit)
   }
-  return { battlefield: { slots, round: 1 }, seed, finished: false }
+  const cooldowns = buildInitialCooldowns(allUnits)
+  return { battlefield: { slots, round: 1 }, seed, finished: false, cooldowns }
 }
 
 export function isCombatOver(state: CombatState): false | 'player' | 'enemy' {
@@ -78,51 +102,78 @@ export function resolveRound(
   state: CombatState,
 ): { state: CombatState; events: CombatEvent[] } {
   const events: CombatEvent[] = []
-
-  // Create a seeded RNG for this round. All randomness (e.g. any_enemy target
-  // selection) flows through this instance so replays are deterministic.
   const rng = createRng(state.seed)
 
-  // Work on a mutable snapshot of the slot map so destroyed units are removed
-  // immediately and subsequent turns see the updated battlefield.
   const slots: SlotMap = new Map(state.battlefield.slots)
   const round = state.battlefield.round
 
+  // Deep-copy cooldowns so mutations this round don't affect the original state.
+  const cooldowns: CooldownMap = new Map()
+  for (const [uid, atkMap] of state.cooldowns) {
+    cooldowns.set(uid, new Map(atkMap))
+  }
+
   events.push({ kind: 'round_started', round })
 
-  // Turn order is captured once at the start of the round (by slot key).
-  // We check whether each unit is still alive before giving it a turn.
+  // Decrement all non-zero cooldowns at the start of each round.
+  for (const atkMap of cooldowns.values()) {
+    for (const [atkId, cd] of atkMap) {
+      if (cd > 0) atkMap.set(atkId, cd - 1)
+    }
+  }
+
   const turnOrder = buildTurnOrder(slots)
 
   for (const unitSnapshot of turnOrder) {
     const unit = slots.get(slotKey(unitSnapshot.slot))
-    if (!unit) continue   // destroyed earlier this round
+    if (!unit) continue
 
     const bf: Battlefield = { slots, round }
 
     events.push({ kind: 'turn_started', unitId: unit.id })
 
-    const { ruleIndex, action } = chooseRule(unit, bf)
-    events.push({ kind: 'rule_fired', unitId: unit.id, ruleIndex })
+    // Walk gambit list; skip attack rules whose attack is on cooldown.
+    let chosenRuleIndex = -1
+    let chosenAction: Action = { kind: 'idle' }
 
-    if (action.kind === 'attack') {
-      const target = resolveTarget(action.target, unit, bf, rng)
+    for (let i = 0; i < unit.gambits.length; i++) {
+      const rule = unit.gambits[i]
+      if (!evaluateCondition(rule.condition, unit, bf)) continue
+      if (isAttackAction(rule.action) && getCooldown(cooldowns, unit.id, rule.action.kind) > 0) {
+        continue  // on cooldown — fall through to next rule
+      }
+      chosenRuleIndex = i
+      chosenAction = rule.action
+      break
+    }
+
+    events.push({ kind: 'rule_fired', unitId: unit.id, ruleIndex: chosenRuleIndex })
+
+    if (isAttackAction(chosenAction)) {
+      const target = resolveTarget(chosenAction.target, unit, bf, rng)
       const targetIds = target ? [target.id] : []
-      events.push({ kind: 'action_used', unitId: unit.id, action, targets: targetIds })
+      events.push({ kind: 'action_used', unitId: unit.id, action: chosenAction, targets: targetIds })
 
       if (target) {
-        events.push({ kind: 'damage_dealt', sourceId: unit.id, targetId: target.id, amount: ATTACK_DAMAGE })
-        const newHp = target.hp - ATTACK_DAMAGE
+        const atkDef = getAttackDef(chosenAction.kind)
+        events.push({ kind: 'damage_dealt', sourceId: unit.id, targetId: target.id, amount: atkDef.damage })
+        const newHp = target.hp - atkDef.damage
         if (newHp <= 0) {
           slots.delete(slotKey(target.slot))
           events.push({ kind: 'unit_destroyed', unitId: target.id })
         } else {
           slots.set(slotKey(target.slot), { ...target, hp: newHp })
         }
+
+        // Record cooldown for used attack (store cooldown+1; see buildInitialCooldowns comment).
+        if (atkDef.cooldown > 0) {
+          const unitCds = cooldowns.get(unit.id) ?? new Map<AttackId, number>()
+          unitCds.set(chosenAction.kind, atkDef.cooldown + 1)
+          cooldowns.set(unit.id, unitCds)
+        }
       }
     } else {
-      // idle (or future non-attack actions)
-      events.push({ kind: 'action_used', unitId: unit.id, action, targets: [] })
+      events.push({ kind: 'action_used', unitId: unit.id, action: chosenAction, targets: [] })
     }
 
     events.push({ kind: 'turn_ended', unitId: unit.id })
@@ -137,9 +188,9 @@ export function resolveRound(
 
   const newState: CombatState = {
     battlefield: { slots, round: round + 1 },
-    // Advance the seed so each round draws a different RNG sequence.
     seed: rng.nextInt(0x100000000) + 1,
     finished: winner ?? false,
+    cooldowns,
   }
 
   return { state: newState, events }

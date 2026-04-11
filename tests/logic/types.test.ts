@@ -22,6 +22,7 @@ test('T-1.1: CombatState literal compiles and is well-formed', () => {
     },
     seed: 42,
     finished: false,
+    cooldowns: new Map(),
   }
 
   expect(state.finished).toBe(false)

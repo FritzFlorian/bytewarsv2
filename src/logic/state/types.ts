@@ -11,6 +11,7 @@
 // union shapes in gambits/types.ts and combat/events.ts should not need to change.
 
 import type { GambitList } from '../gambits/types'
+import type { AttackId } from '../../content/schema/attack'
 
 export type UnitId = string
 
@@ -50,10 +51,15 @@ export interface Battlefield {
   round: number
 }
 
+/** Cooldown counters: rounds remaining before each attack is available (0 = available). */
+export type CooldownMap = Map<UnitId, Map<AttackId, number>>
+
 export interface CombatState {
   battlefield: Battlefield
   seed: number
   finished: false | 'player' | 'enemy'
+  /** Per-unit, per-attack cooldown counters. */
+  cooldowns: CooldownMap
 }
 
 /** Convenience: produce the canonical slot-map key from a SlotRef. */

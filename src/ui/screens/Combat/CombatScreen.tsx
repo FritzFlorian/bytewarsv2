@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CombatEvent } from '../../../logic'
+import { isAttackAction } from '../../../logic'
 import { buildSchedule } from '../../../render/playback'
 import type { PlaybackSpeed } from '../../../render/playback'
 import { playSound, startMusic } from '../../../audio/engine'
@@ -70,8 +71,9 @@ export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSp
       const ev = se.event
       const delayMs = Math.max(0, wallStart + se.startMs - now)
 
-      if (ev.kind === 'action_used' && ev.action.kind === 'attack') {
-        timers.push(setTimeout(() => playSound('attack'), delayMs))
+      if (ev.kind === 'action_used' && isAttackAction(ev.action)) {
+        const attackKind = ev.action.kind
+        timers.push(setTimeout(() => playSound(attackKind), delayMs))
       } else if (ev.kind === 'damage_dealt') {
         timers.push(setTimeout(() => playSound('damage'), delayMs))
       } else if (ev.kind === 'unit_destroyed') {

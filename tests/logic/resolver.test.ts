@@ -135,26 +135,23 @@ describe('resolveRound — single round', () => {
 // ---------------------------------------------------------------------------
 // Golden test — full fight with pinned seed
 //
-// Fight trace (seed=42, damage=10, player HP=80, enemy HP=60):
+// Fight trace (seed=42, v0.5 named attacks + cooldowns):
+//   Fixture: vacuum (sweep 18dmg cd2 / quick_jab 8dmg) vs qa-rig×2 (clamp 15dmg cd1)
+//            butler (overload 30dmg init-cd1 cd3 / taser 7dmg) — overload avail from round 2
 //
-//   Round 1: p-vacuum(80→70), p-butler(80→70), e1(60→40), e2(60→60)
-//            e2 focuses p-vacuum (nearest_enemy = player front/col-0)
-//   Round 2: p-vacuum(70→60), p-butler(70→70), e1(40→20), e2(60→60)
-//   Round 3: p-vacuum(60→50), p-butler(70→70), e1 DESTROYED (20→0 via p-butler), e2(60→50)
-//   Round 4: p-vacuum(50→40), p-butler(70→70), e2(50→30) [e2 now only enemy]
-//            both e2's attacks still go to p-vacuum (nearest = player front/col-0)
-//   Round 5: p-vacuum(40→30), p-butler(70→70), e2 DESTROYS p-vacuum (30→10 then 10→0)
-//   Round 6: p-butler(70→60), e2(30→20)
-//   Round 7: p-butler DESTROYS e2 (20→10→0) → combat_ended winner='player'
+//   Damage values (no ATTACK_DAMAGE constant):
+//     vacuum  : sweep=18, quick_jab=8
+//     butler  : taser=7, overload=30 (cd1 initial → avail round 2)
+//     qa-rig  : clamp=15 (cd1 → avail every other round)
 //
-// Event count per round: 22, 22, 23, 17, 18, 12, 9 = 123 total
+//   Result: player wins after 7 rounds, 134 events total.
 // ---------------------------------------------------------------------------
 
 describe('golden test — walking-skeleton fixture, seed 42', () => {
   const events = runToCompletion(42)
 
-  it('produces exactly 123 events', () => {
-    expect(events).toHaveLength(123)
+  it('produces exactly 134 events', () => {
+    expect(events).toHaveLength(134)
   })
 
   it('ends with combat_ended winner=player', () => {
@@ -173,25 +170,23 @@ describe('golden test — walking-skeleton fixture, seed 42', () => {
     expect(destroyed).toEqual(['enemy-qa-rig-1', 'player-vacuum-1', 'enemy-qa-rig-2'])
   })
 
-  it('enemy-qa-rig-1 is destroyed in round 3', () => {
-    // Find the round_started event before the first unit_destroyed
+  it('enemy-qa-rig-1 is destroyed in round 4', () => {
     const firstDestroyIdx = events.findIndex(e => e.kind === 'unit_destroyed')
-    // Walk back to find the most recent round_started
     const lastRoundStart = events
       .slice(0, firstDestroyIdx)
       .filter(e => e.kind === 'round_started')
       .pop() as { kind: 'round_started'; round: number }
-    expect(lastRoundStart.round).toBe(3)
+    expect(lastRoundStart.round).toBe(4)
   })
 
-  it('player-vacuum-1 is destroyed in round 5', () => {
+  it('player-vacuum-1 is destroyed in round 7', () => {
     const destroyEvents = events.filter(e => e.kind === 'unit_destroyed')
     const vacuumDestroyIdx = events.indexOf(destroyEvents[1])
     const lastRoundStart = events
       .slice(0, vacuumDestroyIdx)
       .filter(e => e.kind === 'round_started')
       .pop() as { kind: 'round_started'; round: number }
-    expect(lastRoundStart.round).toBe(5)
+    expect(lastRoundStart.round).toBe(7)
   })
 
   it('is deterministic — same seed produces identical events', () => {
@@ -199,15 +194,13 @@ describe('golden test — walking-skeleton fixture, seed 42', () => {
     expect(events2).toEqual(events)
   })
 
-  it('different seeds produce the same result (no RNG used in v0.1)', () => {
-    // v0.1 has no random choices — seed is irrelevant until v0.2 adds variance
+  it('different seeds produce the same result (no RNG variance in this fixture)', () => {
     const eventsOtherSeed = runToCompletion(999)
     expect(eventsOtherSeed).toHaveLength(events.length)
     expect(eventsOtherSeed[eventsOtherSeed.length - 1]).toEqual({ kind: 'combat_ended', winner: 'player' })
   })
 
   it('combat_ended always emitted within 100 rounds regardless of seed', () => {
-    // Guard is inside runToCompletion — it throws if exceeded
     expect(() => runToCompletion(1)).not.toThrow()
     expect(() => runToCompletion(12345)).not.toThrow()
   })

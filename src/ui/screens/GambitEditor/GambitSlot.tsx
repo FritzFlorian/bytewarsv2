@@ -12,7 +12,10 @@
 // as the user types, then lets them pick from the narrowed list.
 
 import { useState } from 'react'
-import type { Condition, Action, TargetSelector, Rule } from '../../../logic'
+import type { Condition, Action, TargetSelector, Rule, AttackId } from '../../../logic'
+import { isAttackAction } from '../../../logic'
+import { getAttacksForChassis } from '../../../logic'
+import type { Chassis } from '../../../logic'
 import styles from './GambitSlot.module.css'
 
 // ---------------------------------------------------------------------------
@@ -25,16 +28,21 @@ const CONDITION_OPTIONS: { value: Condition['kind']; label: string }[] = [
   { value: 'target_exists', label: 'target exists' },
 ]
 
-const ACTION_OPTIONS: { value: Action['kind']; label: string }[] = [
-  { value: 'idle', label: 'idle' },
-  { value: 'attack', label: 'attack' },
-]
-
 const TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
   { value: 'nearest_enemy', label: 'nearest enemy' },
   { value: 'any_enemy', label: 'any enemy' },
   { value: 'self', label: 'self' },
 ]
+
+function buildActionOptions(chassis: Chassis): { value: Action['kind']; label: string }[] {
+  const attacks = getAttacksForChassis(chassis)
+  const attackOptions = attacks.map(a => {
+    const cdLabel = a.cooldown > 0 ? `, ${a.cooldown}-round cd` : ''
+    const initLabel = a.initialCooldown > 0 ? `, unavail. round 1` : ''
+    return { value: a.id as AttackId, label: `${a.name} — ${a.damage} dmg${cdLabel}${initLabel}` }
+  })
+  return [...attackOptions, { value: 'idle' as const, label: 'idle' }]
+}
 
 // ---------------------------------------------------------------------------
 // SearchableSelect — generic type-filtered dropdown
@@ -133,8 +141,8 @@ function changeConditionKind(
 
 function changeActionKind(kind: Action['kind'], current: Action): Action {
   if (kind === 'idle') return { kind: 'idle' }
-  const target = current.kind === 'attack' ? current.target : 'nearest_enemy'
-  return { kind: 'attack', target }
+  const target = isAttackAction(current) ? current.target : 'nearest_enemy'
+  return { kind: kind as AttackId, target }
 }
 
 // ---------------------------------------------------------------------------
@@ -145,9 +153,10 @@ export interface GambitSlotProps {
   index: number
   rule: Rule
   onChange: (rule: Rule) => void
+  chassis: Chassis
 }
 
-export function GambitSlot({ index, rule, onChange }: GambitSlotProps) {
+export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) {
   const { condition, action } = rule
 
   function handleConditionKind(kind: Condition['kind']) {
@@ -172,8 +181,8 @@ export function GambitSlot({ index, rule, onChange }: GambitSlotProps) {
   }
 
   function handleActionTarget(target: TargetSelector) {
-    if (action.kind === 'attack') {
-      onChange({ ...rule, action: { kind: 'attack', target } })
+    if (isAttackAction(action)) {
+      onChange({ ...rule, action: { kind: action.kind, target } })
     }
   }
 
@@ -217,20 +226,29 @@ export function GambitSlot({ index, rule, onChange }: GambitSlotProps) {
 
       {/* Action picker */}
       <SearchableSelect
-        options={ACTION_OPTIONS}
+        options={buildActionOptions(chassis)}
         value={action.kind}
         onChange={handleActionKind}
         ariaLabel={`Action ${index + 1}`}
       />
 
       {/* Action extras */}
-      {action.kind === 'attack' && (
-        <SearchableSelect
-          options={TARGET_OPTIONS}
-          value={action.target}
-          onChange={handleActionTarget}
-          ariaLabel={`Action target ${index + 1}`}
-        />
+      {isAttackAction(action) && (
+        <>
+          <SearchableSelect
+            options={TARGET_OPTIONS}
+            value={action.target}
+            onChange={handleActionTarget}
+            ariaLabel={`Action target ${index + 1}`}
+          />
+          {(() => {
+            const attacks = getAttacksForChassis(chassis)
+            const def = attacks.find(a => a.id === action.kind)
+            return def?.initialCooldown ? (
+              <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>⚠ not available round 1</span>
+            ) : null
+          })()}
+        </>
       )}
     </div>
   )

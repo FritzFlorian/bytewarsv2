@@ -6,10 +6,12 @@
 
 // --- Re-export all types ---
 
-export type { UnitId, Side, Row, Column, SlotRef, Chassis, Unit, SlotMap, Battlefield, CombatState } from './state/types'
+export type { UnitId, Side, Row, Column, SlotRef, Chassis, Unit, SlotMap, Battlefield, CombatState, CooldownMap } from './state/types'
 export { slotKey } from './state/types'
 
 export type { TargetSelector, Condition, Action, Rule, GambitList } from './gambits/types'
+export { isAttackAction } from './gambits/types'
+export type { AttackId } from '../content/schema/attack'
 
 export type { CombatEvent } from './combat/events'
 
@@ -24,6 +26,8 @@ export { walkingSkeletonFixture, bossEncounterFixture } from './content/fixtures
 export type { WalkingSkeletonFixture, BossEncounterFixture } from './content/fixtures'
 
 export { loadPlayerSquad } from './content/squadLoader'
+export { getAllAttacks, getAttackDef, getAttacksForChassis } from './content/attackLoader'
+export type { AttackDef } from '../content/schema/attack'
 
 export type { NodeType, MapNode, MapEdge, MapGraph, BattleResult, RunState } from './map/types'
 export { generateMap } from './map/generate'

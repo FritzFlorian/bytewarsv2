@@ -63,7 +63,7 @@ function attackTurn(
     {
       kind: 'action_used',
       unitId: actorId,
-      action: { kind: 'attack', target: 'nearest_enemy' },
+      action: { kind: 'quick_jab', target: 'nearest_enemy' },
       targets: [targetId],
     },
     { kind: 'damage_dealt', sourceId: actorId, targetId, amount: damage },
@@ -82,7 +82,7 @@ function destroyingTurn(
     {
       kind: 'action_used',
       unitId: actorId,
-      action: { kind: 'attack', target: 'nearest_enemy' },
+      action: { kind: 'quick_jab', target: 'nearest_enemy' },
       targets: [targetId],
     },
     { kind: 'damage_dealt', sourceId: actorId, targetId, amount: damage },

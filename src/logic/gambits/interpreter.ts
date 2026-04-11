@@ -60,7 +60,7 @@ export function resolveTarget(
 }
 
 /** Evaluate a single condition for the given unit on the current battlefield. */
-function evaluateCondition(
+export function evaluateCondition(
   condition: Condition,
   unit: Unit,
   battlefield: Battlefield,

@@ -51,10 +51,10 @@ describe('condition: always', () => {
 
   it('fires even when no enemies exist', () => {
     const unit = { ...PLAYER, gambits: [
-      { condition: { kind: 'always' as const }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'always' as const }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit) // no enemies
-    expect(chooseAction(unit, bf)).toEqual({ kind: 'attack', target: 'nearest_enemy' })
+    expect(chooseAction(unit, bf)).toEqual({ kind: 'quick_jab', target: 'nearest_enemy' })
   })
 })
 
@@ -65,16 +65,16 @@ describe('condition: always', () => {
 describe('condition: self_hp_below', () => {
   it('fires when unit HP is strictly below the threshold', () => {
     const unit = { ...PLAYER, hp: 39, maxHp: 80, gambits: [
-      { condition: { kind: 'self_hp_below' as const, pct: 50 }, action: { kind: 'attack' as const, target: 'any_enemy' as const } },
+      { condition: { kind: 'self_hp_below' as const, pct: 50 }, action: { kind: 'quick_jab' as const, target: 'any_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit, ENEMY_FRONT_0)
-    expect(chooseAction(unit, bf)).toEqual({ kind: 'attack', target: 'any_enemy' })
+    expect(chooseAction(unit, bf)).toEqual({ kind: 'quick_jab', target: 'any_enemy' })
   })
 
   it('does NOT fire when unit HP is exactly at the threshold', () => {
     // 40/80 = 50% — not strictly below 50
     const unit = { ...PLAYER, hp: 40, maxHp: 80, gambits: [
-      { condition: { kind: 'self_hp_below' as const, pct: 50 }, action: { kind: 'attack' as const, target: 'any_enemy' as const } },
+      { condition: { kind: 'self_hp_below' as const, pct: 50 }, action: { kind: 'quick_jab' as const, target: 'any_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit, ENEMY_FRONT_0)
     expect(chooseAction(unit, bf)).toEqual({ kind: 'idle' })
@@ -89,7 +89,7 @@ describe('condition: self_hp_below', () => {
     // Distinguish: did 'idle' fire from this rule or from fall-through?
     // Use a different action to be sure it came from the rule.
     const unit2 = { ...PLAYER, hp: 80, maxHp: 80, gambits: [
-      { condition: { kind: 'self_hp_below' as const, pct: 50 }, action: { kind: 'attack' as const, target: 'any_enemy' as const } },
+      { condition: { kind: 'self_hp_below' as const, pct: 50 }, action: { kind: 'quick_jab' as const, target: 'any_enemy' as const } },
     ] }
     const bf2 = makeBattlefield(unit2)
     // Should fall through to idle since no rule matches
@@ -114,44 +114,41 @@ describe('condition: target_exists — self selector', () => {
 describe('condition: target_exists — nearest_enemy selector', () => {
   it('fires when at least one enemy is on the battlefield', () => {
     const unit = { ...PLAYER, gambits: [
-      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit, ENEMY_FRONT_0)
-    expect(chooseAction(unit, bf)).toEqual({ kind: 'attack', target: 'nearest_enemy' })
+    expect(chooseAction(unit, bf)).toEqual({ kind: 'quick_jab', target: 'nearest_enemy' })
   })
 
   it('does NOT fire when no enemies exist', () => {
     const unit = { ...PLAYER, gambits: [
-      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit) // no enemies
     expect(chooseAction(unit, bf)).toEqual({ kind: 'idle' })
   })
 
   it('resolves nearest_enemy as the front-row unit when enemies are in multiple rows', () => {
-    // Both ENEMY_FRONT_0 (front) and ENEMY_BACK_0 (back) are on the field.
-    // target_exists with nearest_enemy should see at least one enemy → rule fires.
-    // (The actual unit attacked is determined by the resolver in T-2A.3, not here.)
     const unit = { ...PLAYER, gambits: [
-      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit, ENEMY_FRONT_0, ENEMY_BACK_0)
-    expect(chooseAction(unit, bf)).toEqual({ kind: 'attack', target: 'nearest_enemy' })
+    expect(chooseAction(unit, bf)).toEqual({ kind: 'quick_jab', target: 'nearest_enemy' })
   })
 })
 
 describe('condition: target_exists — any_enemy selector', () => {
   it('fires when at least one enemy is on the battlefield', () => {
     const unit = { ...PLAYER, gambits: [
-      { condition: { kind: 'target_exists' as const, target: 'any_enemy' as const }, action: { kind: 'attack' as const, target: 'any_enemy' as const } },
+      { condition: { kind: 'target_exists' as const, target: 'any_enemy' as const }, action: { kind: 'quick_jab' as const, target: 'any_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit, ENEMY_FRONT_1)
-    expect(chooseAction(unit, bf)).toEqual({ kind: 'attack', target: 'any_enemy' })
+    expect(chooseAction(unit, bf)).toEqual({ kind: 'quick_jab', target: 'any_enemy' })
   })
 
   it('does NOT fire when no enemies exist', () => {
     const unit = { ...PLAYER, gambits: [
-      { condition: { kind: 'target_exists' as const, target: 'any_enemy' as const }, action: { kind: 'attack' as const, target: 'any_enemy' as const } },
+      { condition: { kind: 'target_exists' as const, target: 'any_enemy' as const }, action: { kind: 'quick_jab' as const, target: 'any_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit) // no enemies
     expect(chooseAction(unit, bf)).toEqual({ kind: 'idle' })
@@ -173,8 +170,8 @@ describe('fall-through to idle', () => {
     // self_hp_below 10% — unit is at full HP, won't fire
     // target_exists nearest_enemy — no enemies present, won't fire
     const unit = { ...PLAYER, gambits: [
-      { condition: { kind: 'self_hp_below' as const, pct: 10 }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
-      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'self_hp_below' as const, pct: 10 }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit) // no enemies, full HP
     expect(chooseAction(unit, bf)).toEqual({ kind: 'idle' })
@@ -190,7 +187,7 @@ describe('rule priority', () => {
     const unit = { ...PLAYER, gambits: [
       { condition: { kind: 'always' as const }, action: { kind: 'idle' as const } },
       // This rule also matches but must never be reached
-      { condition: { kind: 'always' as const }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'always' as const }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit, ENEMY_FRONT_0)
     expect(chooseAction(unit, bf)).toEqual({ kind: 'idle' })
@@ -201,9 +198,9 @@ describe('rule priority', () => {
       // Won't fire: 10/80 = 12.5% — not below 10%
       { condition: { kind: 'self_hp_below' as const, pct: 10 }, action: { kind: 'idle' as const } },
       // Will fire: target_exists nearest_enemy — enemy is present
-      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'attack' as const, target: 'nearest_enemy' as const } },
+      { condition: { kind: 'target_exists' as const, target: 'nearest_enemy' as const }, action: { kind: 'quick_jab' as const, target: 'nearest_enemy' as const } },
     ] }
     const bf = makeBattlefield(unit, ENEMY_FRONT_0)
-    expect(chooseAction(unit, bf)).toEqual({ kind: 'attack', target: 'nearest_enemy' })
+    expect(chooseAction(unit, bf)).toEqual({ kind: 'quick_jab', target: 'nearest_enemy' })
   })
 })
