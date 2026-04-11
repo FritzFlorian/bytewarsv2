@@ -83,7 +83,7 @@ describe('resolveRound — single round', () => {
     const { events } = resolveRound(state)
     expect(events[0]).toEqual({ kind: 'round_started', round: 1 })
     // round_ended is the last event before any combat_ended
-    const roundEndedIdx = events.findLastIndex(e => e.kind === 'round_ended')
+    const roundEndedIdx = events.map(e => e.kind).lastIndexOf('round_ended')
     expect(roundEndedIdx).toBeGreaterThan(0)
     const roundEndedEvent = events[roundEndedIdx]
     expect(roundEndedEvent).toEqual({ kind: 'round_ended', round: 1 })
