@@ -5,59 +5,74 @@
 
 /* ── Layout ────────────────────────────────────────────────────────────────── */
 
+/*
+ * Scene is a full-height flex row. Left column holds the battlefield and its
+ * controls; right column holds the combat log. The grid cells are 1fr so the
+ * battlefield scales to fill the left half exactly.
+ */
 .scene {
-  flex: 1;              /* fill the CombatScreen height */
+  flex: 1;
+  min-height: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-  padding: 1.5rem 2rem;
+  flex-direction: row;
+  overflow: hidden;
   background: linear-gradient(180deg, #1a1530 0%, #251a38 100%);
   border-radius: 6px;
   font-family: monospace;
   color: #c8d0e0;
 }
 
-/*
- * battleRow spans the full scene width. The left spacer and the log panel
- * share the same flex weight (flex: 1 1 0), which keeps the battlefield
- * visually centered regardless of how much log content exists.
- * Controls and the winner banner are direct scene children, so they center
- * below the battlefield rather than below the whole row.
- */
-.battleRow {
-  display: flex;
-  gap: 1.5rem;
-  align-self: stretch;   /* fill scene width */
-  flex: 1;               /* fill scene height (remaining after controls/banner) */
-  min-height: 0;         /* allow shrinking so flex doesn't overflow past scene */
-  align-items: stretch;  /* log panel stretches to full battleRow height */
-}
-
-/* Empty left spacer — mirrors the log's flex weight to center the battlefield. */
-.battleRowSpacer {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-/* Wraps the battlefield grid pair; `position: relative` anchors the projectile. */
-.battlefieldContainer {
-  position: relative;
+/* Left half — battlefield + winner banner + controls */
+.leftColumn {
+  width: 50%;
   flex-shrink: 0;
-  align-self: flex-start;  /* stay at natural grid height, don't stretch */
-}
-
-.battlefield {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2.5rem;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  overflow: hidden;
 }
 
-/* 3×3 slot grid — rows: front / middle / back (top → bottom) */
+/* Right half — combat log */
+.rightColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1.5rem 1.5rem 1.5rem 0;
+}
+
+/*
+ * battlefieldContainer grows to fill leftColumn minus the controls strip.
+ * It also anchors the projectile dot via position:relative.
+ */
+.battlefieldContainer {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+/* battlefield flex row: left grid | divider | right grid */
+.battlefield {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 1.5rem;
+}
+
+/*
+ * Each 3×3 grid fills its share of the battlefield flex row (1fr each).
+ * Rows also use 1fr so the grid fills the full container height.
+ */
 .grid {
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 5.5rem);
-  grid-template-rows: repeat(3, 6.5rem);
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
   gap: 0.25rem;
 }
 
@@ -245,11 +260,9 @@
 /* ── Combat log panel (T-2.4) ───────────────────────────────────────────────── */
 
 .logPanel {
-  /* Fill remaining width (mirrored by left spacer) and full battleRow height.
-     min-height:0 gives the flex container a definite height so overflow-y
-     fires instead of flex shrinking the entries. */
-  flex: 1 1 0;
-  min-width: 0;
+  /* Fill the full right column height. min-height:0 gives a definite height
+     so overflow-y fires instead of flex shrinking the entries. */
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;

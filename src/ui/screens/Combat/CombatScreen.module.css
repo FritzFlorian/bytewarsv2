@@ -3,7 +3,8 @@
 .screen {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   font-family: monospace;
   background: #0a0a0f;
   color: #c8d0e0;

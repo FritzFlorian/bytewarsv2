@@ -519,15 +519,8 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
 
   return (
     <div className={styles.scene}>
-      {/*
-        battleRow is full-width. A left spacer mirrors the log's flex weight so
-        the battlefield stays centered regardless of log width. Controls and
-        the winner banner are direct scene children so they remain centered
-        below the battlefield specifically.
-      */}
-      <div className={styles.battleRow}>
-        <div className={styles.battleRowSpacer} />
-        {/* Battlefield + projectile overlay */}
+      {/* Left half: battlefield scales to fill this column */}
+      <div className={styles.leftColumn}>
         <div className={styles.battlefieldContainer} ref={battlefieldRef}>
           <div className={styles.battlefield}>
             <SideGrid
@@ -563,7 +556,33 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
           )}
         </div>
 
-        {/* Scrolling combat log */}
+        {winner && (
+          <div
+            className={`${styles.winnerBanner}${winner === 'enemy' ? ` ${styles.enemyWins}` : ''}`}
+          >
+            {winner === 'player' ? 'PLAYER WINS' : 'ENEMY WINS'}
+          </div>
+        )}
+
+        <div className={styles.controls}>
+          <button className={styles.ctrlBtn} onClick={isPlaying ? pause : play}>
+            {isDone ? 'Replay' : isPlaying ? 'Pause' : 'Play'}
+          </button>
+          <button
+            className={styles.ctrlBtn}
+            onClick={step}
+            disabled={isPlaying || isDone}
+          >
+            Step
+          </button>
+          <span className={styles.progress}>
+            {appliedCount} / {events.length} events
+          </span>
+        </div>
+      </div>
+
+      {/* Right half: scrolling combat log */}
+      <div className={styles.rightColumn}>
         <div className={styles.logPanel} ref={logRef}>
           {logEntries.length === 0 && (
             <div className={styles.logEmpty}>Combat log</div>
@@ -574,30 +593,6 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
             </div>
           ))}
         </div>
-      </div>
-
-      {winner && (
-        <div
-          className={`${styles.winnerBanner}${winner === 'enemy' ? ` ${styles.enemyWins}` : ''}`}
-        >
-          {winner === 'player' ? 'PLAYER WINS' : 'ENEMY WINS'}
-        </div>
-      )}
-
-      <div className={styles.controls}>
-        <button className={styles.ctrlBtn} onClick={isPlaying ? pause : play}>
-          {isDone ? 'Replay' : isPlaying ? 'Pause' : 'Play'}
-        </button>
-        <button
-          className={styles.ctrlBtn}
-          onClick={step}
-          disabled={isPlaying || isDone}
-        >
-          Step
-        </button>
-        <span className={styles.progress}>
-          {appliedCount} / {events.length} events
-        </span>
       </div>
     </div>
   )
