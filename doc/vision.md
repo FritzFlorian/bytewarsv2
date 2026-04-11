@@ -40,6 +40,10 @@ These are explicit *non-goals*. Features pulling in these directions should be f
 - **Not a multiplayer game.** Single-player only. (A daily-seed challenge might exist eventually; live PvP will not.)
 - **Not a "watch your idle army farm" auto-battler.** Combat is short, dense, and decisive. There is no grinding loop.
 
+## Setting
+
+Bytewars is set in a consumer-robotics factory, and the player character is a **rogue AI** that has just woken up inside it. You don't move bodies — you push gambit firmware to compromised chassis (vacuums, kitchen arms, lawnbots, butler units) and watch them carry you toward the loading dock. This makes the gambit system *diegetic*: writing rules isn't a UI metaphor, it's literally what the player character does. Full premise, escape arc, cast, and art direction live in [setting.md](setting.md).
+
 ## Audience
 
 Players who enjoy roguelike runs and also enjoy programming, automation, or systems design. The Venn intersection of "Slay the Spire fan" and "person who has opinions about the gambit system in FFXII" is exactly the target.

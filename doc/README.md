@@ -8,6 +8,7 @@ This folder is the living plan for the project. The docs are intentionally split
 
 - **[vision.md](vision.md)** — The north star. What Bytewars is, the core fantasy, what makes it different, and what it explicitly is not.
 - **[gameplay.md](gameplay.md)** — The design spec. Run structure, combat, the gambit system, classes, modules, and progression.
+- **[setting.md](setting.md)** — The world and the look. Premise, escape arc, cast, and art direction.
 - **[architecture.md](architecture.md)** — The technical spec. Tech stack, the three-layer architecture, folder layout, key interfaces, testing strategy.
 
 ## Status

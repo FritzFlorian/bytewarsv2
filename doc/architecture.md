@@ -10,14 +10,14 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 | Build tool | **Vite** | Dev server, bundling, asset handling. |
 | Language | **TypeScript** | Strict mode. The gambit interpreter especially benefits from types. |
 | UI framework | **React** | Used for all menus, the gambit editor, the map screen, inventory, and the combat scene's DOM tree. |
-| Combat rendering | **Plain DOM + CSS** to start | Transitions, transforms, keyframes. Same React tree as the rest of the UI. **No Canvas/WebGL in v1.** |
+| Combat rendering | **DOM + SVG + CSS** | Units composed from DOM and SVG primitives (divs for rectangles, SVG for curves/masks), animated with CSS transitions/transforms/keyframes. Compositional so modules and attachments can be added as runtime child elements — see `setting.md` §4. Same React tree as the rest of the UI. **No Canvas/WebGL in v1.** |
 | Tests | **Vitest** | Vite-native, jest-compatible. |
 | Schema validation | **Zod** | For loading content data (classes, modules, enemies) from JSON safely. Added when content loaders land. |
 
 ### Explicitly not in the stack
 
 - **No game framework** (no Phaser, no Babylon, no Three). Phaser would fight the React/Vite structure and bring its own scene/state/loop.
-- **No Canvas/WebGL renderer in v1.** PixiJS is the planned escape hatch *only if* combat visuals later demand effects DOM+CSS cannot deliver. Default answer is "do it in DOM+CSS."
+- **No Canvas/WebGL renderer in v1.** PixiJS is the planned escape hatch *only if* combat visuals later demand effects DOM/SVG/CSS cannot deliver. Default answer is "do it in DOM/SVG/CSS."
 - **No state management library.** No Redux, Zustand, XState. The game state is a plain object; React state plus a small subscribe pattern is enough.
 - **No ECS library.** Bytewars has at most 18 units on a slot grid — ECS is overkill.
 - **No physics engine.** None needed.
