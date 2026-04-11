@@ -41,7 +41,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 ### M0 — Foundation (sequential)
 
 #### T-0.1 — Initialize Vite + React + TypeScript project
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** —
 - **Inputs:** `pnpm-workspace.yaml` (supply-chain rules — must be honored when adding deps), `architecture.md` §1
@@ -50,7 +50,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 - **Notes:** Use the Vite React-TS template as a starting point. Respect `pnpm-workspace.yaml` (`minimumReleaseAge`, `blockExoticSubdeps`, etc.) for every dependency added.
 
 #### T-0.2 — Folder skeleton matching architecture.md §5
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-0.1
 - **Inputs:** `architecture.md` §5
@@ -59,7 +59,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 - **Notes:** No code yet — just the shape. Subsequent tasks fill the folders.
 
 #### T-0.3 — Vitest setup (logic env)
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-0.1
 - **Inputs:** `architecture.md` §9
@@ -68,7 +68,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 - **Notes:** Logic tests must run in node env per `architecture.md` §9 — if jsdom leaks in here, the boundary is already breaking. UI tests will need jsdom; that config is added in T-2B.1, not now.
 
 #### T-0.4 — Layer-boundary lint
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-0.2
 - **Inputs:** `architecture.md` §2 (strict rules)
@@ -84,7 +84,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 ### M1 — Contracts (sequential, blocks all M2 parallel work)
 
 #### T-1.1 — Core domain types
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-0.2, T-0.3
 - **Inputs:** `gameplay.md` §3 (combat layout), `architecture.md` §4 (interpreter shape)
@@ -93,7 +93,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 - **Notes:** Keep this minimal for the walking skeleton. **Do not** add fields for modules, statuses, cooldowns, or class info yet — those land in v0.2 with content data. Document the omissions in a top-of-file comment so v0.2 work knows where to extend.
 
 #### T-1.2 — Gambit and action types (walking-skeleton subset)
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-1.1
 - **Inputs:** `architecture.md` §4, `gameplay.md` §7
@@ -108,7 +108,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 - **Notes:** This is **deliberately a tiny subset** of the v1 vocabulary. The point of v0.1 is to prove the pipeline, not cover the full design. v0.2 expands the vocabulary; the *shape* (discriminated unions) should not change.
 
 #### T-1.3 — `CombatEvent` discriminated union (walking-skeleton subset)
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-1.1
 - **Inputs:** `architecture.md` §3
@@ -117,7 +117,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 - **Notes:** Heal, status, and movement events come in v0.2 with the corresponding actions. Keep the union open for extension.
 
 #### T-1.4 — Seeded RNG
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-0.4
 - **Inputs:** `architecture.md` §8
@@ -126,7 +126,7 @@ If you (an agent or a human) start a task, set its status to `in-progress` and a
 - **Notes:** Mulberry32 is fine. Not cryptographic; not trying to be.
 
 #### T-1.5 — Logic public API stub
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-1.1, T-1.2, T-1.3, T-1.4
 - **Inputs:** all previous M1 contracts
