@@ -12,7 +12,7 @@
 // Audio is triggered here, not inside CombatScene — the render layer stays
 // audio-free per the architecture rules.
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CombatEvent } from '../../../logic'
 import { buildSchedule } from '../../../render/playback'
 import type { PlaybackSpeed } from '../../../render/playback'
@@ -24,10 +24,17 @@ import styles from './CombatScreen.module.css'
 export interface CombatScreenProps {
   units: UnitInfo[]
   events: CombatEvent[]
+  /** Called when the player clicks "Continue" after combat finishes. */
+  onContinue?: () => void
 }
 
-export function CombatScreen({ units, events }: CombatScreenProps) {
+export function CombatScreen({ units, events, onContinue }: CombatScreenProps) {
   const [speed, setSpeed] = useState<PlaybackSpeed>(1)
+  const [combatDone, setCombatDone] = useState(false)
+
+  const handleComplete = useCallback(() => {
+    setCombatDone(true)
+  }, [])
 
   // Audio state — kept in refs to avoid spurious re-renders.
   const wallStartRef = useRef(0)       // Date.now() when playback began
@@ -147,7 +154,14 @@ export function CombatScreen({ units, events }: CombatScreenProps) {
         </select>
       </header>
 
-      <CombatScene units={units} events={events} speed={speed} autoPlay />
+      <CombatScene units={units} events={events} speed={speed} autoPlay onComplete={handleComplete} />
+      {combatDone && onContinue && (
+        <div style={{ padding: '0 0 0.5rem 0' }}>
+          <button className={styles.continueButton} onClick={onContinue}>
+            Continue →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

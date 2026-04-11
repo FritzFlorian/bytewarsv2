@@ -22,6 +22,7 @@ import { type UnitInfo, type PlaybackSpeed, buildSchedule } from '../playback'
 import { Vacuum } from '../units/Vacuum'
 import { Butler } from '../units/Butler'
 import { QaRig } from '../units/QaRig'
+import { Overseer } from '../units/Overseer'
 import styles from './CombatScene.module.css'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -50,6 +51,8 @@ export interface CombatSceneProps {
   speed: PlaybackSpeed
   /** If true, playback starts automatically on mount. */
   autoPlay?: boolean
+  /** Called once when playback reaches the final event. */
+  onComplete?: () => void
 }
 
 // ── Pure derivation helpers ───────────────────────────────────────────────────
@@ -139,6 +142,7 @@ function chassisLabel(chassis: UnitInfo['chassis']): string {
     vacuum: 'Vacuum',
     butler: 'Butler',
     'qa-rig': 'QA-Rig',
+    overseer: 'Overseer',
   }
   return labels[chassis] ?? chassis
 }
@@ -209,6 +213,7 @@ function buildLogEntries(
 function ChassisComponent({ chassis }: { chassis: UnitInfo['chassis'] }) {
   if (chassis === 'vacuum') return <Vacuum />
   if (chassis === 'butler') return <Butler />
+  if (chassis === 'overseer') return <Overseer />
   return <QaRig />
 }
 
@@ -290,7 +295,7 @@ function SideGrid({ units, hps, destroyed, popups, activeUnitId, idleUnitId }: S
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps) {
+export function CombatScene({ units, events, speed, autoPlay, onComplete }: CombatSceneProps) {
   // How many events have been "applied" to the visual state.
   const [appliedCount, setAppliedCount] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -378,6 +383,7 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
         isPlayingRef.current = false
         lastTsRef.current = null
         setIsPlaying(false)
+        onComplete?.()
       }
     },
     [showPopups],

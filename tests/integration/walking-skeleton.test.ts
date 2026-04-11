@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 //
-// Walking-skeleton integration test — T-3.2, updated for T-1.4.
+// Walking-skeleton integration test — updated for v0.4 run flow.
 //
 // Two levels of coverage:
 //   1. Logic level: the full combat run (createCombat → loop resolveRound)
 //      produces a combat_ended event with a winner.
-//   2. UI level: rendering <App />, clicking Run in the editor, and asserting
-//      that the combat scene loads with events ready for playback.
+//   2. UI level: rendering <App />, navigating the map → gambit editor →
+//      combat screen, asserting that the combat scene loads with events ready.
 
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
@@ -50,22 +50,31 @@ describe('walking skeleton — logic', () => {
 })
 
 // ---------------------------------------------------------------------------
-// UI level: App → GambitEditorScreen → Run → CombatScreen with autoPlay
+// UI level: App → MapScreen → GambitEditorScreen → Run → CombatScreen
 // ---------------------------------------------------------------------------
 
 describe('walking skeleton — UI integration', () => {
-  it('Run resolves combat and loads the combat scene with events', async () => {
+  it('map → gambit editor → Run → combat scene loads with events', async () => {
     await act(async () => { render(React.createElement(App)) })
 
-    // Landing page is the gambit editor
+    // Landing page is now the map screen — find a reachable combat node (icon ⚙).
+    const nodeButtons = screen.getAllByRole('button', { name: '⚙' })
+    const reachableNode = nodeButtons.find(
+      btn => !(btn as HTMLButtonElement).disabled,
+    )
+    expect(reachableNode).toBeDefined()
+
+    // Click a reachable node → transition to gambit editor.
+    await act(async () => { fireEvent.click(reachableNode!) })
+
+    // Gambit editor is now visible with a Run button.
     const runBtn = screen.getByRole('button', { name: 'Run' })
     expect((runBtn as HTMLButtonElement).disabled).toBe(false)
 
-    // Click Run — App resolves the fight and transitions to CombatScreen
+    // Click Run — App resolves the fight and transitions to CombatScreen.
     await act(async () => { fireEvent.click(runBtn) })
 
     // CombatScene progress counter is visible: "0 / N events"
-    // This proves the event log was built and passed to the scene.
     const progress = screen.getByText(/\d+ \/ \d+ events/)
     expect(progress).not.toBeNull()
 

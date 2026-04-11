@@ -14,8 +14,8 @@ import type { GambitList } from '../gambits/types'
 
 export type UnitId = string
 
-/** The three chassis types available in the walking skeleton (v0.1). More chassis land in v0.2. */
-export type Chassis = 'vacuum' | 'butler' | 'qa-rig'
+/** All chassis types. 'overseer' added in v0.4 as the boss chassis. */
+export type Chassis = 'vacuum' | 'butler' | 'qa-rig' | 'overseer'
 
 export type Side = 'player' | 'enemy'
 

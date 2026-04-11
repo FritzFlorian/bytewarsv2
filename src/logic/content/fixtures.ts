@@ -40,6 +40,10 @@ export interface WalkingSkeletonFixture {
   enemyUnits: Unit[]
 }
 
+export interface BossEncounterFixture {
+  enemyUnits: Unit[]
+}
+
 export function walkingSkeletonFixture(): WalkingSkeletonFixture {
   const playerUnits: Unit[] = [
     {
@@ -84,4 +88,47 @@ export function walkingSkeletonFixture(): WalkingSkeletonFixture {
   ]
 
   return { playerUnits, enemyUnits }
+}
+
+// v0.4 boss encounter — 3 Overseer units at 120 HP each.
+// Gambits exercise the full v0.1 vocabulary in an aggressive priority order.
+const overseerGambits: GambitList = [
+  // Primary: attack nearest enemy when one exists
+  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'attack', target: 'nearest_enemy' } },
+  // Fallback: attack any enemy unconditionally
+  { condition: { kind: 'always' }, action: { kind: 'attack', target: 'any_enemy' } },
+]
+
+export function bossEncounterFixture(): BossEncounterFixture {
+  const enemyUnits: Unit[] = [
+    {
+      id: 'boss-overseer-1',
+      side: 'enemy',
+      slot: { side: 'enemy', row: 'front', column: 0 },
+      chassis: 'overseer',
+      hp: 120,
+      maxHp: 120,
+      gambits: overseerGambits,
+    },
+    {
+      id: 'boss-overseer-2',
+      side: 'enemy',
+      slot: { side: 'enemy', row: 'front', column: 1 },
+      chassis: 'overseer',
+      hp: 120,
+      maxHp: 120,
+      gambits: overseerGambits,
+    },
+    {
+      id: 'boss-overseer-3',
+      side: 'enemy',
+      slot: { side: 'enemy', row: 'front', column: 2 },
+      chassis: 'overseer',
+      hp: 120,
+      maxHp: 120,
+      gambits: overseerGambits,
+    },
+  ]
+
+  return { enemyUnits }
 }

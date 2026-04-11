@@ -1,0 +1,29 @@
+{
+  "units": [
+    {
+      "id": "player-vacuum-1",
+      "name": "Vacuum",
+      "chassis": "vacuum",
+      "row": "front",
+      "column": 0,
+      "maxHp": 80,
+      "gambits": [
+        { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "attack", "target": "nearest_enemy" } },
+        { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
+      ]
+    },
+    {
+      "id": "player-butler-1",
+      "name": "Butler",
+      "chassis": "butler",
+      "row": "front",
+      "column": 1,
+      "maxHp": 80,
+      "gambits": [
+        { "condition": { "kind": "self_hp_below", "pct": 50 }, "action": { "kind": "attack", "target": "any_enemy" } },
+        { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "attack", "target": "nearest_enemy" } },
+        { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
+      ]
+    }
+  ]
+}

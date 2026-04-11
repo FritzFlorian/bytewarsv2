@@ -1,0 +1,232 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a1430, #2a1a38);
+  color: #d0c8e8;
+  font-family: 'Courier New', monospace;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+  color: #c8b8f0;
+}
+
+.subtitle {
+  font-size: 0.8rem;
+  color: #8878a8;
+  letter-spacing: 0.05em;
+}
+
+/* ── Squad status strip ─────────────────────────────────────────── */
+
+.squadStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.unitCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  min-width: 90px;
+}
+
+.unitCardSittingOut {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+.unitName {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #c8b8f0;
+}
+
+.unitChassis {
+  font-size: 0.65rem;
+  color: #8878a8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hpBarOuter {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hpBarInner {
+  height: 100%;
+  border-radius: 2px;
+  background: #40e080;
+  transition: width 0.3s ease;
+}
+
+.hpBarInnerLow {
+  background: #e0a040;
+}
+
+.hpBarInnerCritical {
+  background: #e04040;
+}
+
+.hpText {
+  font-size: 0.6rem;
+  color: #8878a8;
+  text-align: right;
+}
+
+.sittingOutLabel {
+  font-size: 0.6rem;
+  color: #a07878;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+/* ── Map graph area ─────────────────────────────────────────────── */
+
+.mapArea {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.mapGraph {
+  position: relative;
+  display: inline-block;
+  min-width: max-content;
+}
+
+/* SVG overlay for edges */
+.edgeSvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.edgeLine {
+  stroke: rgba(180, 160, 220, 0.3);
+  stroke-width: 2;
+  fill: none;
+}
+
+.edgeLineReachable {
+  stroke: rgba(180, 160, 220, 0.7);
+  stroke-width: 2;
+}
+
+/* ── Nodes ──────────────────────────────────────────────────────── */
+
+/* Grid: columnWidth=100px, laneHeight=80px, so total height = 3*80 = 240px */
+.nodeGrid {
+  position: relative;
+  height: 240px;
+}
+
+.nodeCell {
+  position: absolute;
+}
+
+.nodeButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(200, 180, 240, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  color: #c8b8f0;
+  font-size: 1.2rem;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  position: relative;
+}
+
+/* Reachable (clickable) nodes */
+.nodeButton.reachable {
+  cursor: pointer;
+  border-color: #a090e0;
+  background: rgba(160, 144, 224, 0.18);
+}
+
+.nodeButton.reachable:hover {
+  background: rgba(160, 144, 224, 0.35);
+  border-color: #c8b8f0;
+  transform: scale(1.1);
+}
+
+/* Current node (where the player is) */
+.nodeButton.current {
+  border-color: #e0d060;
+  background: rgba(224, 208, 96, 0.2);
+  box-shadow: 0 0 12px rgba(224, 208, 96, 0.5);
+}
+
+/* Visited nodes */
+.nodeButton.visited {
+  opacity: 0.35;
+}
+
+/* Unreachable (neither current nor reachable nor visited) */
+.nodeButton.unreachable {
+  opacity: 0.2;
+}
+
+/* Boss node gets a square instead of a circle */
+.nodeButton.boss {
+  border-radius: 6px;
+}
+
+.nodeButton.boss.reachable {
+  border-color: #e06060;
+  background: rgba(224, 96, 96, 0.18);
+}
+
+.nodeButton.boss.reachable:hover {
+  background: rgba(224, 96, 96, 0.35);
+  border-color: #f09090;
+}
+
+.nodeButton.boss.current {
+  border-color: #f09090;
+  box-shadow: 0 0 14px rgba(224, 96, 96, 0.6);
+}
+
+/* Column depth label */
+.columnLabel {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  color: rgba(200, 180, 240, 0.3);
+  white-space: nowrap;
+  pointer-events: none;
+}

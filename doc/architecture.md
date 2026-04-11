@@ -15,18 +15,19 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 
 3. **Before touching anything**, run `pnpm check` to confirm you are starting from green. After finishing, run it again — per `CLAUDE.md`, every task must leave `pnpm check` passing.
 
-**What is currently built (v0.1–v0.3):**
-- Logic layer: types, RNG, gambit interpreter, combat resolver, walking-skeleton fixture. Public API is fully implemented.
-- Render layer: three chassis components (Vacuum, Butler, QaRig), `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual, `playback.ts` schedule converter, scrolling combat log panel.
-- UI layer: `App.tsx`, `useGameState` hook, subscribe bridge, `CombatScreen` with play/pause/step/speed controls. `GambitEditorScreen` with per-unit tabs, searchable condition/action dropdowns, drag-to-reorder slots.
+**What is currently built (v0.1–v0.4):**
+- Logic layer: types (`Chassis` includes `'overseer'`), RNG, gambit interpreter, combat resolver, walking-skeleton fixture, boss fixture, player-squad JSON loader (Zod-validated), map generation (`generateMap`), map navigation (`getReachableNodes`, `selectNode`, `createRunState`), battle-result progression (`applyBattleResult`). Public API exported from `src/logic/index.ts`.
+- Render layer: four chassis components (Vacuum, Butler, QaRig, Overseer), `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual / `onComplete` callback, `playback.ts` schedule converter, scrolling combat log panel.
+- UI layer: `App.tsx` with full v0.4 run state machine (`map → gambit-editor → combat → game-over/victory`), `CombatScreen` with play/pause/step/speed controls and "Continue →" button, `GambitEditorScreen` with dynamic per-unit tabs (accepts any squad composition), `MapScreen` (horizontal SVG node graph + squad status strip), `GameOverScreen`, `VictoryScreen`.
 - Audio layer (`src/audio/`): Web Audio API engine, synthesized sounds for attack / damage / destroy, looping background beat, win/lose stingers, wired to combat playback.
+- Content layer (`src/content/`): `player-squad.json` (editable starting squad), `schema/playerSquad.ts` (Zod schema).
 
-**What is not built yet (v0.4+):**
-- Run map + node progression
-- Player squad JSON loader
-- Boss chassis (Overseer)
-- Game-over / victory screens
-- Rewards, modules, content loaders, additional chassis
+**What is not built yet (v0.5+):**
+- Reward selection screen
+- Modules and vocabulary expansion
+- Additional chassis (Lawnbot, Security-drone)
+- Repair Bay / Elite node types
+- Meta-progression / unlocks
 
 ---
 
@@ -143,7 +144,7 @@ The vocabulary will grow. The shape (discriminated unions, top-to-bottom fallthr
 
 ## 5. Folder layout
 
-`*` = exists now. Everything else is planned for v0.4+.
+`*` = exists now (through v0.4). Items marked `(planned)` are v0.5+.
 
 ```
 bytewars/
@@ -155,8 +156,8 @@ bytewars/
 │   │   ├── state/                # * run/combat state types
 │   │   ├── gambits/              # * interpreter, condition/action types
 │   │   ├── combat/               # * turn resolver, event log types
-│   │   ├── map/                  # (v0.4) RunState, MapGraph, generateMap, applyBattleResult
-│   │   ├── content/              # * walking-skeleton fixture; (v0.4) player-squad JSON loader
+│   │   ├── map/                  # * RunState, MapGraph, generateMap, applyBattleResult (v0.4)
+│   │   ├── content/              # * walking-skeleton + boss fixtures, player-squad JSON loader
 │   │   ├── rng.ts                # * seeded RNG (mulberry32)
 │   │   └── index.ts              # * public API: createCombat, resolveRound, isCombatOver + all types
 │   ├── ui/                       # LAYER 2 — React
@@ -165,9 +166,9 @@ bytewars/
 │   │   ├── screens/
 │   │   │   ├── Combat/           # * CombatScreen with play/pause/step/speed controls
 │   │   │   ├── GambitEditor/     # * per-unit gambit authoring (v0.2)
-│   │   │   ├── RunMap/           # (v0.4) horizontal node-graph map screen
-│   │   │   ├── GameOver/         # (v0.4) run-failed screen
-│   │   │   ├── Victory/          # (v0.4) boss-beaten screen
+│   │   │   ├── RunMap/           # * horizontal node-graph map screen (v0.4)
+│   │   │   ├── GameOver/         # * run-failed screen (v0.4)
+│   │   │   ├── Victory/          # * boss-beaten screen (v0.4)
 │   │   │   ├── Inventory/        # (planned)
 │   │   │   └── RunSummary/       # (planned)
 │   │   ├── components/           # (planned) shared widgets
@@ -175,15 +176,15 @@ bytewars/
 │   │       └── useGameState.ts   # * React hook for game state + dispatch
 │   ├── render/                   # LAYER 3 — DOM+CSS combat playback
 │   │   ├── CombatScene/          # * plays back the turn event log; index.ts is the only public entry
-│   │   ├── units/                # * Vacuum.tsx, Butler.tsx, QaRig.tsx; (v0.4) Overseer.tsx
+│   │   ├── units/                # * Vacuum.tsx, Butler.tsx, QaRig.tsx, Overseer.tsx (v0.4)
 │   │   ├── animations/           # (planned) shared CSS keyframe helpers
 │   │   └── playback.ts           # * event-log → timed visual schedule
 │   ├── audio/                    # * Web Audio API engine + synthesized sounds (v0.3)
 │   │   ├── engine.ts             # * lazy AudioContext init, playSound dispatcher
 │   │   └── sounds.ts             # * SoundId type + synthesis functions
-│   ├── content/                  # (v0.4) JSON content data
-│   │   ├── player-squad.json     # (v0.4) editable starting squad definition
-│   │   └── schema/               # (v0.4) Zod schemas
+│   ├── content/                  # * JSON content data (v0.4)
+│   │   ├── player-squad.json     # * editable starting squad definition
+│   │   └── schema/               # * Zod schemas
 │   ├── styles/                   # * global CSS + unit shading rules
 │   └── main.tsx                  # * Vite entry
 ├── tests/

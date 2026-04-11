@@ -20,5 +20,12 @@ export { createRng } from './rng'
 
 export { createCombat, resolveRound, isCombatOver } from './combat/resolver'
 
-export { walkingSkeletonFixture } from './content/fixtures'
-export type { WalkingSkeletonFixture } from './content/fixtures'
+export { walkingSkeletonFixture, bossEncounterFixture } from './content/fixtures'
+export type { WalkingSkeletonFixture, BossEncounterFixture } from './content/fixtures'
+
+export { loadPlayerSquad } from './content/squadLoader'
+
+export type { NodeType, MapNode, MapEdge, MapGraph, BattleResult, RunState } from './map/types'
+export { generateMap } from './map/generate'
+export { getReachableNodes, selectNode, createRunState } from './map/navigation'
+export { applyBattleResult } from './map/progression'

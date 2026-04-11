@@ -363,3 +363,190 @@
   background: rgba(255, 255, 255, 0.7);
   border-radius: 50%;
 }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   OVERSEER — heavy industrial boss chassis (v0.4)
+   Dark charcoal + crimson accent, wide imposing silhouette.
+   Enemy rules (setting.md §3): sharp edges, warning stripes, industrial.
+   Bounding box: 100 × 110 px  (larger than any standard chassis)
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-overseer {
+  width: 100px;
+  height: 110px;
+}
+
+/* Heavy caterpillar tread base */
+.overseer-tread {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100px; height: 22px;
+  background: #383838;
+  border: 3px solid var(--unit-ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.overseer-tread::before { /* shadow band */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 50%;
+  background: #1a1a1a;
+}
+
+/* Tread drive wheels */
+.overseer-tread-wheel {
+  position: absolute;
+  top: 4px;
+  width: 12px; height: 12px;
+  background: var(--unit-ink);
+  border-radius: 50%;
+  z-index: 2;
+}
+.overseer-tread-wheel--1 { left:  6px; }
+.overseer-tread-wheel--2 { left: 24px; }
+.overseer-tread-wheel--3 { left: 42px; }
+.overseer-tread-wheel--4 { left: 60px; }
+.overseer-tread-wheel--5 { left: 78px; }
+
+/* Lower armour base plate */
+.overseer-base {
+  position: absolute;
+  left: 4px; bottom: 18px;
+  width: 92px; height: 20px;
+  background: #5a3030;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.overseer-base::before { /* shadow */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 50%;
+  background: #3a1818;
+}
+
+/* Main reinforced body */
+.overseer-body {
+  position: absolute;
+  left: 12px; bottom: 34px;
+  width: 76px; height: 46px;
+  background: #5a5a5a;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.overseer-body::before { /* shadow — bottom 40% */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 40%;
+  background: #2e2e2e;
+}
+.overseer-body::after { /* armour highlight */
+  content: '';
+  position: absolute;
+  left: 8px; top: 5px;
+  width: 22px; height: 5px;
+  background: #8a8a8a;
+  border-radius: 2px;
+}
+
+/* Warning stripe across the body */
+.overseer-stripe {
+  position: absolute;
+  left: 12px; bottom: 62px;
+  width: 76px; height: 10px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #e03030 0px,  #e03030 6px,
+    var(--unit-ink) 6px, var(--unit-ink) 12px
+  );
+  border-top: 2px solid var(--unit-ink);
+  border-bottom: 2px solid var(--unit-ink);
+}
+
+/* Left articulated arm */
+.overseer-arm--left {
+  position: absolute;
+  left: 0; bottom: 38px;
+  width: 14px; height: 34px;
+  background: #6a4040;
+  border: 3px solid var(--unit-ink);
+  border-radius: 4px 4px 6px 6px;
+  overflow: hidden;
+}
+.overseer-arm--left::before { /* shadow */
+  content: '';
+  position: absolute;
+  right: 0; top: 0;
+  width: 40%; height: 100%;
+  background: #3a1818;
+}
+
+/* Right articulated arm */
+.overseer-arm--right {
+  position: absolute;
+  right: 0; bottom: 38px;
+  width: 14px; height: 34px;
+  background: #6a4040;
+  border: 3px solid var(--unit-ink);
+  border-radius: 4px 4px 6px 6px;
+  overflow: hidden;
+}
+.overseer-arm--right::before { /* shadow */
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 40%; height: 100%;
+  background: #3a1818;
+}
+
+/* Sensor cluster — top block */
+.overseer-sensor {
+  position: absolute;
+  left: 18px; bottom: 76px;
+  width: 64px; height: 28px;
+  background: #4a4a4a;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.overseer-sensor::before { /* shadow */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 50%;
+  background: #252525;
+}
+
+/* Three sensor eyes on the cluster */
+.overseer-eye {
+  position: absolute;
+  top: 5px;
+  width: 14px; height: 14px;
+  background: #e03030;
+  border: 2px solid var(--unit-ink);
+  border-radius: 50%;
+}
+.overseer-eye::before { /* inner lens */
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 6px; height: 6px;
+  background: #900808;
+  border-radius: 50%;
+}
+.overseer-eye::after { /* glint */
+  content: '';
+  position: absolute;
+  top: 2px; left: 3px;
+  width: 3px; height: 3px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+}
+.overseer-eye--left   { left:  6px; }
+.overseer-eye--centre { left: 23px; }
+.overseer-eye--right  { left: 40px; }

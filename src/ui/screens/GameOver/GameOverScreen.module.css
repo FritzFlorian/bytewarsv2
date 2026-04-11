@@ -1,0 +1,51 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #1a0a0a, #3a0a0a);
+  color: #f0e0d0;
+  font-family: 'Courier New', monospace;
+  gap: 1.5rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #e04040;
+  text-shadow: 0 0 24px rgba(224, 64, 64, 0.6);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #c0a090;
+  margin: 0;
+  letter-spacing: 0.05em;
+}
+
+.button {
+  margin-top: 1rem;
+  padding: 0.75rem 2.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  background: #e04040;
+  color: #fff;
+  border: 2px solid #ff6060;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.button:hover {
+  background: #ff5050;
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0);
+}

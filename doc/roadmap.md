@@ -33,7 +33,7 @@ v0.3 added a Web Audio API synthesis layer (`src/audio/`): synthesized sounds fo
 
 ---
 
-## v0.4 — Map + Multi-Battle Run
+## v0.4 — Map + Multi-Battle Run (done)
 
 **Goal.** The player fights a full run: a seeded, branching horizontal map of 10–12 nodes leading to a boss. Squad HP carries between fights. Losing wipes the run; beating the boss wins it. Gambits are editable before every fight.
 
@@ -46,7 +46,7 @@ v0.3 added a Web Audio API synthesis layer (`src/audio/`): synthesized sounds fo
 All four tasks in M1 are **(parallel)** — they have no inter-dependencies.
 
 #### T-4.1 — Player squad JSON schema + loader
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** v0.3 done
 - **Inputs:** `src/logic/gambits/types.ts`, `src/logic/content/fixtures.ts` (existing player fixture)
@@ -57,7 +57,7 @@ All four tasks in M1 are **(parallel)** — they have no inter-dependencies.
 - **Acceptance:** Editing a unit's chassis or gambits in `player-squad.json` and running `pnpm dev` produces a different starting squad. Invalid JSON (bad chassis name, missing field) throws a descriptive Zod error at startup. `pnpm check` passes.
 
 #### T-4.2 — Run state types + map generation
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** v0.3 done
 - **Inputs:** `src/logic/rng.ts`, `src/logic/state/`
@@ -69,7 +69,7 @@ All four tasks in M1 are **(parallel)** — they have no inter-dependencies.
 - **Acceptance:** Tests pass. `pnpm check` passes.
 
 #### T-4.4 — Overseer boss chassis + fixture
-- **Status:** todo
+- **Status:** done
 - **Track:** render + logic
 - **Depends on:** v0.3 done
 - **Inputs:** `src/render/units/` (Vacuum, Butler, QaRig for reference), `src/logic/content/fixtures.ts`
@@ -79,7 +79,7 @@ All four tasks in M1 are **(parallel)** — they have no inter-dependencies.
 - **Acceptance:** `pnpm dev`, navigate to a debug page or force the boss encounter — Overseer renders without errors, is visually larger/heavier than QaRig, and silhouette-tests (distinct in solid black) against all existing chassis.
 
 #### T-4.6 — GameOver + Victory screens
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** v0.3 done
 - **Inputs:** `src/ui/App.tsx`
@@ -93,7 +93,7 @@ All four tasks in M1 are **(parallel)** — they have no inter-dependencies.
 M2 begins after T-4.2 is done. T-4.3 and T-4.5 are **(parallel)**.
 
 #### T-4.3 — applyBattleResult (HP carry-over + revival rule)
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-4.2
 - **Inputs:** `src/logic/map/types.ts`, combat result (winner + per-unit surviving HP from `combat_ended` event chain)
@@ -109,7 +109,7 @@ M2 begins after T-4.2 is done. T-4.3 and T-4.5 are **(parallel)**.
 - **Acceptance:** Tests pass. `pnpm check` passes.
 
 #### T-4.5 — MapScreen UI
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-4.2
 - **Inputs:** `src/logic/map/types.ts`, `src/logic/map/navigation.ts`, `src/ui/App.tsx`
@@ -130,7 +130,7 @@ M2 begins after T-4.2 is done. T-4.3 and T-4.5 are **(parallel)**.
 M3 begins after T-4.1, T-4.3, T-4.5, and T-4.6 are all done.
 
 #### T-4.7 — Wire full run flow in App.tsx
-- **Status:** todo
+- **Status:** done
 - **Track:** integration
 - **Depends on:** T-4.1, T-4.3, T-4.5, T-4.6
 - **Inputs:** All outputs from T-4.1 through T-4.6, `src/ui/App.tsx`, `src/ui/screens/GambitEditor/`, `src/ui/screens/Combat/CombatScreen.tsx`
