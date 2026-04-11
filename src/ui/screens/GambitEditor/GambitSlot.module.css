@@ -1,0 +1,103 @@
+/* GambitSlot — one rule row in the gambit list */
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #1e2535;
+}
+
+.slot:last-child {
+  border-bottom: none;
+}
+
+.index {
+  width: 1.4rem;
+  text-align: right;
+  color: #3a4260;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* SearchableSelect */
+
+.searchableWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.searchableInput {
+  padding: 0.3rem 0.5rem;
+  background: #0d1018;
+  color: #c8d0e0;
+  border: 1px solid #3a4260;
+  font-family: inherit;
+  font-size: 0.8rem;
+  width: 9rem;
+  cursor: pointer;
+}
+
+.searchableInput:focus {
+  outline: none;
+  border-color: #7eb8f0;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  background: #111520;
+  border: 1px solid #3a4260;
+  border-top: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 100%;
+}
+
+.dropdownItem {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  color: #c8d0e0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dropdownItem:hover {
+  background: #1a2535;
+  color: #7eb8f0;
+}
+
+/* Extra fields (pct input, target selector) */
+
+.pctInput {
+  width: 3.5rem;
+  padding: 0.3rem 0.5rem;
+  background: #0d1018;
+  color: #c8d0e0;
+  border: 1px solid #3a4260;
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pctInput:focus {
+  outline: none;
+  border-color: #7eb8f0;
+}
+
+.pctLabel {
+  color: #5a6880;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.separator {
+  color: #3a4260;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  padding: 0 0.15rem;
+}
