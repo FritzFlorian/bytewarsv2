@@ -21,156 +21,131 @@ v0.1 established the three-layer architecture (logic / ui / render), proved the 
 
 ---
 
-## v0.2 — Gambit Editor + Visual Combat Feedback
+## v0.2 — Gambit Editor + Visual Combat Feedback (done)
 
-**Goal.** A player can author gambits for each of their units on a dedicated editor screen, click Run, and watch the fight play out with clear visual feedback (active unit highlight, target indicators, idle state) and a persistent scrolling combat log.
+v0.2 shipped a per-unit gambit editor (searchable dropdowns, drag-to-reorder, unit tabs) wired to the combat resolver, plus combat visual feedback (active unit highlight, target indicator projectile, idle state visual, scrolling combat log). The one-shot flow editor → fight shipped; no map or rewards. All tasks done, `pnpm check` passes.
 
-**Scope.** Gambit editor for player units only (Vacuum + Butler). Enemy gambits remain hardcoded in fixtures. v0.1 gambit vocabulary only. One-shot flow: editor → fight → done (no way back). No map, no rewards, no content loaders.
+---
 
-**Done bar.** Both milestones done. `pnpm check` passes. A human can boot `pnpm dev`, navigate to the editor, set custom gambits for each unit, click Run, and watch the fight with clear per-turn visual feedback and a readable scrolling log.
+## v0.3 — Audio (done)
 
-### M1 — Gambit Editor
+v0.3 added a Web Audio API synthesis layer (`src/audio/`): synthesized sounds for attack, damage, and destroy events; a looping background beat during combat; win/lose stingers at fight end. No audio asset files. Audio is wired to combat playback from `CombatScreen` — the render layer stays audio-free. All tasks done, `pnpm check` passes.
 
-#### T-1.1 — Editor screen shell + unit tabs
-- **Status:** done
-- **Track:** ui
-- **Depends on:** v0.1 done
-- **Inputs:** `src/ui/App.tsx`, `src/logic/gambits/types.ts`
+---
+
+## v0.4 — Map + Multi-Battle Run
+
+**Goal.** The player fights a full run: a seeded, branching horizontal map of 10–12 nodes leading to a boss. Squad HP carries between fights. Losing wipes the run; beating the boss wins it. Gambits are editable before every fight.
+
+**Scope.** Node types: Combat and Boss only (no Elite, no Repair Bay). No reward selection screen. No meta-progression. One new chassis (Overseer boss). Player starting squad loaded from an editable JSON file. Dead units sit out one fight and return at 42% HP.
+
+**Done bar.** All milestones done. `pnpm check` passes. A human can boot `pnpm dev`, load a starting squad from JSON, navigate a branching map, fight multiple combats, edit gambits between each, and either beat the boss (victory screen) or wipe (game-over screen).
+
+### M1 — Foundation (parallel)
+
+All four tasks in M1 are **(parallel)** — they have no inter-dependencies.
+
+#### T-4.1 — Player squad JSON schema + loader
+- **Status:** todo
+- **Track:** foundation
+- **Depends on:** v0.3 done
+- **Inputs:** `src/logic/gambits/types.ts`, `src/logic/content/fixtures.ts` (existing player fixture)
 - **Outputs:**
-  - `src/ui/screens/GambitEditor/GambitEditorScreen.tsx` — top-level editor screen with a tab bar (one tab per player unit: Vacuum, Butler). Selecting a tab shows that unit's gambit list below.
-  - `src/ui/screens/GambitEditor/GambitEditorScreen.module.css`
-  - `src/ui/App.tsx` updated so the editor screen is the landing page; the combat screen is navigated to after clicking Run.
-- **Acceptance:** `pnpm dev` lands on the editor screen with two unit tabs. Switching tabs shows the correct unit name. No gambit editing yet — slots can be empty placeholders.
+  - `src/content/player-squad.json` — editable file defining the player's starting units: chassis, name, grid slot (row 0–2, col 0–2), and starting gambit list. Supports 1–9 units.
+  - `src/content/schema/playerSquad.ts` — Zod schema validating the JSON. Fails loudly on malformed input.
+  - Loader function in `src/logic/content/` that reads + validates the JSON and returns typed `Unit[]`. Replaces the hardcoded player units in the walking-skeleton fixture.
+- **Acceptance:** Editing a unit's chassis or gambits in `player-squad.json` and running `pnpm dev` produces a different starting squad. Invalid JSON (bad chassis name, missing field) throws a descriptive Zod error at startup. `pnpm check` passes.
 
-#### T-1.2 — Gambit slot component (searchable dropdowns)
-- **Status:** done
-- **Track:** ui
-- **Depends on:** T-1.1
-- **Inputs:** `src/logic/gambits/types.ts` (v0.1 vocabulary), `GambitEditorScreen.tsx`
+#### T-4.2 — Run state types + map generation
+- **Status:** todo
+- **Track:** logic
+- **Depends on:** v0.3 done
+- **Inputs:** `src/logic/rng.ts`, `src/logic/state/`
 - **Outputs:**
-  - `src/ui/screens/GambitEditor/GambitSlot.tsx` — one rule slot: condition picker + action picker + target picker (where applicable). Each picker is a searchable dropdown (type to filter). Vocabulary is constrained to v0.1 types; TS enforces this at the prop boundary.
-  - `src/ui/screens/GambitEditor/GambitList.tsx` — renders 4 slots for the active unit (4 rule slots per Q-G5).
-  - `tests/ui/GambitSlot.test.tsx` — renders a slot, selects a condition, asserts the dependent pickers update correctly.
-- **Acceptance:** Selecting `self_hp_below` shows a numeric `pct` input. Selecting `target_exists` shows a target selector. Selecting `always` shows neither. Selecting `idle` as action hides the target picker. All picker states compile under strict TS.
+  - `src/logic/map/types.ts` — `NodeType` (`'combat' | 'boss'`), `MapNode` (id, type, column, lane), `MapEdge` (from → to), `MapGraph` (nodes + edges), `RunState` (graph, current node id, unit HP snapshot keyed by unit id, sitting-out set of unit ids, `status: 'active' | 'won' | 'lost'`).
+  - `src/logic/map/generate.ts` — `generateMap(rng: Rng): MapGraph`. Produces 10–12 columns; 1–3 nodes per column (max 3 lanes); last column is always a single Boss node; edges are generated so every node is reachable and every non-boss node has at least one forward edge.
+  - `src/logic/map/navigation.ts` — `getReachableNodes(run: RunState): MapNode[]`, `selectNode(run: RunState, nodeId: string): RunState`.
+  - Tests in `tests/logic/map.test.ts` asserting: map always has exactly one boss at the end; every non-boss node has at least one outgoing edge; no node has more than 3 lanes per column; `selectNode` rejects unreachable nodes.
+- **Acceptance:** Tests pass. `pnpm check` passes.
 
-#### T-1.3 — Drag-to-reorder slots
-- **Status:** done
+#### T-4.4 — Overseer boss chassis + fixture
+- **Status:** todo
+- **Track:** render + logic
+- **Depends on:** v0.3 done
+- **Inputs:** `src/render/units/` (Vacuum, Butler, QaRig for reference), `src/logic/content/fixtures.ts`
+- **Outputs:**
+  - `src/render/units/Overseer.tsx` — a visually distinctive boss chassis: larger footprint than the standard units, heavy industrial silhouette (think factory floor manager — wide base, articulated arms, sensor cluster on top). Uses the same DOM/SVG/CSS approach as existing chassis.
+  - Boss enemy fixture in `src/logic/content/fixtures.ts`: 2–3 Overseer units, 120 HP each, gambit list that uses all v0.1 vocabulary in an aggressive priority order (`target_exists → attack nearest_enemy`, fallthrough to `always → attack any_enemy`).
+- **Acceptance:** `pnpm dev`, navigate to a debug page or force the boss encounter — Overseer renders without errors, is visually larger/heavier than QaRig, and silhouette-tests (distinct in solid black) against all existing chassis.
+
+#### T-4.6 — GameOver + Victory screens
+- **Status:** todo
 - **Track:** ui
-- **Depends on:** T-1.2
-- **Inputs:** `GambitList.tsx`
-- **Outputs:** Drag-and-drop reordering of rule slots within a unit's gambit list. Use the HTML5 drag-and-drop API — no new library dependency.
-- **Acceptance:** Dragging slot 3 above slot 1 reorders the list. The new order is reflected in the `GambitList` state that will be read by T-1.4. Works in a `pnpm dev` browser check.
+- **Depends on:** v0.3 done
+- **Inputs:** `src/ui/App.tsx`
+- **Outputs:**
+  - `src/ui/screens/GameOverScreen.tsx` + CSS module — shows "Run failed", the round the run ended, and a "Try Again" button that resets to a fresh run.
+  - `src/ui/screens/VictoryScreen.tsx` + CSS module — shows "Boss defeated", and a "Try Again" button.
+- **Acceptance:** Both screens render without errors. "Try Again" navigates back to the start of a new run. `pnpm check` passes.
 
-#### T-1.4 — Wire "Run" → createCombat → transition to combat screen
-- **Status:** done
+### M2 — Logic completion + Map UI (parallel)
+
+M2 begins after T-4.2 is done. T-4.3 and T-4.5 are **(parallel)**.
+
+#### T-4.3 — applyBattleResult (HP carry-over + revival rule)
+- **Status:** todo
+- **Track:** logic
+- **Depends on:** T-4.2
+- **Inputs:** `src/logic/map/types.ts`, combat result (winner + per-unit surviving HP from `combat_ended` event chain)
+- **Outputs:**
+  - `src/logic/map/progression.ts` — `applyBattleResult(run: RunState, result: BattleResult): RunState`. Logic:
+    1. Update HP snapshot for all surviving units.
+    2. Move newly-dead units into the sitting-out set.
+    3. Promote units that were already in sitting-out (i.e., sat out this fight) back to active at 42% of their max HP.
+    4. If `result.winner === 'enemy'` → set `run.status = 'lost'`.
+    5. If current node was the Boss and `result.winner === 'player'` → set `run.status = 'won'`.
+  - `BattleResult` type exported from `src/logic/map/types.ts`.
+  - Tests in `tests/logic/progression.test.ts`: unit that dies in fight N is absent fight N+1, returns at 42% fight N+2; survivor HP carries correctly; boss win sets status `'won'`; full wipe sets status `'lost'`.
+- **Acceptance:** Tests pass. `pnpm check` passes.
+
+#### T-4.5 — MapScreen UI
+- **Status:** todo
+- **Track:** ui
+- **Depends on:** T-4.2
+- **Inputs:** `src/logic/map/types.ts`, `src/logic/map/navigation.ts`, `src/ui/App.tsx`
+- **Outputs:**
+  - `src/ui/screens/RunMap/MapScreen.tsx` + CSS module. Renders the map as a horizontal node graph:
+    - Columns left-to-right representing progression depth.
+    - Up to 3 nodes per column arranged in up to 3 vertical lanes.
+    - SVG or CSS lines connecting each node to its forward edges.
+    - Current node highlighted (distinct border/color).
+    - Reachable next nodes are clickable buttons; already-visited and unreachable nodes are dimmed.
+    - Node icons: combat (⚙) vs boss (★) or equivalent simple visual distinction.
+    - A squad status strip below or beside the map showing each unit's name, chassis, and current HP %.
+  - No external graph library — plain HTML/CSS/SVG only.
+- **Acceptance:** Map renders for a generated `MapGraph`. Clicking a reachable node calls `selectNode` and updates the highlighted position. Non-reachable nodes are not clickable. `pnpm check` passes.
+
+### M3 — Run flow integration
+
+M3 begins after T-4.1, T-4.3, T-4.5, and T-4.6 are all done.
+
+#### T-4.7 — Wire full run flow in App.tsx
+- **Status:** todo
 - **Track:** integration
-- **Depends on:** T-1.3
-- **Inputs:** editor output (`GambitList` per player unit), `createCombat` / `resolveRound` / `isCombatOver` from `src/logic/index.ts`, `src/ui/screens/Combat/CombatScreen.tsx`
+- **Depends on:** T-4.1, T-4.3, T-4.5, T-4.6
+- **Inputs:** All outputs from T-4.1 through T-4.6, `src/ui/App.tsx`, `src/ui/screens/GambitEditor/`, `src/ui/screens/Combat/CombatScreen.tsx`
 - **Outputs:**
-  - "Run" button in `GambitEditorScreen` reads the current gambit lists, merges them into the walking-skeleton fixture (enemy units stay hardcoded), resolves the full fight, and passes the accumulated `CombatEvent[]` to `CombatScreen` / `CombatScene`.
-  - App navigates to the combat screen and begins playback automatically.
-- **Acceptance:** Changing a player gambit (e.g. switching the target from `nearest_enemy` to `any_enemy`) produces a different fight observable in the event log. `pnpm check` passes.
-
-### M2 — Combat Visual Feedback
-
-M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**. T-2.4 depends on T-2.1.
-
-#### T-2.1 — Active unit highlight (parallel)
-- **Status:** done
-- **Track:** render
-- **Depends on:** T-1.4
-- **Inputs:** `src/render/CombatScene/CombatScene.tsx`, `src/render/playback.ts`, `turn_started` / `turn_ended` events
-- **Outputs:**
-  - The unit whose turn is currently playing has a visible highlight (glow, ring, or border). Advances in sync with `turn_started` / `turn_ended` events.
-  - CSS keyframe for highlight on/off transition.
-- **Acceptance:** Watching the fight in `pnpm dev`, the active unit is always clearly identified. Highlight disappears at `turn_ended`. Works at all four playback speeds.
-
-#### T-2.2 — Idle state visual distinction (parallel)
-- **Status:** done
-- **Track:** render
-- **Depends on:** T-1.4
-- **Inputs:** `CombatScene.tsx`, `rule_fired` event (action kind `idle`)
-- **Outputs:** A visually distinct indicator on a unit when its action is `idle` (no rule fired) — e.g. a brief dim pulse or "…" badge. Must contrast clearly with the attack animation.
-- **Acceptance:** In a fight where a unit idles (no rule matches the current battlefield), the idle indicator appears and is distinguishable from an attack. Confirmed with a hand-edited fixture if needed.
-
-#### T-2.3 — Target indicator: arrow / projectile (parallel)
-- **Status:** done
-- **Track:** render
-- **Depends on:** T-1.4
-- **Inputs:** `CombatScene.tsx`, `action_used` event (includes target slot), unit slot positions in the DOM
-- **Outputs:**
-  - On `attack`: an arrow SVG or CSS projectile animates from the attacker's slot to the target's slot, timed to land before `damage_dealt` is shown.
-  - CSS keyframe for projectile travel.
-- **Acceptance:** Every `attack` in the fight shows an indicator traveling to the correct target. No indicator on `idle`. Works at all four playback speeds.
-
-#### T-2.4 — Scrolling combat log side panel
-- **Status:** done
-- **Track:** render
-- **Depends on:** T-2.1
-- **Inputs:** `CombatScene.tsx`, `CombatEvent[]`, playback timing from `playback.ts`
-- **Outputs:**
-  - A scrolling log panel rendered as part of `CombatScene`. Sits alongside the battle grid.
-  - Entries are appended in sync with playback. Each entry is a short readable line, e.g.: `Round 1 · Vacuum → attack → QA-Rig #1 (10 dmg)` / `Butler → idle` / `QA-Rig #2 destroyed`.
-  - After `combat_ended`, the full log stays visible and is scrollable for review.
-- **Acceptance:** Log entries appear in time with animations during the fight. After the fight ends, the full log is scrollable. `pnpm check` passes.
+  - `App.tsx` updated with a run-scoped state machine: `'start' | 'map' | 'gambit-editor' | 'combat' | 'game-over' | 'victory'`.
+  - Start: load player squad from JSON, generate seeded map (`generateMap`), transition to `'map'`.
+  - Map → node selected → transition to `'gambit-editor'` (pre-loaded with current squad gambits and HP).
+  - Gambit editor "Run" → resolve combat → transition to `'combat'`.
+  - Combat ends → call `applyBattleResult` → if `status === 'lost'` go to `'game-over'`; if `status === 'won'` go to `'victory'`; otherwise go back to `'map'`.
+  - Game Over / Victory "Try Again" → fresh run (new seed, reload squad JSON).
+  - `useGameState` hook extended (or a new `useRunState` hook) to hold `RunState` alongside combat state.
+- **Acceptance:** Full run playable end-to-end in `pnpm dev`: start → map → editor → combat (×N) → boss fight → victory or wipe → game over. HP correctly carries between fights. Dead unit missing from the next fight's editor, returning the fight after at 42%. `pnpm check` passes.
 
 ---
 
-## v0.3 — Audio
+## v0.5 and beyond
 
-**Goal.** Every combat action, hit, and destruction has a synthesized sound effect. A looping background beat plays through the fight. A short win or lose stinger plays at the end.
-
-**Approach.** Web Audio API synthesis — pure TypeScript, no audio asset files. Claude generates all synthesis code on request. Audio is treated as part of display logic (`ui` track).
-
-**Scope.** Sounds: `action_used` (one sound per action kind), `damage_dealt` (hit), `unit_destroyed` (destroy). Music: looping background beat, win stinger, lose stinger. No mute/volume control for now.
-
-**Done bar.** All tasks done, `pnpm check` passes. Booting `pnpm dev`, clicking Run, and watching a fight produces synchronized sound effects and music.
-
-### M1 — Audio
-
-#### T-1.1 — Audio engine foundation
-- **Status:** done
-- **Track:** ui
-- **Depends on:** v0.2 done
-- **Inputs:** `src/ui/screens/Combat/CombatScreen.tsx`
-- **Outputs:**
-  - `src/audio/engine.ts` — lazy `AudioContext` init (initialized on the "Run" click, which satisfies the browser user-gesture requirement), and a `playSound(id: SoundId)` dispatcher.
-  - `src/audio/sounds.ts` — `SoundId` type union covering all in-scope sounds: `attack`, `damage`, `destroy`, `beat`, `win`, `lose`.
-- **Acceptance:** `AudioContext` is not created until Run is clicked. Calling `playSound` before init does not throw. Compiles under strict TS. No sounds yet — stubs only.
-
-#### T-1.2 — Combat sound synthesis
-- **Status:** done
-- **Track:** ui
-- **Depends on:** T-1.1
-- **Inputs:** `src/audio/engine.ts`, `src/audio/sounds.ts`
-- **Outputs:**
-  - Web Audio API synthesis functions for: `attack` (action sound), `damage` (hit sound), `destroy` (unit destroyed sound). Each is a self-contained function using the shared `AudioContext` from the engine.
-  - Registered in `playSound` dispatcher.
-- **Acceptance:** Calling `playSound('attack')`, `playSound('damage')`, `playSound('destroy')` in the browser each produces a distinct, recognizable sound. No audio files used.
-
-#### T-1.3 — Music synthesis
-- **Status:** done
-- **Track:** ui
-- **Depends on:** T-1.1
-- **Inputs:** `src/audio/engine.ts`, `src/audio/sounds.ts`
-- **Outputs:**
-  - `beat` — a looping rhythmic background track that starts when combat playback begins and stops when it ends.
-  - `win` and `lose` — short stingers (2–4 seconds) triggered at `combat_ended` depending on outcome.
-  - All synthesized via Web Audio API. Registered in the engine.
-- **Acceptance:** Background beat loops without gaps during fight playback. Win/lose stinger plays correctly at fight end. Beat does not overlap with the stinger.
-
-#### T-1.4 — Wire audio to combat playback
-- **Status:** done
-- **Track:** ui
-- **Depends on:** T-1.2, T-1.3
-- **Inputs:** `CombatScreen.tsx`, `CombatEvent[]`, playback timing from `src/render/playback.ts`
-- **Outputs:**
-  - `CombatScreen` starts the background beat when playback begins and calls `playSound` for each relevant event in sync with the playback timeline: `action_used` → `attack`, `damage_dealt` → `damage`, `unit_destroyed` → `destroy`, `combat_ended` → `win` or `lose`.
-  - Audio is triggered from `CombatScreen`, not from inside `CombatScene` (render layer stays audio-free).
-- **Acceptance:** Watching a fight in `pnpm dev`, every hit, action, and destroy has a synchronized sound. Win/lose stinger plays at the correct moment. `pnpm check` passes.
-
----
-
-## v0.4 and beyond
-
-To be planned after v0.3 ships. Likely themes: content data + Zod loaders, vocabulary expansion, modules, cooldowns, reach rules, run map + node progression, reward selection screen, additional chassis (Lawnbot, Security-drone), Repair Bay node, flavor text, status effects.
+To be planned after v0.4 ships. Likely themes: reward selection screen, vocabulary expansion, modules, cooldowns, reach rules, additional chassis (Lawnbot, Security-drone), Repair Bay node, Elite node type, flavor text between nodes, status effects, meta-progression.

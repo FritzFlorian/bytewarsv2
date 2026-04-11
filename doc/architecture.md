@@ -15,15 +15,18 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 
 3. **Before touching anything**, run `pnpm check` to confirm you are starting from green. After finishing, run it again — per `CLAUDE.md`, every task must leave `pnpm check` passing.
 
-**What is currently built (v0.1):**
+**What is currently built (v0.1–v0.3):**
 - Logic layer: types, RNG, gambit interpreter, combat resolver, walking-skeleton fixture. Public API is fully implemented.
-- Render layer: three chassis components (Vacuum, Butler, QaRig), `CombatScene` with HP bars / damage popups / destroyed-unit fade, `playback.ts` schedule converter.
-- UI layer: `App.tsx`, `useGameState` hook, subscribe bridge, `CombatScreen` with play/pause/step/speed controls.
+- Render layer: three chassis components (Vacuum, Butler, QaRig), `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual, `playback.ts` schedule converter, scrolling combat log panel.
+- UI layer: `App.tsx`, `useGameState` hook, subscribe bridge, `CombatScreen` with play/pause/step/speed controls. `GambitEditorScreen` with per-unit tabs, searchable condition/action dropdowns, drag-to-reorder slots.
+- Audio layer (`src/audio/`): Web Audio API engine, synthesized sounds for attack / damage / destroy, looping background beat, win/lose stingers, wired to combat playback.
 
-**What is not built yet (v0.2+):**
-- Gambit editor screen
-- Visual combat feedback (active unit highlight, target indicators, combat log panel)
-- Map, rewards, content loaders, modules, additional chassis
+**What is not built yet (v0.4+):**
+- Run map + node progression
+- Player squad JSON loader
+- Boss chassis (Overseer)
+- Game-over / victory screens
+- Rewards, modules, content loaders, additional chassis
 
 ---
 
@@ -140,7 +143,7 @@ The vocabulary will grow. The shape (discriminated unions, top-to-bottom fallthr
 
 ## 5. Folder layout
 
-`*` = exists now. Everything else is planned for v0.2+.
+`*` = exists now. Everything else is planned for v0.4+.
 
 ```
 bytewars/
@@ -152,8 +155,8 @@ bytewars/
 │   │   ├── state/                # * run/combat state types
 │   │   ├── gambits/              # * interpreter, condition/action types
 │   │   ├── combat/               # * turn resolver, event log types
-│   │   ├── map/                  # (planned) run map, node progression
-│   │   ├── content/              # * walking-skeleton fixture; (planned) JSON loaders
+│   │   ├── map/                  # (v0.4) RunState, MapGraph, generateMap, applyBattleResult
+│   │   ├── content/              # * walking-skeleton fixture; (v0.4) player-squad JSON loader
 │   │   ├── rng.ts                # * seeded RNG (mulberry32)
 │   │   └── index.ts              # * public API: createCombat, resolveRound, isCombatOver + all types
 │   ├── ui/                       # LAYER 2 — React
@@ -161,8 +164,10 @@ bytewars/
 │   │   ├── state.ts              # * subscribe-bridge to logic layer
 │   │   ├── screens/
 │   │   │   ├── Combat/           # * CombatScreen with play/pause/step/speed controls
-│   │   │   ├── GambitEditor/     # (v0.2) per-unit gambit authoring
-│   │   │   ├── RunMap/           # (planned)
+│   │   │   ├── GambitEditor/     # * per-unit gambit authoring (v0.2)
+│   │   │   ├── RunMap/           # (v0.4) horizontal node-graph map screen
+│   │   │   ├── GameOver/         # (v0.4) run-failed screen
+│   │   │   ├── Victory/          # (v0.4) boss-beaten screen
 │   │   │   ├── Inventory/        # (planned)
 │   │   │   └── RunSummary/       # (planned)
 │   │   ├── components/           # (planned) shared widgets
@@ -170,11 +175,15 @@ bytewars/
 │   │       └── useGameState.ts   # * React hook for game state + dispatch
 │   ├── render/                   # LAYER 3 — DOM+CSS combat playback
 │   │   ├── CombatScene/          # * plays back the turn event log; index.ts is the only public entry
-│   │   ├── units/                # * Vacuum.tsx, Butler.tsx, QaRig.tsx chassis components
+│   │   ├── units/                # * Vacuum.tsx, Butler.tsx, QaRig.tsx; (v0.4) Overseer.tsx
 │   │   ├── animations/           # (planned) shared CSS keyframe helpers
 │   │   └── playback.ts           # * event-log → timed visual schedule
-│   ├── content/                  # (planned) JSON content data (classes, modules, enemies)
-│   │   └── schema/               # (planned) Zod schemas
+│   ├── audio/                    # * Web Audio API engine + synthesized sounds (v0.3)
+│   │   ├── engine.ts             # * lazy AudioContext init, playSound dispatcher
+│   │   └── sounds.ts             # * SoundId type + synthesis functions
+│   ├── content/                  # (v0.4) JSON content data
+│   │   ├── player-squad.json     # (v0.4) editable starting squad definition
+│   │   └── schema/               # (v0.4) Zod schemas
 │   ├── styles/                   # * global CSS + unit shading rules
 │   └── main.tsx                  # * Vite entry
 ├── tests/
@@ -196,7 +205,7 @@ bytewars/
 
 ## 7. Content data
 
-Classes, modules, enemies, and encounters are **data, not code**. They will live as JSON files in `src/content/` and be loaded at startup, validated by Zod schemas. Not yet implemented — lands in v0.3+.
+Classes, modules, enemies, and encounters are **data, not code**. They will live as JSON files in `src/content/` and be loaded at startup, validated by Zod schemas. The player starting squad (`player-squad.json`) lands in v0.4. Full content data (enemy rosters, modules, encounter tables) lands in v0.5+.
 
 ## 8. RNG and determinism
 
@@ -229,7 +238,7 @@ Logic tests run in Node env. UI and integration tests use jsdom (per-file `// @v
 ## 10. What's deferred
 
 - **PixiJS / Canvas rendering.** Only added if combat juice demands effects DOM/SVG/CSS cannot deliver.
-- **Audio system.** Howler.js when the time comes; at most basic UI sounds before then.
+- **Audio expansion.** Web Audio synthesis is live (v0.3). Volume/mute controls and music variety are deferred.
 - **Save / resume of in-progress runs.** Reasonable to add but not required for v1.
 - **i18n.** English-only for v1.
 - **Accessibility audit.** Keyboard navigation in the gambit editor and color choices should be considered from the start, but a formal pass is deferred.

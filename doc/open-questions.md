@@ -151,6 +151,49 @@ Decisions required before the relevant v0.2+ work begins.
 
 ---
 
+## v0.4 design questions
+
+### Q-M1 — Map structure and visual format
+- **Source:** `roadmap.md` T-4.5, `gameplay.md` §1
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **Horizontal node graph, HTML/CSS/SVG only (no graph library), max 3 parallel lanes.** 10–12 columns. Last column is always a single Boss node. Node types in v0.4: Combat and Boss only (Elite and Repair Bay deferred).
+- **Stakes:** Determines rendering complexity and navigation UX.
+- **Revisit if:** 3 lanes prove too narrow for interesting branching, or the HTML approach can't render legible edges at a playable resolution.
+
+### Q-M2 — Map generation seed
+- **Source:** `roadmap.md` T-4.2
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **Seeded from the run seed.** Same run seed always produces the same map. Fits the determinism model already in place for combat (§8).
+- **Stakes:** Reproducibility for debugging and eventual seed-sharing.
+- **Revisit if:** Players want unpredictable maps within a deterministic combat system — at which point derive the map seed from the run seed via a separate RNG branch.
+
+### Q-M3 — Unit HP between fights
+- **Source:** `roadmap.md` T-4.3, `gameplay.md` §1
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **Survivors carry their HP. Dead units sit out the next fight, then return at 42% HP the fight after.** No full heal between fights except via future Repair Bay nodes.
+- **Stakes:** Run tension. If HP fully resets, fights feel disconnected. If dead units are permanent, the run collapses too fast.
+- **Revisit if:** Playtesting shows the sit-out rule is confusing or the 42% value is wrong. Tune the percentage in `progression.ts` and update this entry.
+
+### Q-M4 — Reward selection in v0.4
+- **Source:** `roadmap.md`, `gameplay.md` §1
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **No reward screen in v0.4.** Progression is fight-only. Rewards (module, unit, heal, +rule slot, vocabulary unlock) land in v0.5 alongside content data loaders.
+- **Stakes:** Run variety. Skipping rewards keeps v0.4 tight; rewards are the main engagement hook for later.
+
+### Q-M5 — Boss enemy definition
+- **Source:** `roadmap.md` T-4.4
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **New Overseer chassis, hardcoded in fixtures, 120 HP, aggressive gambit list.** Visually larger and heavier than QA-Rig. Design is free — no specific silhouette constraint beyond passing the "distinct in solid black" test.
+- **Stakes:** Boss needs to feel meaningfully harder than regular encounters. 120 HP vs 60 HP enemy HP is the baseline; tune after playtesting.
+
+### Q-M6 — Player squad configurability
+- **Source:** `roadmap.md` T-4.1
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **`src/content/player-squad.json`**, editable by hand, validated by Zod at startup. Defines chassis, name, grid slot, and starting gambits for each unit. Any squad size 1–9 is valid. Replaces the hardcoded player fixture from the walking skeleton.
+- **Stakes:** Allows manual tuning of the starting squad without touching TypeScript.
+
+---
+
 ## Process / tooling questions
 
 ### Q-P1 — Storybook or debug-page harness
