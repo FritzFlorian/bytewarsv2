@@ -23,7 +23,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | `pnpm check` | Full check: `test` + `typecheck` + `e2e` |
 | `pnpm lint` | Run ESLint |
 
-## Walking Skeleton (v0.1)
+## Current State (v0.1 — done)
 
 The walking skeleton is complete. It demonstrates the full end-to-end pipeline:
 gambits → resolver → event log → animated DOM playback.
@@ -31,20 +31,16 @@ gambits → resolver → event log → animated DOM playback.
 **To run it:**
 1. `pnpm install && pnpm dev`
 2. Open [http://localhost:5173](http://localhost:5173)
-3. Click **Start Combat** — a hardcoded 2v2 fight resolves instantly and plays back in the browser
+3. Click **Start Combat** — a hardcoded 2v2 fight resolves and plays back in the browser
 4. Use **Play / Pause / Step** to control playback; the speed selector adjusts playback rate (0.5× – 10×)
 
 **Debug pages** (dev server only):
 - `/?debug=units` — renders all three chassis components side-by-side
 - `/?debug=scene` — plays a hand-written fixture through the render layer
 
-**To run the tests:**
-```bash
-pnpm test     # unit + integration tests (Vitest, node + jsdom)
-pnpm e2e      # browser tests (Playwright, headless Chromium)
-pnpm check    # all of the above + typecheck
-```
+## What's Next (v0.2)
 
-## Status
+- **Gambit editor** — a dedicated screen to author per-unit gambit lists (condition + action dropdowns, drag-to-reorder) before running a fight
+- **Combat visual feedback** — active unit highlight, target indicators (arrow/projectile), idle state distinction, scrolling combat log side panel
 
-v0.1 walking skeleton — done. Next: v0.2 (content data, vocabulary expansion, run map).
+See `doc/roadmap.md` for the full task breakdown.

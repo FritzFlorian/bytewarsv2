@@ -2,6 +2,31 @@
 
 This is the technical source of truth: stack, layering, folder layout, key interfaces, and testing strategy. Anything marked **[Proposal]** is current best-guess; anything marked **[TBD]** is unresolved and tracked in `open-questions.md`.
 
+## 0. Quick Start for Development
+
+**Three things to know before writing any code:**
+
+1. **Three strictly separated layers** — `src/logic/`, `src/ui/`, `src/render/`. Logic is pure TS (no React, no DOM). Render is read-only playback of the event log. UI owns screens and wires them together. See §2 for the rules.
+
+2. **Key entry points:**
+   - `src/logic/index.ts` — the only file UI/render should import from the logic layer. Contains `createCombat`, `resolveRound`, `isCombatOver`, and all shared types.
+   - `src/render/CombatScene/index.ts` — the only file UI should import from the render layer. Exports `<CombatScene events={...} speed={...} />`.
+   - `src/ui/App.tsx` — the React root. All screen routing lives here.
+
+3. **Before touching anything**, run `pnpm check` to confirm you are starting from green. After finishing, run it again — per `CLAUDE.md`, every task must leave `pnpm check` passing.
+
+**What is currently built (v0.1):**
+- Logic layer: types, RNG, gambit interpreter, combat resolver, walking-skeleton fixture. Public API is fully implemented.
+- Render layer: three chassis components (Vacuum, Butler, QaRig), `CombatScene` with HP bars / damage popups / destroyed-unit fade, `playback.ts` schedule converter.
+- UI layer: `App.tsx`, `useGameState` hook, subscribe bridge, `CombatScreen` with play/pause/step/speed controls.
+
+**What is not built yet (v0.2+):**
+- Gambit editor screen
+- Visual combat feedback (active unit highlight, target indicators, combat log panel)
+- Map, rewards, content loaders, modules, additional chassis
+
+---
+
 ## 1. Tech stack
 
 | Concern | Choice | Notes |
@@ -10,21 +35,22 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 | Build tool | **Vite** | Dev server, bundling, asset handling. |
 | Language | **TypeScript** | Strict mode. The gambit interpreter especially benefits from types. |
 | UI framework | **React** | Used for all menus, the gambit editor, the map screen, inventory, and the combat scene's DOM tree. |
-| Combat rendering | **DOM + SVG + CSS** | Units composed from DOM and SVG primitives (divs for rectangles, SVG for curves/masks), animated with CSS transitions/transforms/keyframes. Compositional so modules and attachments can be added as runtime child elements — see `setting.md` §4. Same React tree as the rest of the UI. **No Canvas/WebGL in v1.** |
-| Tests | **Vitest** | Vite-native, jest-compatible. |
-| Schema validation | **Zod** | For loading content data (classes, modules, enemies) from JSON safely. Added when content loaders land. |
+| Combat rendering | **DOM + SVG + CSS** | Units composed from DOM and SVG primitives, animated with CSS transitions/transforms/keyframes. Compositional so modules and attachments can be added as runtime child elements. Same React tree as the rest of the UI. **No Canvas/WebGL in v1.** |
+| Tests | **Vitest** | Vite-native, jest-compatible. Logic tests run in Node env; UI tests use jsdom (per-file `@vitest-environment jsdom` directive). |
+| E2E tests | **Playwright** | Headless Chromium. `pnpm e2e` auto-starts the dev server. |
+| Schema validation | **Zod** | For loading content data from JSON safely. Added when content loaders land in v0.3+. |
 
 ### Explicitly not in the stack
 
 - **No game framework** (no Phaser, no Babylon, no Three). Phaser would fight the React/Vite structure and bring its own scene/state/loop.
-- **No Canvas/WebGL renderer in v1.** PixiJS is the planned escape hatch *only if* combat visuals later demand effects DOM/SVG/CSS cannot deliver. Default answer is "do it in DOM/SVG/CSS."
-- **No state management library.** No Redux, Zustand, XState. The game state is a plain object; React state plus a small subscribe pattern is enough.
+- **No Canvas/WebGL renderer in v1.** PixiJS is the escape hatch only if combat visuals later demand effects DOM/SVG/CSS cannot deliver.
+- **No state management library.** No Redux, Zustand, XState. Plain object + `useSyncExternalStore`.
 - **No ECS library.** Bytewars has at most 18 units on a slot grid — ECS is overkill.
 - **No physics engine.** None needed.
 
 ## 2. Three-layer architecture
 
-The codebase is split into **three strictly separated layers**. The separation is enforced socially (and ideally by lint rules / import boundaries) — *the goal is that the logic layer can be unit-tested in a Node process with no DOM, no React, and no rendering code in scope.*
+The codebase is split into **three strictly separated layers**. Separation is enforced by ESLint import boundary rules (`pnpm lint`). *The logic layer can be unit-tested in a Node process with no DOM, no React, and no rendering code in scope.*
 
 ```
 +-------------------------------------------------------------+
@@ -54,182 +80,157 @@ The codebase is split into **three strictly separated layers**. The separation i
 +-------------------------------------------------------------+
 ```
 
-### Why this split
-
-- **The gambit interpreter is the heart of the game.** It must be testable in isolation. Coupling it to React or DOM APIs would be painful.
-- **Determinism is enforceable** — same seed + same gambits + same content = identical fight, every time. This is huge for debugging player-authored gambits, for replays, and for daily-seed challenges if we ever add them.
-- **The rendering layer is swappable.** Start with DOM+CSS; add PixiJS later for combat juice without touching rules code.
-- **The logic layer is headless-runnable**, which means we can write tests like "given these gambits and this enemy comp, after 10 rounds the player should win in N events" — and run them in CI without any browser.
-
 ### Strict rules
 
 - Logic layer **never** imports React, DOM APIs, browser globals, or anything from `ui/` or `render/`.
-- Logic layer **never** mutates state in place from outside. State updates go through the public API (`src/logic/index.ts`) which returns new state.
-- RNG lives **only** in the logic layer and is **always seeded explicitly**. No `Math.random()` anywhere in `src/logic/`.
-- The UI layer reads game state and dispatches intents (`commitGambits`, `startCombat`, `pickReward`, etc.). It does not contain rules.
-- The rendering layer reads the turn event log and renders it. It does not compute combat outcomes itself.
+- Logic layer **never** calls `Math.random()` — all randomness goes through the seeded RNG (banned by lint).
+- Logic layer **never** mutates state in place. Public API functions return new state.
+- UI layer reads game state and dispatches intents. It does not contain rules or combat logic.
+- Render layer reads the turn event log and renders it. It does not compute outcomes.
+- UI layer **only** imports from `src/render/CombatScene/index.ts` — never from render internals.
 
 ## 3. The turn event log
 
-The interface between the logic layer and the rendering layer is a single data structure: an **append-only log of events** describing what happened during a combat round.
+The interface between the logic layer and the rendering layer is an **append-only log of typed events**.
 
-**[Proposal]** Each event is a discriminated union:
+Current v0.1 implementation (`src/logic/combat/events.ts`):
 
 ```ts
 type CombatEvent =
   | { kind: 'round_started'; round: number }
   | { kind: 'turn_started'; unitId: UnitId }
   | { kind: 'rule_fired'; unitId: UnitId; ruleIndex: number }
-  | { kind: 'action_used'; unitId: UnitId; action: ActionRef; targets: UnitId[] }
+  | { kind: 'action_used'; unitId: UnitId; action: Action; targets: UnitId[] }
   | { kind: 'damage_dealt'; sourceId: UnitId; targetId: UnitId; amount: number }
-  | { kind: 'unit_repaired'; sourceId: UnitId; targetId: UnitId; amount: number }
   | { kind: 'unit_destroyed'; unitId: UnitId }
-  | { kind: 'status_applied'; targetId: UnitId; status: StatusRef; duration: number }
-  | { kind: 'unit_moved'; unitId: UnitId; from: SlotRef; to: SlotRef }
   | { kind: 'turn_ended'; unitId: UnitId }
   | { kind: 'round_ended'; round: number }
-  | { kind: 'combat_ended'; winner: 'player' | 'enemy' };
+  | { kind: 'combat_ended'; winner: 'player' | 'enemy' }
 ```
 
-The renderer plays the log back at the player's chosen speed, with each event mapped to a visual change (HP bar tween, damage number, sprite shake, slot swap, etc.).
+Future events (v0.3+, not yet implemented): `unit_repaired`, `status_applied`, `unit_moved`.
 
-This shape is also what tests assert against — "after running combat C with seed S, the resulting event log contains X."
+The renderer plays the log back at the player's chosen speed, mapping each event to a visual change. Tests assert against this log — "given gambits G and seed S, the event log matches snapshot X."
 
 ## 4. Gambit interpreter
 
-The gambit interpreter is a small, deterministic VM that, given a unit and a battlefield snapshot, returns the action that unit will take this turn.
+The gambit interpreter is a small deterministic VM: given a unit and a battlefield snapshot, it returns the action the unit will take this turn (`src/logic/gambits/interpreter.ts`).
 
-**[Proposal]** Approximate shape:
+**Current v0.1 vocabulary** (fully implemented):
 
 ```ts
 type Condition =
-  | { kind: 'self_hp_below'; pct: number }
-  | { kind: 'target_hp_below'; target: TargetSelector; pct: number }
-  | { kind: 'target_exists'; target: TargetSelector }
-  | { kind: 'cooldown_ready'; action: ActionRef }
-  | { kind: 'self_in_row'; row: Row }
   | { kind: 'always' }
-  // ... extensible
+  | { kind: 'self_hp_below'; pct: number }
+  | { kind: 'target_exists'; target: TargetSelector }
 
 type Action =
   | { kind: 'attack'; target: TargetSelector }
-  | { kind: 'use_ability'; ability: AbilityRef; target: TargetSelector }
-  | { kind: 'repair'; target: TargetSelector }
-  | { kind: 'advance' }
-  | { kind: 'retreat' }
-  | { kind: 'swap_with'; target: TargetSelector }
   | { kind: 'idle' }
+
+type TargetSelector = 'self' | 'nearest_enemy' | 'any_enemy'
 
 type Rule = { condition: Condition; action: Action }
 type GambitList = Rule[]   // ordered, top to bottom
-
-function chooseAction(unit: Unit, battlefield: Battlefield): Action {
-  for (const rule of unit.gambits) {
-    if (evaluate(rule.condition, unit, battlefield)) {
-      return rule.action
-    }
-  }
-  return { kind: 'idle' }
-}
 ```
 
-The vocabulary will grow. The shape will not.
+**Planned v0.3+ vocabulary additions** (not yet implemented): `target_hp_below`, `cooldown_ready`, `self_in_row`, `ally.count`, `target.distance`, `target.has_status`; actions: `repair`, `advance`, `retreat`, `swap_with`, `use_ability`.
 
-## 5. Folder layout — [Proposal]
+The vocabulary will grow. The shape (discriminated unions, top-to-bottom fallthrough, `idle` default) will not.
+
+## 5. Folder layout
+
+`*` = exists now. Everything else is planned for v0.2+.
 
 ```
 bytewars/
-├── doc/                          # this folder
+├── doc/                          # design + architecture docs
 ├── public/                       # static assets served as-is
+├── scripts/                      # * pnpm-mediated scripts (run as Vitest tests)
 ├── src/
 │   ├── logic/                    # LAYER 1 — pure TS, no React/DOM
-│   │   ├── state/                # run state, combat state, types
-│   │   ├── gambits/              # interpreter, condition/action types
-│   │   ├── combat/               # turn resolver, event log emitter
-│   │   ├── map/                  # run map, node progression
-│   │   ├── content/              # loaders for class/module/enemy data
-│   │   ├── rng.ts                # seeded RNG (mulberry32 or similar)
-│   │   └── index.ts              # public API surface
+│   │   ├── state/                # * run/combat state types
+│   │   ├── gambits/              # * interpreter, condition/action types
+│   │   ├── combat/               # * turn resolver, event log types
+│   │   ├── map/                  # (planned) run map, node progression
+│   │   ├── content/              # * walking-skeleton fixture; (planned) JSON loaders
+│   │   ├── rng.ts                # * seeded RNG (mulberry32)
+│   │   └── index.ts              # * public API: createCombat, resolveRound, isCombatOver + all types
 │   ├── ui/                       # LAYER 2 — React
-│   │   ├── App.tsx
+│   │   ├── App.tsx               # * screen routing
+│   │   ├── state.ts              # * subscribe-bridge to logic layer
 │   │   ├── screens/
-│   │   │   ├── MainMenu/
-│   │   │   ├── RunMap/
-│   │   │   ├── Combat/           # the React tree for the combat scene
-│   │   │   ├── GambitEditor/
-│   │   │   ├── Inventory/
-│   │   │   └── RunSummary/
-│   │   ├── components/           # shared widgets (buttons, modals, lists)
-│   │   ├── hooks/                # useGameState, useCombatPlayback, ...
-│   │   └── state.ts              # subscribe-bridge to logic layer
+│   │   │   ├── Combat/           # * CombatScreen with play/pause/step/speed controls
+│   │   │   ├── GambitEditor/     # (v0.2) per-unit gambit authoring
+│   │   │   ├── RunMap/           # (planned)
+│   │   │   ├── Inventory/        # (planned)
+│   │   │   └── RunSummary/       # (planned)
+│   │   ├── components/           # (planned) shared widgets
+│   │   └── hooks/
+│   │       └── useGameState.ts   # * React hook for game state + dispatch
 │   ├── render/                   # LAYER 3 — DOM+CSS combat playback
-│   │   ├── CombatScene/          # plays back the turn event log
-│   │   ├── animations/           # CSS keyframes, helpers
-│   │   └── playback.ts           # event-log → visual schedule
-│   ├── content/                  # JSON content data (classes, modules, ...)
-│   │   └── schema/               # Zod schemas for content validation
-│   ├── styles/                   # global CSS
-│   └── main.tsx                  # Vite entry
+│   │   ├── CombatScene/          # * plays back the turn event log; index.ts is the only public entry
+│   │   ├── units/                # * Vacuum.tsx, Butler.tsx, QaRig.tsx chassis components
+│   │   ├── animations/           # (planned) shared CSS keyframe helpers
+│   │   └── playback.ts           # * event-log → timed visual schedule
+│   ├── content/                  # (planned) JSON content data (classes, modules, enemies)
+│   │   └── schema/               # (planned) Zod schemas
+│   ├── styles/                   # * global CSS + unit shading rules
+│   └── main.tsx                  # * Vite entry
 ├── tests/
-│   └── logic/                    # headless tests of the logic layer
+│   ├── logic/                    # * headless logic tests (node env)
+│   ├── ui/                       # * UI component tests (jsdom)
+│   └── integration/              # * end-to-end pipeline tests (jsdom)
 ├── index.html
 ├── package.json
 ├── tsconfig.json
-├── vite.config.ts
+└── vite.config.ts
 ```
-
-Notes:
-
-- `src/render/` lives alongside `src/ui/` rather than under it. The combat scene's React component lives in `src/ui/screens/Combat/`, but everything specific to *playing back the turn event log* (timing, animation orchestration) lives in `src/render/`. The split keeps "combat UI shell" separate from "combat visuals."
-- `src/content/` (the JSON data) is separate from `src/logic/content/` (the loaders). Data is data; loaders are code.
-- Tests for the logic layer live in a top-level `tests/` folder so they can be run headlessly without dragging in JSX/CSS.
 
 ## 6. State management
 
-- The game state is a single plain TypeScript object (run state, current combat state if any, inventory, map position, etc.).
+- The game state is a single plain TypeScript object.
 - The logic layer exposes pure functions that take state + an intent and return new state plus an event log (when applicable).
-- The UI layer subscribes to state changes via a tiny custom store (or `useSyncExternalStore`). React components re-render when their slice changes.
-- No Redux, no Zustand, no XState. If we ever outgrow this, we revisit — but the slot-grid scope makes it very unlikely.
+- The UI layer subscribes to state changes via `useSyncExternalStore` (`src/ui/state.ts`). React components re-render when their slice changes.
+- No Redux, no Zustand, no XState.
 
 ## 7. Content data
 
-Classes, modules, enemies, and encounters are **data, not code**. They live as JSON files in `src/content/` and are loaded at startup, validated by Zod schemas in `src/content/schema/`.
-
-This means a designer (or future-you) can add a new module by editing a JSON file, not by touching the interpreter.
-
-Validation is loud: a malformed content file fails fast at load time with a useful error.
+Classes, modules, enemies, and encounters are **data, not code**. They will live as JSON files in `src/content/` and be loaded at startup, validated by Zod schemas. Not yet implemented — lands in v0.3+.
 
 ## 8. RNG and determinism
 
-- A run is seeded with a single seed at start.
-- All randomness — map generation, encounter selection, reward rolls, combat damage variance, gambit tie-breaking — pulls from a seeded PRNG (**[Proposal]** mulberry32, or similar).
-- The same seed + the same player gambits + the same content = identical run, every time.
-- This is enforced by *never* using `Math.random()` in the logic layer. A lint rule should ban it.
-- Consequence: replays, daily seeds, debugging, and reproducible test cases all become trivial.
+- All randomness pulls from a seeded PRNG (`src/logic/rng.ts`, mulberry32).
+- `Math.random()` is banned in `src/logic/` by lint rule.
+- Same seed + same gambits + same content = identical fight, every time.
+- Consequence: tests can assert exact event-log snapshots with pinned seeds.
 
 ## 9. Testing strategy
 
-The logic layer carries the test weight. Specifically:
+```
+pnpm test    # Vitest: logic (node) + ui (jsdom) + integration (jsdom)
+pnpm e2e     # Playwright: full browser smoke tests
+pnpm check   # both of the above + typecheck
+```
 
-- **Gambit interpreter unit tests** — every condition and action type, plus full priority-list resolution under varied battlefield states. This is the most-tested part of the codebase.
-- **Combat resolver tests** — given a fixed enemy comp, fixed gambits, and a fixed seed, assert the resulting event log. These are golden tests for combat correctness.
-- **Run progression tests** — map generation, reward rolls, node selection, run-state transitions.
-- **Content validation tests** — every content file loads cleanly under its Zod schema.
+**Logic layer** (heaviest coverage):
+- Gambit interpreter: every condition and action kind, priority-list fallthrough, idle default.
+- Combat resolver: golden tests with pinned seeds asserting exact event-log shapes.
 
-UI tests are deliberately lighter:
-- Component-level tests for the gambit editor (the most important UI surface).
-- Smoke tests for the main screens.
-- No exhaustive snapshot testing.
+**UI layer** (lighter):
+- Component tests for the gambit editor (v0.2).
+- Smoke tests for main screens.
 
-Tests run with Vitest in a Node environment for the logic layer, and jsdom for the UI layer.
+**Integration:**
+- `tests/integration/walking-skeleton.test.ts` — renders `<App />`, clicks Start Combat, asserts `combat_ended` in the event log.
+
+Logic tests run in Node env. UI and integration tests use jsdom (per-file `// @vitest-environment jsdom` directive).
 
 ## 10. What's deferred
 
-Tracked in `roadmap.md` under "explicitly out of scope for v1":
-
-- **PixiJS / Canvas rendering.** Only added if and when combat juice demands it.
-- **Audio system.** Howler.js when the time comes; v1 ships with at most basic UI sounds.
+- **PixiJS / Canvas rendering.** Only added if combat juice demands effects DOM/SVG/CSS cannot deliver.
+- **Audio system.** Howler.js when the time comes; at most basic UI sounds before then.
 - **Save / resume of in-progress runs.** Reasonable to add but not required for v1.
-- **Asset pipeline.** No texture packing or sprite atlas tooling until we have real art.
 - **i18n.** English-only for v1.
-- **Accessibility audit.** Some basics (keyboard navigation in the gambit editor, color choices) should be considered from the start, but a formal pass is deferred.
+- **Accessibility audit.** Keyboard navigation in the gambit editor and color choices should be considered from the start, but a formal pass is deferred.
+- **HUD/CCTV framing layer** (Q-S6). Deferred until combat scene and gambit editor have shipped in plain form.
