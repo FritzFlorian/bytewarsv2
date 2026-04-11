@@ -15,7 +15,19 @@
   border-radius: 6px;
   font-family: monospace;
   color: #c8d0e0;
-  min-width: 36rem;
+}
+
+/* Battlefield + log panel sit side by side. */
+.mainContent {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+/* Wraps the battlefield grid pair; `position: relative` anchors the projectile. */
+.battlefieldContainer {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .battlefield {
@@ -174,6 +186,112 @@
   color: #5060a0;
 }
 
+/* ── Active unit highlight (T-2.1) ─────────────────────────────────────────── */
+
+.slotActive {
+  border-color: #7eb8f0;
+  box-shadow: 0 0 0 2px rgba(126, 184, 240, 0.35), inset 0 0 6px rgba(126, 184, 240, 0.08);
+  animation: highlight-on 0.2s ease-out;
+}
+
+/* ── Idle badge (T-2.2) ─────────────────────────────────────────────────────── */
+
+.idleBadge {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.62rem;
+  color: #5868a0;
+  letter-spacing: 0.05em;
+  animation: idle-pulse 1.2s ease-in-out infinite;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ── Target projectile (T-2.3) ──────────────────────────────────────────────── */
+
+.projectileDot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffe84d;
+  box-shadow: 0 0 8px #ffb300, 0 0 18px rgba(255, 180, 0, 0.5);
+  pointer-events: none;
+  /* Center on the computed position */
+  margin-left: -4px;
+  margin-top: -4px;
+  z-index: 20;
+  animation: proj-travel var(--proj-duration, 220ms) ease-in forwards;
+}
+
+/* ── Combat log panel (T-2.4) ───────────────────────────────────────────────── */
+
+.logPanel {
+  width: 15rem;
+  max-height: 21rem;
+  overflow-y: auto;
+  background: #0d1020;
+  border: 1px solid #1e2840;
+  border-radius: 4px;
+  padding: 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  flex-shrink: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #2a3658 transparent;
+}
+
+.logEntry {
+  font-size: 0.7rem;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #8090b8;
+}
+
+.logEntryRound {
+  color: #c8d0e0;
+  font-weight: bold;
+  margin-top: 0.3rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid #1e2840;
+}
+
+/* No separator before the very first round header. */
+.logPanel > .logEntry.logEntryRound:first-child {
+  margin-top: 0;
+  border-top: none;
+  padding-top: 0;
+}
+
+.logEntryAttack {
+  color: #a0b8e0;
+}
+
+.logEntryIdle {
+  color: #464e70;
+}
+
+.logEntryDestroyed {
+  color: #cc5555;
+}
+
+.logEntryResult {
+  color: #60d060;
+  font-weight: bold;
+  margin-top: 0.3rem;
+}
+
+.logEmpty {
+  font-size: 0.7rem;
+  color: #2a3050;
+  text-align: center;
+  margin-top: 0.3rem;
+}
+
 /* ── Keyframe animations ────────────────────────────────────────────────────── */
 
 /* HP bar shrink is handled by CSS transition (see .hpFill).
@@ -195,4 +313,20 @@
   0%   { opacity: 0; transform: scale(0.8); }
   60%  { transform: scale(1.04); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes highlight-on {
+  from { box-shadow: 0 0 0 0 rgba(126, 184, 240, 0.8); border-color: #1e2840; }
+  to   { box-shadow: 0 0 0 2px rgba(126, 184, 240, 0.35); border-color: #7eb8f0; }
+}
+
+@keyframes idle-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+
+@keyframes proj-travel {
+  from { transform: translate(0, 0); opacity: 1; }
+  80%  { opacity: 1; }
+  to   { transform: translate(var(--proj-dx, 0px), var(--proj-dy, 0px)); opacity: 0; }
 }

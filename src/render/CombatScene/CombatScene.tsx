@@ -3,12 +3,19 @@
 // Takes a pre-resolved CombatEvent[] (from the logic layer or a hand-written
 // fixture) and replays it visually with play / pause / step controls.
 //
+// v0.2 M2 additions:
+//   - Active unit highlight (T-2.1): glow ring on the unit whose turn is live.
+//   - Idle state badge (T-2.2): "…" badge with a pulse on units that chose idle.
+//   - Target projectile (T-2.3): animated dot from attacker to target slot.
+//   - Scrolling combat log (T-2.4): side panel that appends entries in sync.
+//
 // This component does NOT import from src/logic/combat/resolver — it only
 // consumes the CombatEvent type. The separation is intentional: the render
 // layer can be developed and tested against hand-written fixtures before the
 // resolver exists.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties } from 'react'
 import type { CombatEvent } from '../../logic/combat/events'
 import type { Row, Column } from '../../logic/state/types'
 import { type UnitInfo, type PlaybackSpeed, buildSchedule } from '../playback'
@@ -23,6 +30,18 @@ interface Popup {
   id: string
   unitId: string
   amount: number
+}
+
+interface ProjectilePos {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
+
+interface LogEntry {
+  kind: 'round' | 'attack' | 'idle' | 'destroyed' | 'result'
+  text: string
 }
 
 export interface CombatSceneProps {
@@ -70,6 +89,121 @@ function deriveWinner(
   return null
 }
 
+/** Returns the ID of the unit whose turn is currently in progress. */
+function deriveActiveUnit(events: CombatEvent[], count: number): string | null {
+  let activeId: string | null = null
+  for (let i = 0; i < count; i++) {
+    const e = events[i]
+    if (e.kind === 'turn_started') activeId = e.unitId
+    if (e.kind === 'turn_ended') activeId = null
+  }
+  return activeId
+}
+
+/** Returns the ID of the unit that chose idle this turn — cleared on turn_ended. */
+function deriveIdleUnit(events: CombatEvent[], count: number): string | null {
+  let idleId: string | null = null
+  for (let i = 0; i < count; i++) {
+    const e = events[i]
+    if (e.kind === 'turn_started') idleId = null
+    if (e.kind === 'action_used' && e.action.kind === 'idle') idleId = e.unitId
+    if (e.kind === 'turn_ended') idleId = null
+  }
+  return idleId
+}
+
+/**
+ * Returns the attacker/target IDs during the action_used(attack) window
+ * (i.e. after action_used but before the corresponding damage_dealt fires).
+ * Returns null at all other times.
+ */
+function deriveCurrentAttack(
+  events: CombatEvent[],
+  count: number,
+): { attackerId: string; targetId: string } | null {
+  let pending: { attackerId: string; targetId: string } | null = null
+  for (let i = 0; i < count; i++) {
+    const e = events[i]
+    if (e.kind === 'action_used' && e.action.kind === 'attack' && e.targets.length > 0) {
+      pending = { attackerId: e.unitId, targetId: e.targets[0] }
+    }
+    if (e.kind === 'damage_dealt' || e.kind === 'turn_ended') pending = null
+  }
+  return pending
+}
+
+// ── Log helpers ───────────────────────────────────────────────────────────────
+
+function chassisLabel(chassis: UnitInfo['chassis']): string {
+  const labels: Record<UnitInfo['chassis'], string> = {
+    vacuum: 'Vacuum',
+    butler: 'Butler',
+    'qa-rig': 'QA-Rig',
+  }
+  return labels[chassis] ?? chassis
+}
+
+/** Build a stable display name for each unit (appends #N when chassis repeats). */
+function buildNameMap(units: UnitInfo[]): Map<string, string> {
+  const byLabel = new Map<string, UnitInfo[]>()
+  for (const u of units) {
+    const label = chassisLabel(u.chassis)
+    if (!byLabel.has(label)) byLabel.set(label, [])
+    byLabel.get(label)!.push(u)
+  }
+  const names = new Map<string, string>()
+  for (const [label, group] of byLabel) {
+    if (group.length === 1) {
+      names.set(group[0].id, label)
+    } else {
+      const sorted = [...group].sort((a, b) => a.slot.column - b.slot.column)
+      sorted.forEach((u, i) => names.set(u.id, `${label} #${i + 1}`))
+    }
+  }
+  return names
+}
+
+function buildLogEntries(
+  nameMap: Map<string, string>,
+  events: CombatEvent[],
+  count: number,
+): LogEntry[] {
+  const entries: LogEntry[] = []
+  for (let i = 0; i < count; i++) {
+    const e = events[i]
+    if (e.kind === 'round_started') {
+      entries.push({ kind: 'round', text: `Round ${e.round}` })
+    } else if (e.kind === 'action_used') {
+      const attackerName = nameMap.get(e.unitId) ?? e.unitId
+      if (e.action.kind === 'attack' && e.targets.length > 0) {
+        const targetName = nameMap.get(e.targets[0]) ?? e.targets[0]
+        // Look ahead within applied window for the damage amount.
+        let dmgText = ''
+        for (let j = i + 1; j < count && j <= i + 5; j++) {
+          const ne = events[j]
+          if (ne.kind === 'damage_dealt' && ne.targetId === e.targets[0]) {
+            dmgText = ` (${ne.amount} dmg)`
+            break
+          }
+          if (ne.kind === 'turn_ended') break
+        }
+        entries.push({ kind: 'attack', text: `${attackerName} → attack → ${targetName}${dmgText}` })
+      } else if (e.action.kind === 'idle') {
+        entries.push({ kind: 'idle', text: `${attackerName} → idle` })
+      }
+    } else if (e.kind === 'unit_destroyed') {
+      const name = nameMap.get(e.unitId) ?? e.unitId
+      entries.push({ kind: 'destroyed', text: `${name} destroyed` })
+    } else if (e.kind === 'combat_ended') {
+      entries.push({
+        kind: 'result',
+        text: e.winner === 'player' ? 'Player wins!' : 'Enemy wins!',
+      })
+    }
+  }
+  return entries
+}
+
 // ── Sub-components ───────────────────────────────────────────────────────────
 
 function ChassisComponent({ chassis }: { chassis: UnitInfo['chassis'] }) {
@@ -83,9 +217,11 @@ interface SlotProps {
   hp: number
   destroyed: boolean
   popups: Popup[]
+  active: boolean
+  idle: boolean
 }
 
-function UnitSlot({ unit, hp, destroyed, popups }: SlotProps) {
+function UnitSlot({ unit, hp, destroyed, popups, active, idle }: SlotProps) {
   if (!unit) return <div className={styles.emptySlot} />
 
   const hpPct = unit.maxHp > 0 ? Math.round((hp / unit.maxHp) * 100) : 0
@@ -96,8 +232,11 @@ function UnitSlot({ unit, hp, destroyed, popups }: SlotProps) {
     .filter(Boolean)
     .join(' ')
 
+  const slotClass = [styles.slot, active ? styles.slotActive : ''].filter(Boolean).join(' ')
+
   return (
-    <div className={styles.slot}>
+    <div className={slotClass} data-unit-id={unit.id}>
+      {idle && <span className={styles.idleBadge}>…</span>}
       <div className={`${styles.unitWrapper}${destroyed ? ` ${styles.destroyed}` : ''}`}>
         <ChassisComponent chassis={unit.chassis} />
         {popups.map(p => (
@@ -121,9 +260,11 @@ interface SideGridProps {
   hps: Map<string, number>
   destroyed: Set<string>
   popups: Popup[]
+  activeUnitId: string | null
+  idleUnitId: string | null
 }
 
-function SideGrid({ units, hps, destroyed, popups }: SideGridProps) {
+function SideGrid({ units, hps, destroyed, popups, activeUnitId, idleUnitId }: SideGridProps) {
   return (
     <div className={styles.grid}>
       {ROWS.flatMap(row =>
@@ -137,6 +278,8 @@ function SideGrid({ units, hps, destroyed, popups }: SideGridProps) {
               hp={unit ? (hps.get(unit.id) ?? unit.maxHp) : 0}
               destroyed={unit ? destroyed.has(unit.id) : false}
               popups={unitPopups}
+              active={!!unit && unit.id === activeUnitId}
+              idle={!!unit && unit.id === idleUnitId}
             />
           )
         }),
@@ -152,6 +295,7 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
   const [appliedCount, setAppliedCount] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [popups, setPopups] = useState<Popup[]>([])
+  const [projectilePos, setProjectilePos] = useState<ProjectilePos | null>(null)
 
   // Mutable refs for the RAF loop — avoids stale-closure issues.
   const posMsRef = useRef(0)
@@ -159,6 +303,8 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
   const isPlayingRef = useRef(false)
   const lastTsRef = useRef<number | null>(null)
   const rafIdRef = useRef<number | null>(null)
+  const battlefieldRef = useRef<HTMLDivElement>(null)
+  const logRef = useRef<HTMLDivElement>(null)
 
   // Schedule is rebuilt whenever events or speed changes.
   const schedule = useMemo(() => buildSchedule(events, speed), [events, speed])
@@ -169,7 +315,6 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
   useEffect(() => {
     const newSched = buildSchedule(events, speed)
     scheduleRef.current = newSched
-    // Snap posMs to where we are in the new schedule.
     const count = appliedCountRef.current
     if (count > 0 && count <= newSched.events.length) {
       posMsRef.current = newSched.events[count - 1].startMs + newSched.events[count - 1].durationMs
@@ -308,29 +453,120 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
     () => deriveWinner(events, appliedCount),
     [events, appliedCount],
   )
+  const activeUnitId = useMemo(
+    () => deriveActiveUnit(events, appliedCount),
+    [events, appliedCount],
+  )
+  const idleUnitId = useMemo(
+    () => deriveIdleUnit(events, appliedCount),
+    [events, appliedCount],
+  )
+  const currentAttack = useMemo(
+    () => deriveCurrentAttack(events, appliedCount),
+    [events, appliedCount],
+  )
+  const nameMap = useMemo(() => buildNameMap(units), [units])
+  const logEntries = useMemo(
+    () => buildLogEntries(nameMap, events, appliedCount),
+    [nameMap, events, appliedCount],
+  )
 
   const playerUnits = useMemo(() => units.filter(u => u.side === 'player'), [units])
   const enemyUnits = useMemo(() => units.filter(u => u.side === 'enemy'), [units])
   const isDone = appliedCount >= events.length
 
+  // Compute projectile positions from DOM when an attack action fires.
+  // The projectile is visible between action_used and damage_dealt.
+  useEffect(() => {
+    if (!currentAttack || !battlefieldRef.current) {
+      setProjectilePos(null)
+      return
+    }
+    const container = battlefieldRef.current
+    const containerRect = container.getBoundingClientRect()
+    const attackerEl = container.querySelector(`[data-unit-id="${currentAttack.attackerId}"]`)
+    const targetEl = container.querySelector(`[data-unit-id="${currentAttack.targetId}"]`)
+    if (!attackerEl || !targetEl) {
+      setProjectilePos(null)
+      return
+    }
+    const aRect = attackerEl.getBoundingClientRect()
+    const tRect = targetEl.getBoundingClientRect()
+    setProjectilePos({
+      x1: aRect.left + aRect.width / 2 - containerRect.left,
+      y1: aRect.top + aRect.height / 2 - containerRect.top,
+      x2: tRect.left + tRect.width / 2 - containerRect.left,
+      y2: tRect.top + tRect.height / 2 - containerRect.top,
+    })
+  }, [currentAttack])
+
+  // Auto-scroll the log panel to the latest entry.
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight
+    }
+  }, [logEntries.length])
+
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  const logKindClass: Record<LogEntry['kind'], string> = {
+    round: styles.logEntryRound,
+    attack: styles.logEntryAttack,
+    idle: styles.logEntryIdle,
+    destroyed: styles.logEntryDestroyed,
+    result: styles.logEntryResult,
+  }
 
   return (
     <div className={styles.scene}>
-      <div className={styles.battlefield}>
-        <SideGrid
-          units={playerUnits}
-          hps={hps}
-          destroyed={destroyedUnits}
-          popups={popups}
-        />
-        <div className={styles.divider} />
-        <SideGrid
-          units={enemyUnits}
-          hps={hps}
-          destroyed={destroyedUnits}
-          popups={popups}
-        />
+      <div className={styles.mainContent}>
+        {/* Battlefield + projectile overlay */}
+        <div className={styles.battlefieldContainer} ref={battlefieldRef}>
+          <div className={styles.battlefield}>
+            <SideGrid
+              units={playerUnits}
+              hps={hps}
+              destroyed={destroyedUnits}
+              popups={popups}
+              activeUnitId={activeUnitId}
+              idleUnitId={idleUnitId}
+            />
+            <div className={styles.divider} />
+            <SideGrid
+              units={enemyUnits}
+              hps={hps}
+              destroyed={destroyedUnits}
+              popups={popups}
+              activeUnitId={activeUnitId}
+              idleUnitId={idleUnitId}
+            />
+          </div>
+          {projectilePos && currentAttack && (
+            <div
+              key={`proj-${currentAttack.attackerId}-${appliedCount}`}
+              className={styles.projectileDot}
+              style={{
+                '--proj-duration': `${220 / speed}ms`,
+                '--proj-dx': `${projectilePos.x2 - projectilePos.x1}px`,
+                '--proj-dy': `${projectilePos.y2 - projectilePos.y1}px`,
+                left: `${projectilePos.x1}px`,
+                top: `${projectilePos.y1}px`,
+              } as CSSProperties}
+            />
+          )}
+        </div>
+
+        {/* Scrolling combat log */}
+        <div className={styles.logPanel} ref={logRef}>
+          {logEntries.length === 0 && (
+            <div className={styles.logEmpty}>Combat log</div>
+          )}
+          {logEntries.map((entry, i) => (
+            <div key={i} className={`${styles.logEntry} ${logKindClass[entry.kind]}`}>
+              {entry.text}
+            </div>
+          ))}
+        </div>
       </div>
 
       {winner && (

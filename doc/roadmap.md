@@ -76,7 +76,7 @@ v0.1 established the three-layer architecture (logic / ui / render), proved the 
 M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**. T-2.4 depends on T-2.1.
 
 #### T-2.1 — Active unit highlight (parallel)
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-1.4
 - **Inputs:** `src/render/CombatScene/CombatScene.tsx`, `src/render/playback.ts`, `turn_started` / `turn_ended` events
@@ -86,7 +86,7 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 - **Acceptance:** Watching the fight in `pnpm dev`, the active unit is always clearly identified. Highlight disappears at `turn_ended`. Works at all four playback speeds.
 
 #### T-2.2 — Idle state visual distinction (parallel)
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-1.4
 - **Inputs:** `CombatScene.tsx`, `rule_fired` event (action kind `idle`)
@@ -94,7 +94,7 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 - **Acceptance:** In a fight where a unit idles (no rule matches the current battlefield), the idle indicator appears and is distinguishable from an attack. Confirmed with a hand-edited fixture if needed.
 
 #### T-2.3 — Target indicator: arrow / projectile (parallel)
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-1.4
 - **Inputs:** `CombatScene.tsx`, `action_used` event (includes target slot), unit slot positions in the DOM
@@ -104,7 +104,7 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 - **Acceptance:** Every `attack` in the fight shows an indicator traveling to the correct target. No indicator on `idle`. Works at all four playback speeds.
 
 #### T-2.4 — Scrolling combat log side panel
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-2.1
 - **Inputs:** `CombatScene.tsx`, `CombatEvent[]`, playback timing from `playback.ts`
