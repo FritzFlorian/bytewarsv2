@@ -12,7 +12,8 @@
     "check": "pnpm test && pnpm typecheck && pnpm e2e",
     "lint": "eslint src",
     "e2e": "playwright test",
-    "run:fixture": "vitest run tests/logic/run-fixture.test.ts --reporter=verbose"
+    "run:fixture": "vitest run tests/logic/run-fixture.test.ts --reporter=verbose",
+    "pages": "pnpm build && bash scripts/deploy.sh"
   },
   "dependencies": {
     "react": "19.2.0",

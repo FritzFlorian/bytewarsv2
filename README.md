@@ -23,6 +23,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | `pnpm e2e` | Run browser tests (Playwright, headless Chromium — auto-starts dev server) |
 | `pnpm check` | Full check: `test` + `typecheck` + `e2e` |
 | `pnpm lint` | Run ESLint |
+| `pnpm pages` | Build and deploy to GitHub Pages (`gh-pages` branch) |
 
 ## Current State (v0.4 — done)
 
