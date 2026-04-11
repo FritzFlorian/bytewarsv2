@@ -21,6 +21,7 @@ import { CombatScreen } from './screens/Combat/CombatScreen'
 import type { CombatScreenProps } from './screens/Combat/CombatScreen'
 import { DebugUnits } from './screens/Combat/_DebugUnits'
 import { DebugScene } from '../render/CombatScene'
+import { DebugAudio } from '../audio/_DebugAudio'
 
 /** Run a full combat with the player's chosen gambits merged into the fixture. */
 function runCombat(
@@ -65,6 +66,7 @@ export default function App() {
     const page = new URLSearchParams(window.location.search).get('debug')
     if (page === 'units') return <DebugUnits />
     if (page === 'scene') return <DebugScene />
+    if (page === 'audio') return <DebugAudio />
   }
 
   function handleRun(vacuumGambits: GambitList, butlerGambits: GambitList) {
