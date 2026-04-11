@@ -1,0 +1,15 @@
+# Supply-chain security hardening per https://pnpm.io/supply-chain-security
+
+# Transitive deps must come from the registry, not git/tarball URLs.
+blockExoticSubdeps: true
+
+# Wait 14 days (20160 min) after a version is published before installing it,
+# so compromised releases have a chance to be detected and yanked first.
+minimumReleaseAge: 20160
+
+# Refuse to install a package whose trust level has regressed vs. prior releases.
+trustPolicy: no-downgrade
+
+# Install-time build scripts are disallowed by default. Add entries here
+# only for packages you've audited and explicitly trust to run postinstall.
+allowBuilds: {}
