@@ -30,6 +30,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 The walking skeleton is complete. It demonstrates the full end-to-end pipeline:
 gambits → resolver → event log → animated DOM playback.
 
+![Combat screen — v0.1](doc/screenshots/combat-v0.1.png)
+
 **To run it:**
 1. `pnpm install && pnpm dev`
 2. Open [http://localhost:5173](http://localhost:5173)
