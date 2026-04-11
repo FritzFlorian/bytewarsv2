@@ -6,5 +6,6 @@ export default defineConfig({
     // UI tests override this per-file with @vitest-environment jsdom.
     environment: 'node',
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts', 'src/**/*.test.tsx'],
+    exclude: ['tests/e2e/**'],
   },
 })
