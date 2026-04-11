@@ -129,7 +129,7 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 ### M1 — Audio
 
 #### T-1.1 — Audio engine foundation
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** v0.2 done
 - **Inputs:** `src/ui/screens/Combat/CombatScreen.tsx`
@@ -139,7 +139,7 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 - **Acceptance:** `AudioContext` is not created until Run is clicked. Calling `playSound` before init does not throw. Compiles under strict TS. No sounds yet — stubs only.
 
 #### T-1.2 — Combat sound synthesis
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-1.1
 - **Inputs:** `src/audio/engine.ts`, `src/audio/sounds.ts`
@@ -149,7 +149,7 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 - **Acceptance:** Calling `playSound('attack')`, `playSound('damage')`, `playSound('destroy')` in the browser each produces a distinct, recognizable sound. No audio files used.
 
 #### T-1.3 — Music synthesis
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-1.1
 - **Inputs:** `src/audio/engine.ts`, `src/audio/sounds.ts`
@@ -160,7 +160,7 @@ M2 begins after T-1.4 is done. Tasks T-2.1, T-2.2, and T-2.3 are **(parallel)**.
 - **Acceptance:** Background beat loops without gaps during fight playback. Win/lose stinger plays correctly at fight end. Beat does not overlap with the stinger.
 
 #### T-1.4 — Wire audio to combat playback
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-1.2, T-1.3
 - **Inputs:** `CombatScreen.tsx`, `CombatEvent[]`, playback timing from `src/render/playback.ts`

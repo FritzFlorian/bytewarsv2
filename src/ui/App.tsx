@@ -22,6 +22,7 @@ import type { CombatScreenProps } from './screens/Combat/CombatScreen'
 import { DebugUnits } from './screens/Combat/_DebugUnits'
 import { DebugScene } from '../render/CombatScene'
 import { DebugAudio } from '../audio/_DebugAudio'
+import { initAudio } from '../audio/engine'
 
 /** Run a full combat with the player's chosen gambits merged into the fixture. */
 function runCombat(
@@ -70,6 +71,9 @@ export default function App() {
   }
 
   function handleRun(vacuumGambits: GambitList, butlerGambits: GambitList) {
+    // initAudio must be called inside the user-gesture handler so the browser
+    // allows AudioContext creation without a suspended-context warning.
+    initAudio()
     setCombatProps(runCombat(vacuumGambits, butlerGambits))
   }
 
