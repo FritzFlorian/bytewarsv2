@@ -1,0 +1,25 @@
+/* GambitList — drag-to-reorder rows */
+
+.draggableRow {
+  display: flex;
+  align-items: center;
+  cursor: grab;
+  user-select: none;
+}
+
+.draggableRow:active {
+  cursor: grabbing;
+}
+
+.draggableRow[draggable]:hover .dragHandle {
+  color: #7eb8f0;
+}
+
+.dragHandle {
+  width: 1.2rem;
+  text-align: center;
+  color: #3a4260;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+}
