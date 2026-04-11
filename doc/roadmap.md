@@ -270,7 +270,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 - **Notes:** First time end-to-end. Expect minor contract drift between the three tracks. Fix at the contract layer (M1 files) — never patch around the boundary.
 
 #### T-3.2 — Walking-skeleton smoke test + docs
-- **Status:** todo
+- **Status:** done
 - **Track:** integration
 - **Depends on:** T-3.1
 - **Inputs:** full pipeline
