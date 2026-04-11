@@ -18,6 +18,7 @@ export interface UnitInfo {
   id: UnitId
   side: Side
   slot: SlotRef
+  hp: number
   maxHp: number
   chassis: Chassis
 }

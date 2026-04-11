@@ -10,7 +10,7 @@
 // Audio: initAudio() is called inside the first user-gesture handler so the
 // browser allows AudioContext creation without a suspended-context warning.
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import {
   createCombat,
   resolveRound,
@@ -37,6 +37,7 @@ import { DebugScene } from '../render/CombatScene'
 import { DebugAudio } from '../audio/_DebugAudio'
 import { initAudio } from '../audio/engine'
 import type { UnitInfo } from '../render/CombatScene'
+import type { PlaybackSpeed } from '../render/playback'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -97,6 +98,7 @@ function resolveCombat(
     id: u.id,
     side: u.side,
     slot: u.slot,
+    hp: u.hp,
     maxHp: u.maxHp,
     chassis: u.chassis,
   }))
@@ -121,6 +123,7 @@ function resolveCombat(
 
 export default function App() {
   const [ctx, setCtx] = useState<RunContext>(startRun)
+  const playbackSpeedRef = useRef<PlaybackSpeed>(1)
 
   // ── Dev debug pages ──────────────────────────────────────────────────────
   if (import.meta.env.DEV) {
@@ -279,7 +282,14 @@ export default function App() {
   }
 
   if (phase === 'combat' && combatProps) {
-    return <CombatScreen {...combatProps} onContinue={handleContinue} />
+    return (
+      <CombatScreen
+        {...combatProps}
+        onContinue={handleContinue}
+        initialSpeed={playbackSpeedRef.current}
+        onSpeedChange={s => { playbackSpeedRef.current = s }}
+      />
+    )
   }
 
   return null

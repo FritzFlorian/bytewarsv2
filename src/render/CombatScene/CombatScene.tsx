@@ -62,7 +62,7 @@ function deriveHps(
   events: CombatEvent[],
   count: number,
 ): Map<string, number> {
-  const hps = new Map(units.map(u => [u.id, u.maxHp]))
+  const hps = new Map(units.map(u => [u.id, u.hp]))
   for (let i = 0; i < count; i++) {
     const e = events[i]
     if (e.kind === 'damage_dealt') {

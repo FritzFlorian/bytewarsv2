@@ -26,10 +26,14 @@ export interface CombatScreenProps {
   events: CombatEvent[]
   /** Called when the player clicks "Continue" after combat finishes. */
   onContinue?: () => void
+  /** Starting playback speed; defaults to 1. */
+  initialSpeed?: PlaybackSpeed
+  /** Called whenever the player changes playback speed. */
+  onSpeedChange?: (speed: PlaybackSpeed) => void
 }
 
-export function CombatScreen({ units, events, onContinue }: CombatScreenProps) {
-  const [speed, setSpeed] = useState<PlaybackSpeed>(1)
+export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSpeedChange }: CombatScreenProps) {
+  const [speed, setSpeed] = useState<PlaybackSpeed>(initialSpeed)
   const [combatDone, setCombatDone] = useState(false)
 
   const handleComplete = useCallback(() => {
@@ -40,7 +44,7 @@ export function CombatScreen({ units, events, onContinue }: CombatScreenProps) {
   const wallStartRef = useRef(0)       // Date.now() when playback began
   const stopBeatRef = useRef<(() => void) | null>(null)
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
-  const speedRef = useRef<PlaybackSpeed>(1)
+  const speedRef = useRef<PlaybackSpeed>(initialSpeed)
 
   function clearTimers() {
     timersRef.current.forEach(clearTimeout)
@@ -91,9 +95,9 @@ export function CombatScreen({ units, events, onContinue }: CombatScreenProps) {
   useEffect(() => {
     const t0 = Date.now()
     wallStartRef.current = t0
-    speedRef.current = 1
+    speedRef.current = initialSpeed
     stopBeatRef.current = startMusic()
-    scheduleAudio(0, t0, 1)
+    scheduleAudio(0, t0, initialSpeed)
 
     return () => {
       stopBeatRef.current?.()
@@ -145,7 +149,11 @@ export function CombatScreen({ units, events, onContinue }: CombatScreenProps) {
         <select
           className={styles.speedSelect}
           value={speed}
-          onChange={e => setSpeed(Number(e.target.value) as PlaybackSpeed)}
+          onChange={e => {
+            const s = Number(e.target.value) as PlaybackSpeed
+            setSpeed(s)
+            onSpeedChange?.(s)
+          }}
         >
           <option value={0.5}>0.5×</option>
           <option value={1}>1×</option>
