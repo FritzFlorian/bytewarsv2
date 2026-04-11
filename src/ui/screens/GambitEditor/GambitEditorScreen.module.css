@@ -1,0 +1,96 @@
+/* GambitEditorScreen layout */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: monospace;
+  background: #0a0a0f;
+  color: #c8d0e0;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+  color: #7eb8f0;
+}
+
+.runButton {
+  padding: 0.5rem 1.25rem;
+  background: #1a3a5c;
+  color: #7eb8f0;
+  border: 1px solid #7eb8f0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
+
+.runButton:hover {
+  background: #243f66;
+}
+
+/* Tab bar — one button per player unit */
+
+.tabBar {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid #3a4260;
+  padding-bottom: 0;
+}
+
+.tab {
+  padding: 0.4rem 1rem;
+  background: transparent;
+  color: #5a6880;
+  border: 1px solid transparent;
+  border-bottom: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  position: relative;
+  bottom: -1px;
+}
+
+.tab:hover {
+  color: #c8d0e0;
+}
+
+.tabActive {
+  color: #7eb8f0;
+  background: #111520;
+  border-color: #3a4260;
+  border-bottom-color: #111520;
+}
+
+/* Gambit list area */
+
+.gambitSection {
+  background: #111520;
+  border: 1px solid #3a4260;
+  padding: 1.25rem;
+  flex: 1;
+}
+
+.unitName {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  color: #7eb8f0;
+}
+
+.placeholder {
+  color: #3a4260;
+  font-size: 0.85rem;
+  margin: 0;
+}
