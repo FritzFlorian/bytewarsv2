@@ -145,7 +145,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 #### Track A — logic
 
 ##### T-2A.1 — Walking-skeleton fixture (parallel)
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-1.5
 - **Inputs:** contracts from M1
@@ -158,7 +158,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 - **Notes:** Hardcoded only — **no JSON loaders, no Zod yet**. Those land with content data in v0.2. Damage value for `attack` is hardcoded to `10`; revisit when modules exist.
 
 ##### T-2A.2 — Gambit interpreter (parallel-with-2A.1 once 2A.1 is merged; otherwise sequential)
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-1.5, T-2A.1
 - **Inputs:** types from M1, fixture from T-2A.1
@@ -172,7 +172,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 - **Notes:** No RNG needed in the v0.1 subset (no tie-breaking in `nearest_enemy` for the walking-skeleton fixture — pick the lowest-row, lowest-column slot deterministically).
 
 ##### T-2A.3 — Combat resolver
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-2A.2
 - **Inputs:** interpreter, fixture, RNG

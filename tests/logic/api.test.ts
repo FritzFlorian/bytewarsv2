@@ -1,16 +1,27 @@
+// T-1.5 verified that the symbols existed as stubs; T-2A.3 replaced the stubs
+// with real implementations. These tests now verify the public API contract
+// through the logic/index.ts boundary.
+
 import { expect, test } from 'vitest'
 import { createCombat, resolveRound, isCombatOver } from '../../src/logic/index'
+import { walkingSkeletonFixture } from '../../src/logic/content/fixtures'
 
-test('T-1.5: createCombat throws "not implemented" stub message', () => {
-  expect(() => createCombat(1, [], [])).toThrow('not implemented (T-2A.3)')
+const { playerUnits, enemyUnits } = walkingSkeletonFixture()
+
+test('createCombat returns a CombatState with the correct number of units', () => {
+  const state = createCombat(42, playerUnits, enemyUnits)
+  expect(state.battlefield.slots.size).toBe(4)
+  expect(state.finished).toBe(false)
 })
 
-test('T-1.5: resolveRound throws "not implemented" stub message', () => {
-  const fakeState = {} as Parameters<typeof resolveRound>[0]
-  expect(() => resolveRound(fakeState)).toThrow('not implemented (T-2A.3)')
+test('resolveRound returns events and advances the round', () => {
+  const state = createCombat(42, playerUnits, enemyUnits)
+  const { state: next, events } = resolveRound(state)
+  expect(events.length).toBeGreaterThan(0)
+  expect(next.battlefield.round).toBe(2)
 })
 
-test('T-1.5: isCombatOver throws "not implemented" stub message', () => {
-  const fakeState = {} as Parameters<typeof isCombatOver>[0]
-  expect(() => isCombatOver(fakeState)).toThrow('not implemented (T-2A.3)')
+test('isCombatOver returns false when both sides are alive', () => {
+  const state = createCombat(42, playerUnits, enemyUnits)
+  expect(isCombatOver(state)).toBe(false)
 })
