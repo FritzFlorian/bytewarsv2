@@ -44,6 +44,13 @@ test('Run resolves combat and begins playback automatically', async ({ page }) =
   // CombatScene is now showing — Pause button means autoPlay fired
   await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible()
   await expect(page.getByText(/\d+ \/ \d+ events/)).toBeVisible()
+  // Pause then step through ~2 full turns for the screenshot:
+  // round_started + 2 × (turn_started, rule_fired, action_used, damage_dealt, turn_ended) ≈ 11 events
+  await page.getByRole('button', { name: 'Pause' }).click()
+  const stepBtn = page.getByRole('button', { name: 'Step' })
+  for (let i = 0; i < 11; i++) {
+    await stepBtn.click()
+  }
   await page.screenshot({ path: `${OUT}/04-combat-playing.png`, fullPage: true })
 })
 
