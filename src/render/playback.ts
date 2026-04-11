@@ -7,7 +7,7 @@
 // Speed is applied by dividing all base durations: at 2× speed, a 400 ms event
 // takes 200 ms; at 0.5× it takes 800 ms.
 
-import type { UnitId, Side, SlotRef } from '../logic/state/types'
+import type { UnitId, Side, SlotRef, Chassis } from '../logic/state/types'
 import type { CombatEvent } from '../logic/combat/events'
 
 export type PlaybackSpeed = 0.5 | 1 | 2 | 10
@@ -19,7 +19,7 @@ export interface UnitInfo {
   side: Side
   slot: SlotRef
   maxHp: number
-  chassis: 'vacuum' | 'butler' | 'qa-rig'
+  chassis: Chassis
 }
 
 export interface ScheduledEvent {

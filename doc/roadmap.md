@@ -258,7 +258,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 ### M3 — Integration (sequential)
 
 #### T-3.1 — Wire logic → ui → render
-- **Status:** todo
+- **Status:** done
 - **Track:** integration
 - **Depends on:** T-2A.3, T-2A.4, T-2B.2, T-2C.2
 - **Inputs:** real logic API, ui shell, render scene

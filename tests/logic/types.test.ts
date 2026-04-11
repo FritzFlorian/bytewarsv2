@@ -11,6 +11,7 @@ test('T-1.1: CombatState literal compiles and is well-formed', () => {
             id: 'u1',
             side: 'player',
             slot: { side: 'player', row: 'front', column: 0 },
+            chassis: 'vacuum',
             hp: 80,
             maxHp: 80,
             gambits: [{ condition: { kind: 'always' }, action: { kind: 'idle' } }],

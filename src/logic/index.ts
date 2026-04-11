@@ -6,7 +6,7 @@
 
 // --- Re-export all types ---
 
-export type { UnitId, Side, Row, Column, SlotRef, Unit, SlotMap, Battlefield, CombatState } from './state/types'
+export type { UnitId, Side, Row, Column, SlotRef, Chassis, Unit, SlotMap, Battlefield, CombatState } from './state/types'
 export { slotKey } from './state/types'
 
 export type { TargetSelector, Condition, Action, Rule, GambitList } from './gambits/types'

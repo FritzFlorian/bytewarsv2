@@ -17,7 +17,7 @@ function makeUnit(
   maxHp: number,
   gambits: GambitList,
 ): Unit {
-  return { id, side, slot: { side, row, column }, hp, maxHp, gambits }
+  return { id, side, slot: { side, row, column }, chassis: 'vacuum', hp, maxHp, gambits }
 }
 
 function makeBattlefield(...units: Unit[]): Battlefield {

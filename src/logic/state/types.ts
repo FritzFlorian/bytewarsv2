@@ -14,6 +14,9 @@ import type { GambitList } from '../gambits/types'
 
 export type UnitId = string
 
+/** The three chassis types available in the walking skeleton (v0.1). More chassis land in v0.2. */
+export type Chassis = 'vacuum' | 'butler' | 'qa-rig'
+
 export type Side = 'player' | 'enemy'
 
 /** Front row is closest to the opponent; back row is furthest. */
@@ -32,6 +35,7 @@ export interface Unit {
   id: UnitId
   side: Side
   slot: SlotRef
+  chassis: Chassis
   hp: number
   maxHp: number
   gambits: GambitList
