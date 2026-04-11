@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --project tsconfig.app.json --noEmit && tsc --project tsconfig.node.json --noEmit",
-    "check": "pnpm test && pnpm typecheck",
+    "check": "pnpm test && pnpm typecheck && pnpm e2e",
     "lint": "eslint src",
     "e2e": "playwright test"
   },
