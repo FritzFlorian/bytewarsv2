@@ -19,9 +19,11 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | `pnpm build` | Type-check and build for production |
 | `pnpm preview` | Preview production build |
 | `pnpm test` | Run unit/integration tests (Vitest, node + jsdom) |
+| `pnpm typecheck` | TypeScript type-check without emitting |
 | `pnpm e2e` | Run browser tests (Playwright, headless Chromium — auto-starts dev server) |
 | `pnpm check` | Full check: `test` + `typecheck` + `e2e` |
 | `pnpm lint` | Run ESLint |
+| `pnpm run:fixture` | Pretty-print the walking-skeleton fight event log to stdout |
 
 ## Current State (v0.1 — done)
 
