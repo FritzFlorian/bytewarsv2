@@ -241,7 +241,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 - **Notes:** No sprite assets, no images. Pure DOM/SVG/CSS. The compositional structure matters more than the polish — modules in v0.2 will attach as child elements, so leave room for them.
 
 ##### T-2C.2 — Event log → visual schedule (parallel after T-2C.1)
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-2C.1, T-1.3
 - **Inputs:** chassis components, `CombatEvent` type

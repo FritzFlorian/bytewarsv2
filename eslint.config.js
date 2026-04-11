@@ -104,6 +104,27 @@ export default tseslint.config(
     },
   },
   {
+    // UI layer must only import render internals via the public entry point
+    // (src/render/CombatScene/index.ts). Direct imports into render sub-paths
+    // are banned to preserve the layer boundary defined in T-0.4.
+    files: ['src/ui/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['*/render/*/*', '*/render/*/'],
+              message:
+                'UI layer must not import render internals directly. ' +
+                'Import from the public entry point: src/render/CombatScene/index.ts.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     ignores: ['dist/**', 'node_modules/**'],
   },
 )

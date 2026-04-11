@@ -7,11 +7,13 @@
 
 import { CombatScreen } from './screens/Combat/CombatScreen'
 import { DebugUnits } from './screens/Combat/_DebugUnits'
+import { DebugScene } from '../render/CombatScene'
 
 export default function App() {
   if (import.meta.env.DEV) {
     const page = new URLSearchParams(window.location.search).get('debug')
     if (page === 'units') return <DebugUnits />
+    if (page === 'scene') return <DebugScene />
   }
   return <CombatScreen />
 }
