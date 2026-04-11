@@ -6,6 +6,7 @@
 /* ── Layout ────────────────────────────────────────────────────────────────── */
 
 .scene {
+  flex: 1;              /* fill the CombatScreen height */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,8 +28,10 @@
 .battleRow {
   display: flex;
   gap: 1.5rem;
-  align-self: stretch;        /* fill scene width */
-  align-items: flex-start;    /* battlefield and log align to top */
+  align-self: stretch;   /* fill scene width */
+  flex: 1;               /* fill scene height (remaining after controls/banner) */
+  min-height: 0;         /* allow shrinking so flex doesn't overflow past scene */
+  align-items: stretch;  /* log panel stretches to full battleRow height */
 }
 
 /* Empty left spacer — mirrors the log's flex weight to center the battlefield. */
@@ -41,6 +44,7 @@
 .battlefieldContainer {
   position: relative;
   flex-shrink: 0;
+  align-self: flex-start;  /* stay at natural grid height, don't stretch */
 }
 
 .battlefield {
@@ -241,12 +245,12 @@
 /* ── Combat log panel (T-2.4) ───────────────────────────────────────────────── */
 
 .logPanel {
-  /* Fill the remaining width (mirrored by the left spacer). Height is capped
-     at the battlefield grid height (3×6.5rem rows + 2×0.25rem gaps = 20rem)
-     so the log never taller than the battlefield. */
+  /* Fill remaining width (mirrored by left spacer) and full battleRow height.
+     min-height:0 gives the flex container a definite height so overflow-y
+     fires instead of flex shrinking the entries. */
   flex: 1 1 0;
   min-width: 0;
-  max-height: 20rem;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   background: #0d1020;
@@ -261,6 +265,7 @@
 }
 
 .logEntry {
+  flex-shrink: 0;       /* don't squish entries — let the panel scroll instead */
   font-size: 0.7rem;
   line-height: 1.5;
   white-space: nowrap;
