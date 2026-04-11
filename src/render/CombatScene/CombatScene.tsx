@@ -519,7 +519,14 @@ export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps
 
   return (
     <div className={styles.scene}>
-      <div className={styles.mainContent}>
+      {/*
+        battleRow is full-width. A left spacer mirrors the log's flex weight so
+        the battlefield stays centered regardless of log width. Controls and
+        the winner banner are direct scene children so they remain centered
+        below the battlefield specifically.
+      */}
+      <div className={styles.battleRow}>
+        <div className={styles.battleRowSpacer} />
         {/* Battlefield + projectile overlay */}
         <div className={styles.battlefieldContainer} ref={battlefieldRef}>
           <div className={styles.battlefield}>
