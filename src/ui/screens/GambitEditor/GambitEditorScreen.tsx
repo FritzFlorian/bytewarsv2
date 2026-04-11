@@ -5,8 +5,8 @@
 // unit's gambits. "Run" is wired to the combat screen in T-1.4.
 
 import { useState } from 'react'
-import type { Rule } from '../../../logic'
-import { GambitList } from './GambitList'
+import type { Rule, GambitList } from '../../../logic'
+import { GambitList as GambitListComponent } from './GambitList'
 import styles from './GambitEditorScreen.module.css'
 
 type UnitTab = 'vacuum' | 'butler'
@@ -32,7 +32,7 @@ function defaultGambits(): Rule[] {
 }
 
 interface Props {
-  onRun: () => void
+  onRun: (vacuumGambits: GambitList, butlerGambits: GambitList) => void
 }
 
 export function GambitEditorScreen({ onRun }: Props) {
@@ -47,7 +47,7 @@ export function GambitEditorScreen({ onRun }: Props) {
     <div className={styles.screen}>
       <header className={styles.header}>
         <h1 className={styles.title}>Bytewars</h1>
-        <button className={styles.runButton} onClick={onRun}>Run</button>
+        <button className={styles.runButton} onClick={() => onRun(vacuumGambits, butlerGambits)}>Run</button>
       </header>
 
       <div className={styles.tabBar}>
@@ -64,7 +64,7 @@ export function GambitEditorScreen({ onRun }: Props) {
 
       <section className={styles.gambitSection}>
         <h2 className={styles.unitName}>{UNIT_LABELS[activeTab]}</h2>
-        <GambitList rules={gambits} onChange={setGambits} />
+        <GambitListComponent rules={gambits} onChange={setGambits} />
       </section>
     </div>
   )

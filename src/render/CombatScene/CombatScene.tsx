@@ -29,6 +29,8 @@ export interface CombatSceneProps {
   units: UnitInfo[]
   events: CombatEvent[]
   speed: PlaybackSpeed
+  /** If true, playback starts automatically on mount. */
+  autoPlay?: boolean
 }
 
 // ── Pure derivation helpers ───────────────────────────────────────────────────
@@ -145,7 +147,7 @@ function SideGrid({ units, hps, destroyed, popups }: SideGridProps) {
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export function CombatScene({ units, events, speed }: CombatSceneProps) {
+export function CombatScene({ units, events, speed, autoPlay }: CombatSceneProps) {
   // How many events have been "applied" to the visual state.
   const [appliedCount, setAppliedCount] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -285,6 +287,12 @@ export function CombatScene({ units, events, speed }: CombatSceneProps) {
 
   // Cleanup on unmount.
   useEffect(() => stopRaf, [stopRaf])
+
+  // Auto-play on mount when requested.
+  useEffect(() => {
+    if (autoPlay) play()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // intentionally empty — only fires once on mount
 
   // ── Derived visual state ───────────────────────────────────────────────────
 

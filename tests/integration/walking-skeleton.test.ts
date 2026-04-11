@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 //
-// Walking-skeleton integration test — T-3.2.
+// Walking-skeleton integration test — T-3.2, updated for T-1.4.
 //
 // Two levels of coverage:
 //   1. Logic level: the full combat run (createCombat → loop resolveRound)
 //      produces a combat_ended event with a winner.
-//   2. UI level: rendering <App />, navigating editor → Run → Start Combat,
-//      and asserting that the combat scene loads with events ready for playback.
+//   2. UI level: rendering <App />, clicking Run in the editor, and asserting
+//      that the combat scene loads with events ready for playback.
 
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
@@ -50,37 +50,27 @@ describe('walking skeleton — logic', () => {
 })
 
 // ---------------------------------------------------------------------------
-// UI level: App → GambitEditorScreen → Run → CombatScreen → Start Combat
+// UI level: App → GambitEditorScreen → Run → CombatScreen with autoPlay
 // ---------------------------------------------------------------------------
 
 describe('walking skeleton — UI integration', () => {
-  it('Run navigates to combat screen; Start Combat loads the scene with events', async () => {
+  it('Run resolves combat and loads the combat scene with events', async () => {
     await act(async () => { render(React.createElement(App)) })
 
-    // Landing page is the gambit editor — Run button is visible and enabled
+    // Landing page is the gambit editor
     const runBtn = screen.getByRole('button', { name: 'Run' })
     expect((runBtn as HTMLButtonElement).disabled).toBe(false)
 
-    // Navigate to the combat screen
+    // Click Run — App resolves the fight and transitions to CombatScreen
     await act(async () => { fireEvent.click(runBtn) })
-
-    // Start Combat button is now visible
-    const startBtn = screen.getByRole('button', { name: 'Start Combat' })
-    expect((startBtn as HTMLButtonElement).disabled).toBe(false)
-
-    // Run the combat
-    await act(async () => { fireEvent.click(startBtn) })
-
-    // Button is disabled once combat data is loaded
-    expect((startBtn as HTMLButtonElement).disabled).toBe(true)
 
     // CombatScene progress counter is visible: "0 / N events"
     // This proves the event log was built and passed to the scene.
     const progress = screen.getByText(/\d+ \/ \d+ events/)
     expect(progress).not.toBeNull()
 
-    // The play button is present (playback starts paused)
-    const playBtn = screen.getByRole('button', { name: 'Play' })
-    expect(playBtn).not.toBeNull()
+    // autoPlay fired — button shows Pause (not Play)
+    const pauseBtn = screen.getByRole('button', { name: 'Pause' })
+    expect(pauseBtn).not.toBeNull()
   })
 })

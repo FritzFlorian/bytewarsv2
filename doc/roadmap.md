@@ -32,7 +32,7 @@ v0.1 established the three-layer architecture (logic / ui / render), proved the 
 ### M1 — Gambit Editor
 
 #### T-1.1 — Editor screen shell + unit tabs
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** v0.1 done
 - **Inputs:** `src/ui/App.tsx`, `src/logic/gambits/types.ts`
@@ -43,7 +43,7 @@ v0.1 established the three-layer architecture (logic / ui / render), proved the 
 - **Acceptance:** `pnpm dev` lands on the editor screen with two unit tabs. Switching tabs shows the correct unit name. No gambit editing yet — slots can be empty placeholders.
 
 #### T-1.2 — Gambit slot component (searchable dropdowns)
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-1.1
 - **Inputs:** `src/logic/gambits/types.ts` (v0.1 vocabulary), `GambitEditorScreen.tsx`
@@ -54,7 +54,7 @@ v0.1 established the three-layer architecture (logic / ui / render), proved the 
 - **Acceptance:** Selecting `self_hp_below` shows a numeric `pct` input. Selecting `target_exists` shows a target selector. Selecting `always` shows neither. Selecting `idle` as action hides the target picker. All picker states compile under strict TS.
 
 #### T-1.3 — Drag-to-reorder slots
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-1.2
 - **Inputs:** `GambitList.tsx`
@@ -62,7 +62,7 @@ v0.1 established the three-layer architecture (logic / ui / render), proved the 
 - **Acceptance:** Dragging slot 3 above slot 1 reorders the list. The new order is reflected in the `GambitList` state that will be read by T-1.4. Works in a `pnpm dev` browser check.
 
 #### T-1.4 — Wire "Run" → createCombat → transition to combat screen
-- **Status:** todo
+- **Status:** done
 - **Track:** integration
 - **Depends on:** T-1.3
 - **Inputs:** editor output (`GambitList` per player unit), `createCombat` / `resolveRound` / `isCombatOver` from `src/logic/index.ts`, `src/ui/screens/Combat/CombatScreen.tsx`
