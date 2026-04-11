@@ -15,14 +15,14 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 
 3. **Before touching anything**, run `pnpm check` to confirm you are starting from green. After finishing, run it again — per `CLAUDE.md`, every task must leave `pnpm check` passing.
 
-**What is currently built (v0.1–v0.4):**
-- Logic layer: types (`Chassis` includes `'overseer'`), RNG, gambit interpreter, combat resolver, walking-skeleton fixture, boss fixture, player-squad JSON loader (Zod-validated), map generation (`generateMap`), map navigation (`getReachableNodes`, `selectNode`, `createRunState`), battle-result progression (`applyBattleResult`). Public API exported from `src/logic/index.ts`.
-- Render layer: four chassis components (Vacuum, Butler, QaRig, Overseer), `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual / `onComplete` callback, `playback.ts` schedule converter, scrolling combat log panel.
-- UI layer: `App.tsx` with full v0.4 run state machine (`map → gambit-editor → combat → game-over/victory`), `CombatScreen` with play/pause/step/speed controls and "Continue →" button, `GambitEditorScreen` with dynamic per-unit tabs (accepts any squad composition), `MapScreen` (horizontal SVG node graph + squad status strip), `GameOverScreen`, `VictoryScreen`.
-- Audio layer (`src/audio/`): Web Audio API engine, synthesized sounds for attack / damage / destroy, looping background beat, win/lose stingers, wired to combat playback.
-- Content layer (`src/content/`): `player-squad.json` (editable starting squad), `schema/playerSquad.ts` (Zod schema).
+**What is currently built (v0.1–v0.5):**
+- Logic layer: types (`Chassis` includes `'overseer'`), RNG, gambit interpreter with cooldown fall-through, combat resolver with per-attack damage and cooldown tracking, walking-skeleton + boss fixtures, player-squad JSON loader, attack content loader (`attacks.json`), map generation, navigation, and battle-result progression. Public API exported from `src/logic/index.ts`.
+- Render layer: four chassis components (Vacuum, Butler, QaRig, Overseer), `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual / `onComplete` callback, `playback.ts`, scrolling combat log with named attack display.
+- UI layer: `App.tsx` with full run state machine (`map → gambit-editor → combat → game-over/victory`), `CombatScreen`, `GambitEditorScreen` with chassis-filtered attack picker, `MapScreen`, `GameOverScreen`, `VictoryScreen`.
+- Audio layer (`src/audio/`): per-attack synthesized sounds (`quick_jab`, `sweep`, `taser`, `overload`, `clamp`, `suppression`), damage / destroy sounds, looping background beat, win/lose stingers.
+- Content layer (`src/content/`): `player-squad.json`, `attacks.json`, Zod schemas for both.
 
-**What is not built yet (v0.5+):**
+**What is not built yet (v0.6+):**
 - Reward selection screen
 - Modules and vocabulary expansion
 - Additional chassis (Lawnbot, Security-drone)
@@ -120,7 +120,7 @@ The renderer plays the log back at the player's chosen speed, mapping each event
 
 The gambit interpreter is a small deterministic VM: given a unit and a battlefield snapshot, it returns the action the unit will take this turn (`src/logic/gambits/interpreter.ts`).
 
-**Current v0.1 vocabulary** (fully implemented):
+**Current vocabulary** (v0.1 conditions, v0.5 actions):
 
 ```ts
 type Condition =
@@ -128,8 +128,11 @@ type Condition =
   | { kind: 'self_hp_below'; pct: number }
   | { kind: 'target_exists'; target: TargetSelector }
 
+// AttackId is the union of all attack ids defined in src/content/attacks.json
+// and exported from src/content/schema/attack.ts.
+// Current set: 'quick_jab' | 'sweep' | 'taser' | 'overload' | 'clamp' | 'suppression'
 type Action =
-  | { kind: 'attack'; target: TargetSelector }
+  | { kind: AttackId; target: TargetSelector }  // one discriminant per named attack
   | { kind: 'idle' }
 
 type TargetSelector = 'self' | 'nearest_enemy' | 'any_enemy'
@@ -138,13 +141,17 @@ type Rule = { condition: Condition; action: Action }
 type GambitList = Rule[]   // ordered, top to bottom
 ```
 
-**Planned v0.3+ vocabulary additions** (not yet implemented): `target_hp_below`, `cooldown_ready`, `self_in_row`, `ally.count`, `target.distance`, `target.has_status`; actions: `repair`, `advance`, `retreat`, `swap_with`, `use_ability`.
+Attacks are defined in `src/content/attacks.json`. Each has: `id`, `name`, `damage`, `cooldown` (rounds after use), `initialCooldown` (rounds unavailable at battle start), `chassis[]`. Adding a new attack means adding a row to attacks.json — no TypeScript changes required beyond adding the id to the Zod enum.
+
+Cooldowns are tracked in `CombatState.cooldowns`. The interpreter skips a rule silently if the chosen attack is on cooldown, falling through to the next rule. Damage per attack comes from the attack definition, not a hardcoded constant.
+
+**Planned v0.6+ vocabulary additions**: `target_hp_below`, `self_in_row`, `ally.count`, `target.distance`, `target.has_status`; actions: `repair`, `advance`, `retreat`, `swap_with`, `use_ability`.
 
 The vocabulary will grow. The shape (discriminated unions, top-to-bottom fallthrough, `idle` default) will not.
 
 ## 5. Folder layout
 
-`*` = exists now (through v0.4). Items marked `(planned)` are v0.5+.
+`*` = exists now (through v0.5). Items marked `(planned)` are v0.6+.
 
 ```
 bytewars/
@@ -156,8 +163,8 @@ bytewars/
 │   │   ├── state/                # * run/combat state types
 │   │   ├── gambits/              # * interpreter, condition/action types
 │   │   ├── combat/               # * turn resolver, event log types
-│   │   ├── map/                  # * RunState, MapGraph, generateMap, applyBattleResult (v0.4)
-│   │   ├── content/              # * walking-skeleton + boss fixtures, player-squad JSON loader
+│   │   ├── map/                  # * RunState, MapGraph, generateMap, applyBattleResult
+│   │   ├── content/              # * walking-skeleton + boss fixtures, player-squad + attack loaders
 │   │   ├── rng.ts                # * seeded RNG (mulberry32)
 │   │   └── index.ts              # * public API: createCombat, resolveRound, isCombatOver + all types
 │   ├── ui/                       # LAYER 2 — React
@@ -182,9 +189,10 @@ bytewars/
 │   ├── audio/                    # * Web Audio API engine + synthesized sounds (v0.3)
 │   │   ├── engine.ts             # * lazy AudioContext init, playSound dispatcher
 │   │   └── sounds.ts             # * SoundId type + synthesis functions
-│   ├── content/                  # * JSON content data (v0.4)
+│   ├── content/                  # * JSON content data
 │   │   ├── player-squad.json     # * editable starting squad definition
-│   │   └── schema/               # * Zod schemas
+│   │   ├── attacks.json          # * attack definitions (id, name, damage, cooldown, chassis[])
+│   │   └── schema/               # * Zod schemas (playerSquad.ts, attack.ts)
 │   ├── styles/                   # * global CSS + unit shading rules
 │   └── main.tsx                  # * Vite entry
 ├── tests/

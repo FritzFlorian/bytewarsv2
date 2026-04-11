@@ -194,6 +194,35 @@ Decisions required before the relevant v0.2+ work begins.
 
 ---
 
+## v0.5 design questions
+
+### Q-A1 — Named attack representation in the gambit type
+- **Source:** `roadmap.md` T-5.2, `architecture.md` §4
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **One `Action` discriminant per attack id** — `{ kind: AttackId; target: TargetSelector }`. `AttackId` is derived from the Zod enum in `src/content/schema/attack.ts`. No generic `attack` variant remains. Helper `isAttackAction(action)` guards the check `action.kind !== 'idle'`.
+- **Stakes:** Determines how extensible the gambit vocabulary is and how attack metadata is accessed. Per-discriminant keeps TS exhaustive and readable. Adding an attack = adding a row to `attacks.json` (no TypeScript changes beyond the Zod enum).
+- **Revisit if:** The number of attacks grows large enough that the discriminated union becomes unwieldy at call sites — at which point a generic `{ kind: 'use_attack'; attackId: AttackId }` variant is the upgrade path.
+
+### Q-A2 — Attack definition storage
+- **Source:** `roadmap.md` T-5.1, `architecture.md` §7
+- **Status:** `[Resolved]`  2026-04-11
+- **Decision:** **`src/content/attacks.json`** validated by Zod at startup. Each entry: `id`, `name`, `damage`, `cooldown`, `initialCooldown`, `sound`, `chassis[]`. Loader in `src/logic/content/attackLoader.ts`.
+- **Stakes:** JSON-driven means adding attacks requires no TypeScript changes beyond the Zod enum. Validated at startup so malformed entries fail loudly.
+
+### Q-A3 — Cooldown mechanic in the gambit interpreter
+- **Source:** `roadmap.md` T-5.3, `architecture.md` §4
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **Silent fall-through.** If a rule's attack is on cooldown, the interpreter skips that rule and evaluates the next one — exactly as if the condition had not matched. No explicit `cooldown_ready` condition needed. Cooldowns decrement at the start of each round. Initial cooldown is set at `createCombat` time.
+- **Stakes:** Keeps the gambit authoring model simple (authors don't need to guard cooldowns manually). Risk: a unit may idle unexpectedly if all attack rules are on cooldown and there's no `always → idle` fallback. This is intentional — it's a player mistake to fix in the editor.
+
+### Q-A4 — Gambit editor attack filtering
+- **Source:** `roadmap.md` T-5.6
+- **Status:** `[Resolved]` 2026-04-11
+- **Decision:** **Editor only shows attacks valid for the selected unit's chassis.** `getAttacksForChassis(chassis)` is called when rendering the action picker. Cross-chassis attacks never appear as options.
+- **Stakes:** Prevents authoring errors (setting an attack the unit can't use). Consistent with the principle that the gambit editor is a safe, guided authoring surface.
+
+---
+
 ## Process / tooling questions
 
 ### Q-P1 — Storybook or debug-page harness

@@ -35,117 +35,124 @@ v0.3 added a Web Audio API synthesis layer (`src/audio/`): synthesized sounds fo
 
 ## v0.4 — Map + Multi-Battle Run (done)
 
-**Goal.** The player fights a full run: a seeded, branching horizontal map of 10–12 nodes leading to a boss. Squad HP carries between fights. Losing wipes the run; beating the boss wins it. Gambits are editable before every fight.
-
-**Scope.** Node types: Combat and Boss only (no Elite, no Repair Bay). No reward selection screen. No meta-progression. One new chassis (Overseer boss). Player starting squad loaded from an editable JSON file. Dead units sit out one fight and return at 42% HP.
-
-**Done bar.** All milestones done. `pnpm check` passes. A human can boot `pnpm dev`, load a starting squad from JSON, navigate a branching map, fight multiple combats, edit gambits between each, and either beat the boss (victory screen) or wipe (game-over screen).
-
-### M1 — Foundation (parallel)
-
-All four tasks in M1 are **(parallel)** — they have no inter-dependencies.
-
-#### T-4.1 — Player squad JSON schema + loader
-- **Status:** done
-- **Track:** foundation
-- **Depends on:** v0.3 done
-- **Inputs:** `src/logic/gambits/types.ts`, `src/logic/content/fixtures.ts` (existing player fixture)
-- **Outputs:**
-  - `src/content/player-squad.json` — editable file defining the player's starting units: chassis, name, grid slot (row 0–2, col 0–2), and starting gambit list. Supports 1–9 units.
-  - `src/content/schema/playerSquad.ts` — Zod schema validating the JSON. Fails loudly on malformed input.
-  - Loader function in `src/logic/content/` that reads + validates the JSON and returns typed `Unit[]`. Replaces the hardcoded player units in the walking-skeleton fixture.
-- **Acceptance:** Editing a unit's chassis or gambits in `player-squad.json` and running `pnpm dev` produces a different starting squad. Invalid JSON (bad chassis name, missing field) throws a descriptive Zod error at startup. `pnpm check` passes.
-
-#### T-4.2 — Run state types + map generation
-- **Status:** done
-- **Track:** logic
-- **Depends on:** v0.3 done
-- **Inputs:** `src/logic/rng.ts`, `src/logic/state/`
-- **Outputs:**
-  - `src/logic/map/types.ts` — `NodeType` (`'combat' | 'boss'`), `MapNode` (id, type, column, lane), `MapEdge` (from → to), `MapGraph` (nodes + edges), `RunState` (graph, current node id, unit HP snapshot keyed by unit id, sitting-out set of unit ids, `status: 'active' | 'won' | 'lost'`).
-  - `src/logic/map/generate.ts` — `generateMap(rng: Rng): MapGraph`. Produces 10–12 columns; 1–3 nodes per column (max 3 lanes); last column is always a single Boss node; edges are generated so every node is reachable and every non-boss node has at least one forward edge.
-  - `src/logic/map/navigation.ts` — `getReachableNodes(run: RunState): MapNode[]`, `selectNode(run: RunState, nodeId: string): RunState`.
-  - Tests in `tests/logic/map.test.ts` asserting: map always has exactly one boss at the end; every non-boss node has at least one outgoing edge; no node has more than 3 lanes per column; `selectNode` rejects unreachable nodes.
-- **Acceptance:** Tests pass. `pnpm check` passes.
-
-#### T-4.4 — Overseer boss chassis + fixture
-- **Status:** done
-- **Track:** render + logic
-- **Depends on:** v0.3 done
-- **Inputs:** `src/render/units/` (Vacuum, Butler, QaRig for reference), `src/logic/content/fixtures.ts`
-- **Outputs:**
-  - `src/render/units/Overseer.tsx` — a visually distinctive boss chassis: larger footprint than the standard units, heavy industrial silhouette (think factory floor manager — wide base, articulated arms, sensor cluster on top). Uses the same DOM/SVG/CSS approach as existing chassis.
-  - Boss enemy fixture in `src/logic/content/fixtures.ts`: 2–3 Overseer units, 120 HP each, gambit list that uses all v0.1 vocabulary in an aggressive priority order (`target_exists → attack nearest_enemy`, fallthrough to `always → attack any_enemy`).
-- **Acceptance:** `pnpm dev`, navigate to a debug page or force the boss encounter — Overseer renders without errors, is visually larger/heavier than QaRig, and silhouette-tests (distinct in solid black) against all existing chassis.
-
-#### T-4.6 — GameOver + Victory screens
-- **Status:** done
-- **Track:** ui
-- **Depends on:** v0.3 done
-- **Inputs:** `src/ui/App.tsx`
-- **Outputs:**
-  - `src/ui/screens/GameOverScreen.tsx` + CSS module — shows "Run failed", the round the run ended, and a "Try Again" button that resets to a fresh run.
-  - `src/ui/screens/VictoryScreen.tsx` + CSS module — shows "Boss defeated", and a "Try Again" button.
-- **Acceptance:** Both screens render without errors. "Try Again" navigates back to the start of a new run. `pnpm check` passes.
-
-### M2 — Logic completion + Map UI (parallel)
-
-M2 begins after T-4.2 is done. T-4.3 and T-4.5 are **(parallel)**.
-
-#### T-4.3 — applyBattleResult (HP carry-over + revival rule)
-- **Status:** done
-- **Track:** logic
-- **Depends on:** T-4.2
-- **Inputs:** `src/logic/map/types.ts`, combat result (winner + per-unit surviving HP from `combat_ended` event chain)
-- **Outputs:**
-  - `src/logic/map/progression.ts` — `applyBattleResult(run: RunState, result: BattleResult): RunState`. Logic:
-    1. Update HP snapshot for all surviving units.
-    2. Move newly-dead units into the sitting-out set.
-    3. Promote units that were already in sitting-out (i.e., sat out this fight) back to active at 42% of their max HP.
-    4. If `result.winner === 'enemy'` → set `run.status = 'lost'`.
-    5. If current node was the Boss and `result.winner === 'player'` → set `run.status = 'won'`.
-  - `BattleResult` type exported from `src/logic/map/types.ts`.
-  - Tests in `tests/logic/progression.test.ts`: unit that dies in fight N is absent fight N+1, returns at 42% fight N+2; survivor HP carries correctly; boss win sets status `'won'`; full wipe sets status `'lost'`.
-- **Acceptance:** Tests pass. `pnpm check` passes.
-
-#### T-4.5 — MapScreen UI
-- **Status:** done
-- **Track:** ui
-- **Depends on:** T-4.2
-- **Inputs:** `src/logic/map/types.ts`, `src/logic/map/navigation.ts`, `src/ui/App.tsx`
-- **Outputs:**
-  - `src/ui/screens/RunMap/MapScreen.tsx` + CSS module. Renders the map as a horizontal node graph:
-    - Columns left-to-right representing progression depth.
-    - Up to 3 nodes per column arranged in up to 3 vertical lanes.
-    - SVG or CSS lines connecting each node to its forward edges.
-    - Current node highlighted (distinct border/color).
-    - Reachable next nodes are clickable buttons; already-visited and unreachable nodes are dimmed.
-    - Node icons: combat (⚙) vs boss (★) or equivalent simple visual distinction.
-    - A squad status strip below or beside the map showing each unit's name, chassis, and current HP %.
-  - No external graph library — plain HTML/CSS/SVG only.
-- **Acceptance:** Map renders for a generated `MapGraph`. Clicking a reachable node calls `selectNode` and updates the highlighted position. Non-reachable nodes are not clickable. `pnpm check` passes.
-
-### M3 — Run flow integration
-
-M3 begins after T-4.1, T-4.3, T-4.5, and T-4.6 are all done.
-
-#### T-4.7 — Wire full run flow in App.tsx
-- **Status:** done
-- **Track:** integration
-- **Depends on:** T-4.1, T-4.3, T-4.5, T-4.6
-- **Inputs:** All outputs from T-4.1 through T-4.6, `src/ui/App.tsx`, `src/ui/screens/GambitEditor/`, `src/ui/screens/Combat/CombatScreen.tsx`
-- **Outputs:**
-  - `App.tsx` updated with a run-scoped state machine: `'start' | 'map' | 'gambit-editor' | 'combat' | 'game-over' | 'victory'`.
-  - Start: load player squad from JSON, generate seeded map (`generateMap`), transition to `'map'`.
-  - Map → node selected → transition to `'gambit-editor'` (pre-loaded with current squad gambits and HP).
-  - Gambit editor "Run" → resolve combat → transition to `'combat'`.
-  - Combat ends → call `applyBattleResult` → if `status === 'lost'` go to `'game-over'`; if `status === 'won'` go to `'victory'`; otherwise go back to `'map'`.
-  - Game Over / Victory "Try Again" → fresh run (new seed, reload squad JSON).
-  - `useGameState` hook extended (or a new `useRunState` hook) to hold `RunState` alongside combat state.
-- **Acceptance:** Full run playable end-to-end in `pnpm dev`: start → map → editor → combat (×N) → boss fight → victory or wipe → game over. HP correctly carries between fights. Dead unit missing from the next fight's editor, returning the fight after at 42%. `pnpm check` passes.
+v0.4 shipped the full run loop: player squad loaded from editable `src/content/player-squad.json` (Zod-validated), seeded branching map (horizontal SVG graph, max 3 lanes, 10–12 combat + boss nodes), HP carry-over between fights (dead units sit out one fight and return at 42%), Overseer boss chassis, game-over and victory screens, and the complete `map → gambit-editor → combat → result` state machine in App.tsx. All tasks done, `pnpm check` passes.
 
 ---
 
-## v0.5 and beyond
+## v0.5 — Named Attacks, Cooldowns, and Per-Attack Sound
 
-To be planned after v0.4 ships. Likely themes: reward selection screen, vocabulary expansion, modules, cooldowns, reach rules, additional chassis (Lawnbot, Security-drone), Repair Bay node, Elite node type, flavor text between nodes, status effects, meta-progression.
+**Goal.** Replace the single generic `attack` action with a roster of named attacks. Each attack has distinct damage, cooldown, and synthesized sound. Available attacks are chassis-specific. The gambit editor only shows attacks valid for the selected unit. Higher-damage attacks have longer cooldowns; some have an initial warmup before they're usable.
+
+**Scope.** 6 attacks across 4 chassis (see T-5.1). Cooldowns tracked in combat state; the interpreter falls through a rule silently if the attack is on cooldown. No new conditions or target selectors. No modules or reach rules.
+
+**Done bar.** All milestones done. `pnpm check` passes. A fight shows distinct named attacks, each with its own sound and damage value. Cooldowns visibly gate reuse. The gambit editor only offers attacks valid for the selected chassis.
+
+### Attack roster
+
+| ID | Chassis | Damage | Cooldown | Initial cooldown |
+|---|---|---|---|---|
+| `quick_jab` | Vacuum | 8 | 0 | 0 |
+| `sweep` | Vacuum | 18 | 2 | 0 |
+| `taser` | Butler | 7 | 0 | 0 |
+| `overload` | Butler | 30 | 3 | 1 |
+| `clamp` | QA-Rig | 15 | 1 | 0 |
+| `suppression` | Overseer | 20 | 1 | 0 |
+
+### M1 — Foundation
+
+#### T-5.1 — Attack content JSON + Zod schema + loader
+- **Status:** todo
+- **Track:** foundation
+- **Depends on:** v0.4 done
+- **Inputs:** `src/content/schema/` (existing pattern from playerSquad), `src/logic/content/`
+- **Outputs:**
+  - `src/content/attacks.json` — array of attack definitions, one entry per attack in the roster table above. Each entry: `id`, `name`, `damage`, `cooldown` (rounds after use before available again), `initialCooldown` (rounds unavailable at battle start), `sound` (matches `id`), `chassis` (array of chassis strings that can use it).
+  - `src/content/schema/attack.ts` — Zod schema. Exports `AttackDef` type and `AttackId` (z.enum of all attack id strings, e.g. `z.enum(['quick_jab', 'sweep', ...])`).
+  - `src/logic/content/attackLoader.ts` — loads and Zod-validates `attacks.json` at startup. Exports: `getAllAttacks(): AttackDef[]`, `getAttackDef(id: AttackId): AttackDef`, `getAttacksForChassis(chassis: Chassis): AttackDef[]`.
+  - Tests in `tests/logic/attackLoader.test.ts`: every chassis in the roster has at least one attack; `getAttacksForChassis` returns only valid entries; loader throws on malformed JSON.
+- **Acceptance:** `getAttacksForChassis('vacuum')` returns quick_jab and sweep. `getAttackDef('overload').damage === 30`. `pnpm check` passes.
+
+### M2 — Core refactor (parallel)
+
+M2 begins after T-5.1 is done. T-5.2 and T-5.5 are **(parallel)**.
+
+#### T-5.2 — Gambit type refactor: named attack discriminants
+- **Status:** todo
+- **Track:** logic
+- **Depends on:** T-5.1
+- **Inputs:** `src/logic/gambits/types.ts`, `src/content/schema/attack.ts`, `src/logic/gambits/interpreter.ts`, all tests referencing `{ kind: 'attack' }`
+- **Outputs:**
+  - `src/logic/gambits/types.ts`: remove `{ kind: 'attack'; target: TargetSelector }`. Import `AttackId` from `src/content/schema/attack.ts`. New `Action` type: `{ kind: AttackId; target: TargetSelector } | { kind: 'idle' }`. Export `isAttackAction(action: Action): action is { kind: AttackId; target: TargetSelector }` helper (checks `action.kind !== 'idle'`).
+  - `src/logic/gambits/interpreter.ts`: replace `action.kind === 'attack'` checks with `isAttackAction(action)`.
+  - `src/logic/index.ts`: re-export `AttackId` and `isAttackAction`.
+  - All existing tests updated to use named attack IDs instead of `{ kind: 'attack' }`.
+- **Acceptance:** No TypeScript errors. `pnpm check` passes (tests still reference valid action kinds).
+
+#### T-5.5 — Per-attack sound synthesis
+- **Status:** todo
+- **Track:** ui
+- **Depends on:** T-5.1
+- **Inputs:** `src/audio/sounds.ts`, `src/audio/engine.ts`, existing synthesis files for reference
+- **Outputs:**
+  - `src/audio/sounds.ts`: remove `'attack'`; add one entry per attack id: `'quick_jab' | 'sweep' | 'taser' | 'overload' | 'clamp' | 'suppression'`. `SoundId` updated accordingly.
+  - Six new synthesis files in `src/audio/`: `quickJab.ts` (short sharp click), `sweep.ts` (whooshing glide), `taser.ts` (electrical zap), `overload.ts` (building surge + burst), `clamp.ts` (heavy mechanical thud), `suppression.ts` (sustained low pulse).
+  - `src/audio/engine.ts`: add dispatch cases for all six; remove old `'attack'` case.
+- **Acceptance:** Calling `playSound('overload')` in a browser produces a recognizably different sound from `playSound('quick_jab')`. All six are distinct. No audio files used. `pnpm check` passes.
+
+### M3 — Logic, content, and display (parallel)
+
+M3 begins after T-5.2 is done. All four tasks are **(parallel)**. T-5.7 also requires T-5.5 to be done before it can wire sounds.
+
+#### T-5.3 — Cooldown tracking in CombatState + resolver
+- **Status:** todo
+- **Track:** logic
+- **Depends on:** T-5.2
+- **Inputs:** `src/logic/state/types.ts`, `src/logic/combat/resolver.ts`, `src/logic/content/attackLoader.ts`
+- **Outputs:**
+  - `src/logic/state/types.ts`: add `cooldowns: ReadonlyMap<UnitId, ReadonlyMap<AttackId, number>>` to `CombatState` (rounds remaining before attack is available; 0 = available).
+  - `src/logic/combat/resolver.ts`:
+    - `createCombat`: initialize `cooldowns` for every unit — for each attack available to that unit's chassis, set its cooldown to `attackDef.initialCooldown`.
+    - `resolveRound`: at the start of each round, decrement all non-zero cooldown counters by 1 for every unit.
+    - Gambit interpreter call: if the chosen action is an attack and its cooldown > 0, skip that rule and continue evaluating the next rule (fall-through). This loop continues until a non-cooldown-blocked action is found or the list is exhausted (idle).
+    - After executing an attack action: record `cooldown = attackDef.cooldown` for that unit + attack pair.
+    - Damage amount: `getAttackDef(action.kind).damage` — no more hardcoded `ATTACK_DAMAGE`.
+  - Tests in `tests/logic/cooldowns.test.ts`: initialCooldown of 1 means attack unavailable in round 1, available in round 2; cooldown of 2 means attack unavailable for 2 rounds after use; unit falls through to next rule when blocked; damage values match attack definitions.
+- **Acceptance:** Tests pass. `pnpm check` passes.
+
+#### T-5.4 — Update fixtures + player-squad.json
+- **Status:** todo
+- **Track:** foundation
+- **Depends on:** T-5.2
+- **Inputs:** `src/logic/content/fixtures.ts`, `src/content/player-squad.json`, `src/content/schema/playerSquad.ts`
+- **Outputs:**
+  - `src/logic/content/fixtures.ts`: update all gambit lists in the walking-skeleton fixture and boss fixture to use named attack IDs (`quick_jab`, `sweep`, `taser`, `clamp`, `suppression`). Remove any reference to `{ kind: 'attack' }`.
+  - `src/content/player-squad.json`: update action entries to use named attack IDs valid for each unit's chassis.
+  - `src/content/schema/playerSquad.ts`: update action Zod validation to accept `AttackId` values (import from `src/content/schema/attack.ts`).
+- **Acceptance:** `pnpm dev` loads without errors. All gambit entries reference valid named attacks. `pnpm check` passes.
+
+#### T-5.6 — Gambit editor: chassis-filtered attack picker
+- **Status:** todo
+- **Track:** ui
+- **Depends on:** T-5.2
+- **Inputs:** `src/ui/screens/GambitEditor/GambitSlot.tsx`, `src/logic/content/attackLoader.ts`, unit chassis information available in editor context
+- **Outputs:**
+  - Action picker in `GambitSlot` calls `getAttacksForChassis(unit.chassis)` and renders only those attacks as options. No generic "attack" entry.
+  - Each option displays: attack name, damage value, cooldown (e.g. "Sweep — 18 dmg, 2-round cooldown"). Initial cooldown noted where applicable.
+  - Selecting an attack with an initial cooldown shows a small warning in the slot (e.g. "not available round 1").
+- **Acceptance:** Opening the editor for a Vacuum unit shows exactly Quick Jab and Sweep. Opening for a Butler unit shows Taser and Overload. No cross-chassis attacks appear. `pnpm check` passes.
+
+#### T-5.7 — Combat log + playback: named attacks and sounds
+- **Status:** todo
+- **Track:** render + ui
+- **Depends on:** T-5.2, T-5.5
+- **Inputs:** combat log component in `src/render/CombatScene/`, `CombatScreen.tsx`, `src/logic/content/attackLoader.ts`
+- **Outputs:**
+  - Combat log: `action_used` entries show `getAttackDef(action.kind).name` instead of the raw action kind string. Damage entries show the actual amount from the event.
+  - `CombatScreen`: replace `playSound('attack')` with `playSound(action.kind)` when dispatching sounds for `action_used` events (action.kind is now always a valid `SoundId` for attack actions).
+- **Acceptance:** Watching a fight, the log shows "Quick Jab", "Sweep", etc. Each attack plays its distinct sound. `pnpm check` passes.
+
+---
+
+## v0.6 and beyond
+
+Likely themes: reward selection screen, additional chassis (Lawnbot, Security-drone), vocabulary expansion (new conditions + target selectors), reach rules, modules, Elite node type, Repair Bay node, flavor text between nodes, status effects, meta-progression.
