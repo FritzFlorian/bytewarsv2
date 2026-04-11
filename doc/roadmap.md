@@ -184,7 +184,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 - **Notes:** Damage is fixed (`10` per attack) for v0.1 — no variance, no crit, no row/column reach rules. The reach rules from `gameplay.md` §3 land in v0.2 along with the row/column action types. Document this simplification in a top-of-file comment.
 
 ##### T-2A.4 — Headless run script
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-2A.3
 - **Inputs:** real logic API

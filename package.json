@@ -11,7 +11,8 @@
     "typecheck": "tsc --project tsconfig.app.json --noEmit && tsc --project tsconfig.node.json --noEmit",
     "check": "pnpm test && pnpm typecheck && pnpm e2e",
     "lint": "eslint src",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "run:fixture": "vitest run tests/logic/run-fixture.test.ts --reporter=verbose"
   },
   "dependencies": {
     "react": "19.2.0",
