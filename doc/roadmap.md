@@ -225,7 +225,7 @@ The three tracks below run **in parallel**. Each track only modifies files under
 #### Track C — render
 
 ##### T-2C.1 — Three chassis components in DOM/SVG/CSS (parallel)
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-1.1 (types only — does **not** depend on logic implementation)
 - **Inputs:** `setting.md` §4, `doc/art-style-samples.html` (column B), types from T-1.1

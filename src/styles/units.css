@@ -1,0 +1,365 @@
+/*
+ * Shared cel-shading rules for all unit chassis.
+ * Style: Column B — anime-flavored flat vector (setting.md §4).
+ * Palette: 2-tone cel-shading (base + shadow) + optional highlight accent.
+ * Outline color: #12142a (--unit-ink).
+ * Stage background: linear-gradient(180deg, #3b3250, #5a3a52).
+ *
+ * All units are composed from div/SVG primitives so modules can attach as
+ * child elements in future versions (setting.md §4 "Dynamic attachments").
+ */
+
+:root {
+  --unit-ink: #12142a;
+  --unit-shadow: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.3));
+}
+
+/* Root wrapper — all units share this */
+.unit {
+  position: relative;
+  filter: var(--unit-shadow);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   VACUUM — round domestic cleaner, player front-liner
+   Blue palette, low + wide silhouette, glass dome
+   Bounding box: 72 × 56 px
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-vacuum {
+  width: 72px;
+  height: 56px;
+}
+
+/* Disc-shaped body */
+.vacuum-body {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 72px; height: 38px;
+  background: #5ab0ff;
+  border: 3px solid var(--unit-ink);
+  border-radius: 38px 38px 8px 8px;
+  overflow: hidden;
+}
+.vacuum-body::before { /* shadow band — bottom 45% */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 45%;
+  background: #2d6dc0;
+}
+.vacuum-body::after { /* highlight accent — top-left */
+  content: '';
+  position: absolute;
+  left: 8px; top: 4px;
+  width: 24px; height: 6px;
+  background: #c8e4ff;
+  border-radius: 8px;
+}
+
+/* Glass dome */
+.vacuum-dome {
+  position: absolute;
+  left: 22px; bottom: 30px;
+  width: 28px; height: 24px;
+  background: #f0f2f8;
+  border: 3px solid var(--unit-ink);
+  border-radius: 28px 28px 4px 4px;
+  overflow: hidden;
+}
+.vacuum-dome::before { /* shadow — right half */
+  content: '';
+  position: absolute;
+  right: 0; top: 0;
+  width: 45%; height: 100%;
+  background: #b8bfd0;
+}
+
+/* Eye — single circular sensor */
+.vacuum-eye {
+  position: absolute;
+  left: 30px; bottom: 38px;
+  width: 12px; height: 12px;
+  background: var(--unit-ink);
+  border-radius: 50%;
+}
+.vacuum-eye::after { /* glint */
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 4px; height: 4px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+/* Drive wheels */
+.vacuum-wheel {
+  position: absolute;
+  bottom: -3px;
+  width: 12px; height: 12px;
+  background: var(--unit-ink);
+  border-radius: 50%;
+}
+.vacuum-wheel--left  { left: 10px; }
+.vacuum-wheel--right { right: 10px; }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   BUTLER — humanoid service robot, player balanced attacker
+   Cool silver-grey palette, upright silhouette, teal visor
+   Bounding box: 60 × 88 px
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-butler {
+  width: 60px;
+  height: 88px;
+}
+
+/* Rounded humanoid head */
+.butler-head {
+  position: absolute;
+  left: 16px; bottom: 64px;
+  width: 28px; height: 24px;
+  background: #c0ccdc;
+  border: 3px solid var(--unit-ink);
+  border-radius: 14px 14px 4px 4px;
+  overflow: hidden;
+}
+.butler-head::before { /* shadow — right half */
+  content: '';
+  position: absolute;
+  right: 0; top: 0;
+  width: 45%; height: 100%;
+  background: #889aae;
+}
+
+/* Teal rectangular visor / eye */
+.butler-visor {
+  position: absolute;
+  left: 20px; bottom: 70px;
+  width: 20px; height: 8px;
+  background: #20c8b0;
+  border: 2px solid var(--unit-ink);
+  border-radius: 3px;
+}
+.butler-visor::after { /* visor glint */
+  content: '';
+  position: absolute;
+  top: 1px; left: 2px;
+  width: 6px; height: 3px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 2px;
+}
+
+/* Narrow neck connector */
+.butler-neck {
+  position: absolute;
+  left: 25px; bottom: 58px;
+  width: 10px; height: 8px;
+  background: #a8b8cc;
+  border-left: 2px solid var(--unit-ink);
+  border-right: 2px solid var(--unit-ink);
+}
+
+/* Main torso */
+.butler-torso {
+  position: absolute;
+  left: 8px; bottom: 18px;
+  width: 44px; height: 42px;
+  background: #a8b8cc;
+  border: 3px solid var(--unit-ink);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.butler-torso::before { /* shadow — bottom 40% */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 40%;
+  background: #687890;
+}
+.butler-torso::after { /* highlight */
+  content: '';
+  position: absolute;
+  left: 6px; top: 5px;
+  width: 16px; height: 5px;
+  background: #dce8f4;
+  border-radius: 4px;
+}
+
+/* Copper chest badge — module attachment point */
+.butler-badge {
+  position: absolute;
+  left: 20px; bottom: 38px;
+  width: 20px; height: 8px;
+  background: #d07828;
+  border: 2px solid var(--unit-ink);
+  border-radius: 2px;
+}
+.butler-badge::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 45%;
+  background: #904e10;
+}
+
+/* Arms */
+.butler-arm {
+  position: absolute;
+  bottom: 22px;
+  width: 10px; height: 32px;
+  background: #98a8bc;
+  border: 3px solid var(--unit-ink);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.butler-arm::before { /* shadow */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 40%;
+  background: #607080;
+}
+.butler-arm--left  { left: 0; }
+.butler-arm--right { right: 0; }
+
+/* Rolling casters at base */
+.butler-caster {
+  position: absolute;
+  bottom: 6px;
+  width: 10px; height: 10px;
+  background: var(--unit-ink);
+  border-radius: 50%;
+}
+.butler-caster--left  { left: 14px; }
+.butler-caster--right { right: 14px; }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   QA-RIG — factory QA test rig, enemy chassis
+   Industrial beige + warning stripes, boxy/angular, red sensor eye
+   setting.md §3: "sharper edges, fewer rounded corners, warning stripes"
+   Bounding box: 80 × 80 px
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-qa-rig {
+  width: 80px;
+  height: 80px;
+}
+
+/* Heavy industrial tread */
+.qa-tread {
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 80px; height: 20px;
+  background: #484848;
+  border: 3px solid var(--unit-ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.qa-tread::before { /* shadow */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 50%;
+  background: #282828;
+}
+
+/* Tread drive wheels */
+.qa-wheel {
+  position: absolute;
+  top: 4px;
+  width: 10px; height: 10px;
+  background: var(--unit-ink);
+  border-radius: 50%;
+  z-index: 2;
+}
+.qa-wheel--1 { left: 6px; }
+.qa-wheel--2 { left: 24px; }
+.qa-wheel--3 { left: 44px; }
+.qa-wheel--4 { left: 62px; }
+
+/* Main body — boxy, angular (fewer rounded corners) */
+.qa-body {
+  position: absolute;
+  left: 4px; bottom: 16px;
+  width: 72px; height: 44px;
+  background: #c8c0a8;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.qa-body::before { /* shadow — bottom 35% */
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 35%;
+  background: #8a8060;
+}
+.qa-body::after { /* small highlight */
+  content: '';
+  position: absolute;
+  left: 6px; top: 4px;
+  width: 18px; height: 5px;
+  background: #eae4cc;
+  border-radius: 2px;
+}
+
+/* Warning stripe band — caution tape pattern */
+.qa-stripe {
+  position: absolute;
+  left: 4px; bottom: 42px;
+  width: 72px; height: 10px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #f0c030 0px, #f0c030 6px,
+    var(--unit-ink) 6px, var(--unit-ink) 12px
+  );
+  border-top: 2px solid var(--unit-ink);
+  border-bottom: 2px solid var(--unit-ink);
+}
+
+/* Top sensor block */
+.qa-sensor-bar {
+  position: absolute;
+  left: 10px; bottom: 58px;
+  width: 60px; height: 18px;
+  background: #b0a890;
+  border: 3px solid var(--unit-ink);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.qa-sensor-bar::before {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 50%;
+  background: #787060;
+}
+
+/* Main camera sensor eye */
+.qa-eye {
+  position: absolute;
+  left: 30px; bottom: 64px;
+  width: 20px; height: 20px;
+  background: #e03030;
+  border: 3px solid var(--unit-ink);
+  border-radius: 50%;
+}
+.qa-eye::before { /* inner lens */
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 10px; height: 10px;
+  background: #900808;
+  border-radius: 50%;
+}
+.qa-eye::after { /* lens glint */
+  content: '';
+  position: absolute;
+  top: 3px; left: 4px;
+  width: 4px; height: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+}
