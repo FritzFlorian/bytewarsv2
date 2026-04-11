@@ -12,6 +12,7 @@ import type { Unit, Battlefield, CombatState, SlotMap, Side } from '../state/typ
 import { slotKey } from '../state/types'
 import type { CombatEvent } from './events'
 import { chooseRule, resolveTarget } from '../gambits/interpreter'
+import { createRng } from '../rng'
 
 /** Fixed damage per attack in v0.1. Revisit once modules exist in v0.2. */
 const ATTACK_DAMAGE = 10
@@ -78,6 +79,10 @@ export function resolveRound(
 ): { state: CombatState; events: CombatEvent[] } {
   const events: CombatEvent[] = []
 
+  // Create a seeded RNG for this round. All randomness (e.g. any_enemy target
+  // selection) flows through this instance so replays are deterministic.
+  const rng = createRng(state.seed)
+
   // Work on a mutable snapshot of the slot map so destroyed units are removed
   // immediately and subsequent turns see the updated battlefield.
   const slots: SlotMap = new Map(state.battlefield.slots)
@@ -101,7 +106,7 @@ export function resolveRound(
     events.push({ kind: 'rule_fired', unitId: unit.id, ruleIndex })
 
     if (action.kind === 'attack') {
-      const target = resolveTarget(action.target, unit, bf)
+      const target = resolveTarget(action.target, unit, bf, rng)
       const targetIds = target ? [target.id] : []
       events.push({ kind: 'action_used', unitId: unit.id, action, targets: targetIds })
 
@@ -132,7 +137,8 @@ export function resolveRound(
 
   const newState: CombatState = {
     battlefield: { slots, round: round + 1 },
-    seed: state.seed,
+    // Advance the seed so each round draws a different RNG sequence.
+    seed: rng.nextInt(0x100000000) + 1,
     finished: winner ?? false,
   }
 

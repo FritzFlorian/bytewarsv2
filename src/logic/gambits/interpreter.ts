@@ -1,14 +1,15 @@
-// Gambit interpreter for Bytewars v0.1.
+// Gambit interpreter for Bytewars.
 //
 // chooseAction walks a unit's gambit list top-to-bottom and returns the action
 // from the first rule whose condition is satisfied. Falls through to `idle` if
 // no rule matches.
 //
-// No RNG is needed for the v0.1 subset. `nearest_enemy` resolves deterministically:
-// front row first, then middle, then back; ties broken by column (0 < 1 < 2).
-// Tie-breaking randomisation is a v0.2 concern.
+// `nearest_enemy` resolves deterministically: front row first, then middle,
+// then back; ties broken by column (0 < 1 < 2).
+// `any_enemy` picks a random living enemy using the seeded RNG (pass via rng param).
 
 import type { Unit, Battlefield } from '../state/types'
+import type { Rng } from '../rng'
 import type { Action, Condition, TargetSelector } from './types'
 
 /** Canonical row ordering — index 0 is closest to the opponent. */
@@ -32,11 +33,15 @@ function getEnemiesSorted(unit: Unit, battlefield: Battlefield): Unit[] {
 /**
  * Resolve a TargetSelector to a concrete unit, or `null` if none exists.
  * Exported so the combat resolver can apply damage to the resolved target.
+ *
+ * Pass `rng` for `any_enemy` random selection. Without it, `any_enemy` falls
+ * back to index 0 (deterministic — suitable for existence checks only).
  */
 export function resolveTarget(
   selector: TargetSelector,
   unit: Unit,
   battlefield: Battlefield,
+  rng?: Rng,
 ): Unit | null {
   switch (selector) {
     case 'self':
@@ -46,10 +51,10 @@ export function resolveTarget(
       return enemies[0] ?? null
     }
     case 'any_enemy': {
-      // In v0.1 any_enemy resolves the same way as nearest_enemy; the distinction
-      // matters more when randomised selection is added in v0.2.
       const enemies = getEnemiesSorted(unit, battlefield)
-      return enemies[0] ?? null
+      if (enemies.length === 0) return null
+      const idx = rng ? rng.nextInt(enemies.length) : 0
+      return enemies[idx]
     }
   }
 }
