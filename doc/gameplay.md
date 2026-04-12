@@ -30,7 +30,7 @@ v1 supports the following node types. Distribution is tuned per act.
 
 After most nodes (especially combat), the player is offered a **choice of upgrade** drawn from a pool. **v1 has five reward categories** (see `open-questions.md` Q-G2):
 
-1. A **new module** for one of their existing units (class-locked — see §5). *Post-v0.6.*
+1. A **new module** for one of their existing units (class-locked — see §6). *Post-v0.6.*
 2. A **new unit** added to the squad (up to the cap of 9). Drawn from the starter preset pool; player picks the empty grid slot.
 3. A **heal** — two subtypes: **full-heal one chosen unit** or **partial-heal all living units**.
 4. **+1 rule slot** for a chosen unit, up to a cap of 6.
@@ -77,8 +77,8 @@ NO active movement during combat as dedicated action, but some attacks / buffs m
 
 - Combat proceeds in **rounds**. Each round, every living unit acts once.
 - **One action per unit per turn.** No action-point loops, no "move and shoot in the same turn." Powerful actions are gated by **cooldowns** (see §6).
-- Turn order within a ronud is based on the players units. They have an order set by the player in the configuration phase.
-- Within a single turn, each unit gets to act exactly once (both player and oponent). The units of both players act interleaved, e.g. "player unit 1 acts", "enemy unit 1 acts", "player unit 2 acts", ...
+- Turn order within a round is based on the player's units. They have an order set by the player in the configuration phase.
+- Within a single turn, each unit gets to act exactly once (both player and opponent). The units of both players act interleaved, e.g. "player unit 1 acts", "enemy unit 1 acts", "player unit 2 acts", ...
 - A unit's action each turn is determined entirely by walking that unit's gambit list top-to-bottom and executing the first rule whose condition is satisfied. If no rule fires, the unit performs a default `Idle` action (no-op for the round).
 
 ### Combat playback
@@ -97,18 +97,47 @@ You start with 2 robots. They are chosen randomly from a pool of robots (similar
 Starter robots differ in their initial HP, number of action slots and modules assigned to them.
 These presets are hand crafted to e.g. also include some lore and consistency around them (not only randomly generated).
 
+## 5. Chassis and classes
+
+A **chassis** is the physical body a unit inhabits. It determines silhouette, base stats, and (currently) the pool of attacks that unit can use. "Class" and "chassis" are used interchangeably.
+
+### Roster
+
+**v1 roster — 4 player chassis + 4 enemy chassis** (see `setting.md` §3 and `open-questions.md` Q-S2, Q-R7):
+
+| Role | Chassis | Status | Flavor |
+|---|---|---|---|
+| Player | **Vacuum** | v0.1 | Low, round, fast, fragile. Front-line scout. |
+| Player | **Butler** | v0.1 | Humanoid, balanced, social-features-turned-utility. |
+| Player | **Lawnbot** | v0.6 | Bulky, treaded, durable. Front-line tank. |
+| Player | **Security-drone** | v0.6 | Flying/wall-mounted, ranged, fragile. |
+| Enemy | **QA-Rig** | v0.1 | Industrial test rig; Assembly Floor baseline. |
+| Enemy | **Overseer** | v0.4 | Larger, heavier; Assembly Floor boss. |
+| Enemy | **Swarmer** | v0.6 | Low-HP pressure unit; appears in groups. |
+| Enemy | **Siege** | v0.6 (elite-only) | Heavy frame with a long-cooldown devastating attack. |
+
+Additional chassis (Kitchen-arm, delivery cart, pool cleaner, etc.) are deferred to post-v1 per `setting.md` §3.
+
+### What a chassis provides
+
+- **Base stats**: starting HP, rule-slot count (starter baseline 2, cap 6 — see §7).
+- **Silhouette and render**: each chassis has its own render component (`src/render/units/*.tsx`) per the cel-shaded flat-vector style in `setting.md` §4.
+- **Attack pool**: *current model* (v0.5\u2013v0.6) — each attack declares which chassis it's valid for via a `chassis[]` whitelist in `src/content/attacks.json`. The gambit editor filters attacks per unit's chassis. *Future model* (v0.7+, see `roadmap.md` idea bucket) — chassis provide only base stats + slot counts; attacks come from chassis-agnostic modules. §6 describes the future model.
+
 ## 6. Modules
+
+> **Status:** Modules are **post-v0.6**. The v0.7+ idea bucket in `roadmap.md` reworks the module system (chassis-agnostic attack modules, base+max slots growing via buff modules, vocabulary unlocks as a buff-module kind). The section below captures the original v1 intent and is kept as design context; expect revision when modules actually land.
 
 A **module** is an upgrade installed on a single unit. Modules are the run's loot economy and the main way the player customizes.
 
 A module does one of two things:
 
 1. **Buff Module** — more damage, more range, extra target, status effect, lower cooldown, etc. 
-2. **Action Module** — adds ability slot of the unit, given actions to the unit.
+2. **Action Module** — adds an ability slot to the unit, giving a new action.
 
 Rules:
 
-- A unit chassy has a **limited number of module slots**. This makes it important to e.g. also replace chasis (units) in the run if needed. The chasy is fixed.
+- A chassis has a **limited number of module slots**. This makes it important to also replace chassis (units) in the run if needed; the chassis itself is fixed once the unit joins.
 - Modules are persistent for the duration of the run only — no cross-run carryover in v1.
 
 Adding a new action via a module *literally expands the gambit vocabulary on that specific unit*. This is the core feedback loop between the loot layer and the programming layer: better loot = a richer set of rules you can write.
@@ -171,7 +200,7 @@ The editor is one of the most important pieces of UI in the game and gets signif
 
 Enemies are driven by the **same gambit interpreter** as player units — they have their own `GambitList`s and run through the same `chooseAction` function (see `architecture.md` §4). One system, authored per-encounter in content data. No parallel AI system. See `open-questions.md` Q-G3.
 
-Hand-authored encounter gambits live alongside the enemy chassis data (in `src/content/` once content loaders land in v0.2).
+Hand-authored encounter gambits live in `src/logic/content/fixtures.ts` (walking-skeleton + boss fixtures today; Elite fixtures land in v0.6).
 
 ## 8. Win and loss
 
@@ -185,5 +214,4 @@ To keep v1 shippable, the following are explicitly **not** in scope and live in 
 
 - Meta-progression / between-run unlocks of any kind.
 - True grid (sub-slot) positioning.
-- Audio beyond basic UI feedback sounds.
 - A tutorial system (initial onboarding will be tooltips and a fixed easy first encounter).

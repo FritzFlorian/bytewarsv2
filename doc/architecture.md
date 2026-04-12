@@ -214,7 +214,13 @@ bytewars/
 
 ## 7. Content data
 
-Classes, modules, enemies, and encounters are **data, not code**. They will live as JSON files in `src/content/` and be loaded at startup, validated by Zod schemas. The player starting squad (`player-squad.json`) lands in v0.4. Full content data (enemy rosters, modules, encounter tables) lands in v0.5+.
+Classes, enemies, encounters, and (later) modules are **data, not code**. They live as JSON files in `src/content/` and are loaded at startup, validated by Zod schemas.
+
+Currently shipped:
+- `src/content/player-squad.json` + `schema/playerSquad.ts` — starting squad (v0.4; replaced by `starter-presets.json` in v0.6 per roadmap T-6.3).
+- `src/content/attacks.json` + `schema/attack.ts` — attack definitions with per-chassis whitelists (v0.5).
+
+Still in code, not JSON (migration candidates): enemy-squad fixtures (`src/logic/content/fixtures.ts`). Modules are post-v0.6 and will introduce a `modules.json` + schema when they land.
 
 ## 8. RNG and determinism
 

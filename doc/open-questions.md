@@ -70,7 +70,7 @@ Decisions required before the relevant v0.2+ work begins.
 - **Status:** `[Resolved]` 2026-04-11
 - **Decision:** **Five reward categories in v1:** (1) new module, (2) new unit, (3) heal, (4) +1 rule slot, (5) vocabulary unlock (a new condition or action becomes available). Distribution per reward node is tuned later.
 - **Stakes:** Reward variety is what makes the upgrade-choice screen interesting.
-- **Revisit when:** The rewards screen lands in v0.2. Tune the offer distribution then. Reroll was discussed and dropped — not in v1.
+- **Revisit when:** The rewards screen lands in v0.6 (see Q-R1, Q-R2). Tune the offer distribution then. Reroll was discussed and dropped — not in v1.
 
 ### Q-G3 — Whether enemies use the same gambit interpreter
 - **Source:** `gameplay.md` §7
@@ -91,12 +91,12 @@ Decisions required before the relevant v0.2+ work begins.
 - **Status:** `[Resolved]` 2026-04-11
 - **Decision:** **4 rule slots per unit at run start.** Additional slots earned via the "+1 rule slot" reward.
 - **Stakes:** Authoring depth. Too few = fights feel scripted; too many = blank-page paralysis.
-- **Revisit when:** The gambit editor ships in v0.2 and we can playtest authoring. Retune if rules feel consistently cramped or wasted.
+- **Revisit when:** The gambit editor shipped in v0.2; rule slot baseline was retuned in v0.6 from 4 → 2 with a cap of 6 (see Q-R4). Retune again if playtesting v0.6+ shows rules consistently cramped or wasted.
 
 ### Q-G6 — Repair Bay scope
 - **Source:** `gameplay.md` §1
 - **Status:** `[Resolved]` 2026-04-11
-- **Decision:** **Heal all living units for a fixed percentage of max HP.** Exact percentage TBD during v0.2 tuning — start at 50% as a placeholder.
+- **Decision:** **Heal all living units for a fixed percentage of max HP.** Exact percentage TBD during v0.6 tuning — start at 50% as a placeholder. The same effect powers the "partial-heal all living units" reward subtype (see Q-R5).
 - **Stakes:** Whether Repair Bay is a simple heal or a richer interaction.
 - **Revisit if:** The Repair Bay node feels meaningless alongside combat rewards. The richer "choose one unit full-heal OR partial-heal all" variant is the natural upgrade path.
 
@@ -139,7 +139,7 @@ Decisions required before the relevant v0.2+ work begins.
 ### Q-S5 — Flavor text between nodes
 - **Source:** `setting.md` §6
 - **Status:** `[Resolved]` 2026-04-11
-- **Decision:** **Short snippets between nodes** — one-line terminal logs, intercepted memos, error messages. Cheap, high-impact tone delivery. Land alongside the map/node work in v0.2.
+- **Decision:** **Short snippets between nodes** — one-line terminal logs, intercepted memos, error messages. Cheap, high-impact tone delivery. Originally slated for v0.2; now tracked as a v0.7+ idea (see `roadmap.md` idea bucket).
 - **Stakes:** Tone density vs. writing workload.
 - **Revisit if:** One-liners feel thin — rich lore is the upgrade path. If one-liners slow pacing — cut to none.
 
@@ -177,7 +177,7 @@ Decisions required before the relevant v0.2+ work begins.
 ### Q-M4 — Reward selection in v0.4
 - **Source:** `roadmap.md`, `gameplay.md` §1
 - **Status:** `[Resolved]` 2026-04-11
-- **Decision:** **No reward screen in v0.4.** Progression is fight-only. Rewards (module, unit, heal, +rule slot, vocabulary unlock) land in v0.5 alongside content data loaders.
+- **Decision:** **No reward screen in v0.4.** Progression is fight-only. Rewards now land in **v0.6** (not v0.5 as originally planned): heal, +rule slot, and new unit ship first; modules and vocabulary unlocks are deferred further. See Q-R1, Q-R2.
 - **Stakes:** Run variety. Skipping rewards keeps v0.4 tight; rewards are the main engagement hook for later.
 
 ### Q-M5 — Boss enemy definition
