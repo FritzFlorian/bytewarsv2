@@ -223,6 +223,66 @@ Decisions required before the relevant v0.2+ work begins.
 
 ---
 
+## v0.6 design questions
+
+### Q-R1 — Reward offer format
+- **Source:** `roadmap.md` v0.6, `gameplay.md` §1
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **3 random draws from the enabled reward pool, player picks 1, no skip, no reroll.** The pool is **not filtered for usefulness** — a full-HP squad can still be offered a heal; a full grid can still be offered a new unit (in which case that offer is unusable and the player picks one of the other two). This is intentional: bad rolls are part of the run's texture.
+- **Stakes:** Determines the UX of every post-combat transition and how tightly rewards feel balanced.
+- **Revisit if:** Playtesting shows too many dead rolls frustrate players. The upgrade path is filtering offers that have no effect (grid-full for new-unit, all-max-HP for heal).
+
+### Q-R2 — Reward categories shipping in v0.6
+- **Source:** `roadmap.md` v0.6, `gameplay.md` §1
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **v0.6 ships 3 of the 5 categories from Q-G2:** heal (two subtypes: full-heal one / partial-heal all), +1 rule slot (player picks unit, cap of 6), and new unit (preset drawn from the starter pool, player picks empty grid slot, pre-authored gambits editable afterward via the existing editor). **Modules and vocabulary unlock are deferred to later versions** because each requires a new underlying system (module slots per chassis; new condition/action vocabulary) that v0.6 does not take on.
+- **Stakes:** Keeps v0.6 scoped to mechanics that build on existing combat state. Full 5-category rewards require substantial new systems.
+- **Revisit when:** v0.7+ adds modules; vocabulary unlock lands alongside vocabulary expansion (see architecture.md §4 "Planned v0.6+ vocabulary additions" — may slip to v0.8).
+
+### Q-R3 — Starter squad composition
+- **Source:** `roadmap.md` v0.6, `gameplay.md` §2
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **2 starter units drawn randomly (without replacement) from a hand-authored preset pool.** Each preset defines chassis, starting HP (baseline 50), rule slot count (baseline 2), and opening gambits. Replaces the fixed `src/content/player-squad.json` starter with a pool file (e.g. `src/content/starter-presets.json`). The same preset pool is drawn from for the "new unit" reward — a new unit joining mid-run is indistinguishable from a starter.
+- **Stakes:** Run variety starts at turn 0. Starters must be genuinely *weak* so reward progression feels earned.
+- **Revisit if:** Preset pool variance makes balance impossible, or playtesting shows the "50 HP / 2 slots" baseline is wrong. Retune the presets.
+
+### Q-R4 — Rule slot cap
+- **Source:** `roadmap.md` v0.6, `gameplay.md` §7
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **Cap rule slots at 6 per unit.** Starts at 2 → 4 rewards to max a unit out. The player picks which unit gets the slot; if all owned units are at 6, the +rule-slot offer is still drawn (per Q-R1 no filtering) and becomes useless for that player.
+- **Stakes:** Authoring depth. Too low = quick ceiling, reward becomes dead. Too high = blank-slot paralysis in the editor.
+- **Revisit if:** Playtesting shows maxed-out units consistently before boss, or editor feels empty at cap.
+
+### Q-R5 — Heal reward shape
+- **Source:** `roadmap.md` v0.6, `gameplay.md` §1, Q-G6
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **Two distinct subtypes, both in the reward pool.** "Full-heal one chosen unit" (player picks from living + returning-at-42% units) and "partial-heal all living units" (fixed %, starting at 50% of max HP). Repair Bay nodes trigger the partial-heal-all effect implicitly on entry.
+- **Stakes:** Heal variety directly. The two subtypes occupy different strategic niches (revive-the-tank vs spread-the-love).
+- **Revisit if:** One subtype dominates in practice. The weaker one's weight in the pool can be tuned up, or it can be dropped.
+
+### Q-R6 — Elite nodes
+- **Source:** `roadmap.md` v0.6, `gameplay.md` §1
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **Elite lands in v0.6.** Map generation places ~2 Elite nodes per map. Elite encounters pull from **4 hand-authored enemy-squad fixtures** (separate from the regular combat fixture pool); the elite-only Siege chassis appears in 2 of the 4. Elite reward pool is the same 3-pick pool but **weighted toward +unit and +rule-slot** (heal weights drop).
+- **Stakes:** Elite is the main mid-run spike. Under-tuned = Elite is just "slightly harder combat"; over-tuned = Elite is a run-ender lottery.
+- **Revisit if:** Elite win rate diverges sharply from regular combat, or Siege appearances feel too samey across Elite nodes.
+
+### Q-R7 — New chassis (player + enemy) in v0.6
+- **Source:** `roadmap.md` v0.6, `setting.md` §3, Q-S2
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **Add 4 chassis in v0.6:** two player chassis (Lawnbot — treaded tank; Security-drone — ranged/fragile) and two enemy chassis (Swarmer — low-HP regular-pool pressure; Siege — elite-only heavy with a long-cooldown devastating attack). Each new chassis gets 1–2 chassis-specific attacks in `attacks.json`. Completes the Q-S2 v1 player roster.
+- **Stakes:** Combat variety. Without new chassis, the reward loop rewards ever-more copies of Vacuum/Butler and fights use the same QA-Rig/Overseer silhouettes.
+- **Revisit if:** Silhouette readability test fails for any pair (see `setting.md` §4) — swap or retune.
+
+### Q-R8 — Post-reward flow
+- **Source:** `roadmap.md` v0.6
+- **Status:** `[Resolved]` 2026-04-12
+- **Decision:** **Reward screen → map, always.** Never auto-route to the gambit editor even after "new unit" or "+rule slot" rewards. The player can enter the editor from the map before the next fight as they do today.
+- **Stakes:** State machine complexity vs. onboarding friction. Auto-routing is guiding; map-first is consistent.
+- **Revisit if:** Playtesters miss the prompt to edit gambits after a new unit joins — a map-screen hint or badge is the soft-guidance upgrade path.
+
+---
+
 ## Process / tooling questions
 
 ### Q-P1 — Storybook or debug-page harness

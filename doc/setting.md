@@ -30,7 +30,7 @@ In v1, the "escape" ends at the Assembly Floor boss, not at the loading dock. Na
 
 ### Player units — household-robot chassis
 
-Player units are **repurposed consumer products**, not military hardware. Their silhouettes should be instantly readable as appliances first, weapons second. **v1 ships with 4 player chassis and 1 enemy chassis** (see `open-questions.md` Q-S2):
+Player units are **repurposed consumer products**, not military hardware. Their silhouettes should be instantly readable as appliances first, weapons second. **v1 ships with 4 player chassis and 4 enemy chassis** (see `open-questions.md` Q-S2, Q-R7):
 
 - **Vacuum-class** *(v1, walking skeleton)* — low, round, fast, fragile. Front-line scout.
 - **Butler-class** *(v1, walking skeleton)* — humanoid, balanced, social-features-turned-utility (e.g. repair, buff).
@@ -45,7 +45,14 @@ The narrative reason these things fight at all is that the rogue AI has flashed 
 
 Enemies are the factory's **own immune response**: QA test rigs, security bots that *were* meant to ship but got conscripted, manufacturing arms repurposed as weapons, internal-affairs drones, decommission units. Visually they should feel *more industrial, less domestic* than player units — sharper edges, fewer rounded corners, warning stripes.
 
-**v1 enemy roster:** the **QA-Rig** (Assembly Floor enemy — industrial test rig) is the only enemy chassis confirmed for v1. Additional enemy chassis are added as Assembly Floor encounter variety requires. Decommission Units, Mainframe prototypes, etc. belong to the post-v1 zones.
+**v1 enemy roster:**
+
+- **QA-Rig** *(v0.1 walking skeleton)* — industrial test rig, Assembly Floor baseline enemy.
+- **Overseer** *(v0.4 boss)* — larger, heavier chassis; Assembly Floor boss.
+- **Swarmer** *(v0.6)* — low-HP, high-speed regular-pool enemy. Appears in groups to pressure the player's back row.
+- **Siege** *(v0.6, elite-only)* — heavy industrial frame with a long-cooldown devastating attack. Only appears in Elite encounters (2 of 4 Elite fixtures).
+
+Decommission Units, Mainframe prototypes, etc. belong to the post-v1 zones.
 
 ### Tone
 

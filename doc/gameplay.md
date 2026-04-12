@@ -21,20 +21,22 @@ v1 supports the following node types. Distribution is tuned per act.
 | Node | What happens |
 |---|---|
 | **Combat** | Standard encounter against an enemy squad. Most common node type. |
-| **Elite** | Harder combat encounter against a tougher enemy squad. Better rewards. |
-| **Boss** | Act-ending encounter. Unique enemy composition. |
-| **Repair Bay** | Heal all living units for a fixed percentage of max HP (starting at 50%, tuned during v0.2). See `open-questions.md` Q-G6. |
+| **Elite** | Harder combat encounter against a tougher enemy squad (v0.6: 4 hand-authored fixtures). The elite-only **Siege** enemy appears in 2 of the 4. Reward pool is weighted toward +unit and +rule slot. Map gen places ~2 per map. |
+| **Boss** | Act-ending encounter. Unique enemy composition. Awards no reward — victory screen only. |
+| **Repair Bay** | Heal all living units for a fixed percentage of max HP (starting at 50%, tuned during v0.6). See `open-questions.md` Q-G6. |
 
 
 ### Rewards
 
 After most nodes (especially combat), the player is offered a **choice of upgrade** drawn from a pool. **v1 has five reward categories** (see `open-questions.md` Q-G2):
 
-1. A **new module** for one of their existing units (class-locked — see §5).
-2. A **new unit** added to the squad (up to the cap of 9). This should be rare (a boss always drops this, elite fights may drop it).
-3. A **heal** — restore HP to one or more units.
-4. **+1 rule slot** for a chosen unit.
-5. A **vocabulary unlock** — a new condition or action becomes available to write in gambits.
+1. A **new module** for one of their existing units (class-locked — see §5). *Post-v0.6.*
+2. A **new unit** added to the squad (up to the cap of 9). Drawn from the starter preset pool; player picks the empty grid slot.
+3. A **heal** — two subtypes: **full-heal one chosen unit** or **partial-heal all living units**.
+4. **+1 rule slot** for a chosen unit, up to a cap of 6.
+5. A **vocabulary unlock** — a new condition or action becomes available to write in gambits. *Post-v0.6.*
+
+v0.6 ships categories 2, 3, and 4; modules and vocabulary unlocks land in later versions. After a combat or elite node, the player is shown **3 random options from the enabled pool** and must pick one (no reroll, no skip — see `open-questions.md` Q-R1). The reward pool is **not filtered for usefulness** — a full-HP squad can still be offered a heal. The boss node awards no reward; beating it ends the run with the victory screen.
 
 The rewards menu is the primary place where the player decides whether to grow wide (more bodies) or grow deep (stronger existing units).
 
@@ -42,7 +44,8 @@ The rewards menu is the primary place where the player decides whether to grow w
 
 - The player commands **up to 9 robot units**, filling the 3×3 slot grid on their side of the battlefield.
 - **No bench, no reserves, no swap-in.** Every owned unit is on the field.
-- The player **starts a run with 2 units**.
+- The player **starts a run with 2 units**, each drawn randomly from a hand-authored **starter preset pool** (one preset per draw; presets define chassis, starting HP, rule slot count, and opening gambits). Presets are deliberately *weak* — the reward loop is what makes the squad grow.
+- Starter baseline: **50 HP** and **2 rule slots** per unit. Rewards push both upward (heal, +1 rule slot).
 - New units are acquired during the run as one of several competing reward choices. "+1 unit" is never automatic — it always costs an upgrade slot.
 - Units lost during a fight skip the next fight (deactivated) and then come back with 42% hp next fight. 
 
@@ -127,7 +130,7 @@ If no rule fires, the unit idles for the turn.
 
 ### List size
 
-A unit starts with **4 rule slots** and can earn additional slots through the "+1 rule slot" reward (see §1 Rewards and `open-questions.md` Q-G5).
+A unit starts with **2 rule slots** and can earn additional slots through the "+1 rule slot" reward up to a **cap of 6** per unit (see §1 Rewards and `open-questions.md` Q-G5, Q-R2).
 
 ### Condition vocabulary — [Proposal] v1 starter set
 
