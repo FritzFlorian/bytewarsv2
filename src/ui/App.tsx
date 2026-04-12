@@ -33,6 +33,7 @@ import { MapScreen } from './screens/RunMap/MapScreen'
 import { GameOverScreen } from './screens/GameOver/GameOverScreen'
 import { VictoryScreen } from './screens/Victory/VictoryScreen'
 import { DebugUnits } from './screens/Combat/_DebugUnits'
+import { ChassisPreview } from './screens/ChassisPreview/ChassisPreview'
 import { DebugScene } from '../render/CombatScene'
 import { DebugAudio } from '../audio/_DebugAudio'
 import { initAudio } from '../audio/engine'
@@ -125,9 +126,13 @@ export default function App() {
   const [ctx, setCtx] = useState<RunContext>(startRun)
   const playbackSpeedRef = useRef<PlaybackSpeed>(1)
 
+  // ── Always-on preview pages (used by docs + tooling) ────────────────────
+  const search = new URLSearchParams(window.location.search)
+  if (search.get('preview') === 'chassis') return <ChassisPreview />
+
   // ── Dev debug pages ──────────────────────────────────────────────────────
   if (import.meta.env.DEV) {
-    const page = new URLSearchParams(window.location.search).get('debug')
+    const page = search.get('debug')
     if (page === 'units') return <DebugUnits />
     if (page === 'scene') return <DebugScene />
     if (page === 'audio') return <DebugAudio />

@@ -27,21 +27,22 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | `pnpm lint` | Run ESLint |
 | `pnpm pages` | Build and deploy to GitHub Pages (`gh-pages` branch) |
 
-## Current State (v0.4 — done)
+## Current State
 
+<!-- CURRENT_STATE:START -->
 The full run loop is playable end-to-end.
 
 **Map screen** — a seeded branching node graph. Pick your path through 10–12 combat nodes to reach the boss.
 
-![Map screen — v0.4](doc/screenshots/map-v0.4.png)
+![Map screen](doc/screenshots/readme/map.png)
 
 **Gambit editor** — author priority rules for each unit before every fight. Conditions and actions are searchable dropdowns; slots drag to reorder. Each unit tab shows current HP carried from the previous fight.
 
-![Gambit editor — v0.4](doc/screenshots/editor-v0.4.png)
+![Gambit editor](doc/screenshots/readme/editor.png)
 
 **Combat screen** — fights resolve automatically from your gambit lists. Active unit is highlighted, target indicators animate between attacker and target, a scrolling log tracks every action. Play, pause, step, or fast-forward at 0.5×–10×. Synthesized sound effects and music play in sync.
 
-![Combat screen — v0.4](doc/screenshots/combat-v0.4.png)
+![Combat screen](doc/screenshots/readme/combat.png)
 
 **How to play:**
 1. `pnpm install && pnpm dev`
@@ -58,6 +59,26 @@ The full run loop is playable end-to-end.
 **Debug pages** (dev server only):
 - `/?debug=units` — renders all chassis components side-by-side
 - `/?debug=scene` — plays a hand-written fixture through the render layer
+
+<sub>Screenshots and description auto-maintained — run `/refresh-readme` to refresh.</sub>
+<!-- CURRENT_STATE:END -->
+
+## Chassis
+
+<!-- CHASSIS:START -->
+![Chassis overview](doc/screenshots/chassis-overview.png)
+
+| Chassis | Attack | DMG | CD | Init |
+|---|---|---:|---:|---:|
+| Vacuum | Quick Jab | 8 | 0 | 0 |
+| Vacuum | Sweep | 18 | 2 | 0 |
+| Butler | Taser | 7 | 0 | 0 |
+| Butler | Overload | 30 | 3 | 1 |
+| QA-Rig | Clamp | 15 | 1 | 0 |
+| Overseer | Suppression | 20 | 1 | 0 |
+
+<sub>DMG = damage per hit · CD = cooldown (rounds) · Init = initial cooldown. Auto-generated — run `/refresh-readme` to refresh.</sub>
+<!-- CHASSIS:END -->
 
 ## What's Next (v0.5)
 
