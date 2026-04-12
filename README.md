@@ -54,7 +54,7 @@ The full run loop is playable end-to-end.
 
 **Squad persistence:** surviving units carry their HP between fights. A unit destroyed in fight N sits out fight N+1 and returns at 42% HP for fight N+2.
 
-**Editable starting squad:** edit `src/content/player-squad.json` to change your starting units, chassis, grid positions, and starting gambits before launching.
+**Starter preset pool:** each new run draws 2 random starters at 50 HP / 2 rule slots from `src/content/starter-presets.json`. Edit that file to add, remove, or retune presets.
 
 **Debug pages** (dev server only):
 - `/?debug=units` — renders all chassis components side-by-side

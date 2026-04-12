@@ -15,7 +15,7 @@ import {
   createCombat,
   resolveRound,
   isCombatOver,
-  loadPlayerSquad,
+  drawStarterSquad,
   generateMap,
   createRunState,
   selectNode,
@@ -59,11 +59,27 @@ interface RunContext {
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Build a fresh run from the player-squad JSON. */
+/** Grid columns (0, 1, 2) used in order when placing drawn starter presets. */
+const STARTER_COLUMNS = [0, 1, 2] as const
+
+/** Build a fresh run by drawing 2 starter presets and seating them front-row. */
 function startRun(): RunContext {
   const seed = Date.now()
   const rng = createRng(seed)
-  const playerUnits = loadPlayerSquad()
+  const presets = drawStarterSquad(rng, 2)
+  const playerUnits: Unit[] = presets.map((p, i) => ({
+    id: `player-${p.id}`,
+    side: 'player' as const,
+    slot: {
+      side: 'player' as const,
+      row: 'front' as const,
+      column: STARTER_COLUMNS[i],
+    },
+    chassis: p.chassis,
+    hp: p.hp,
+    maxHp: p.hp,
+    gambits: p.gambits,
+  }))
   const map = generateMap(rng)
   const runState = createRunState(map, playerUnits)
 

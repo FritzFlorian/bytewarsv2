@@ -15,8 +15,17 @@ import type { AttackId } from '../../content/schema/attack'
 
 export type UnitId = string
 
-/** All chassis types. 'overseer' added in v0.4 as the boss chassis. */
-export type Chassis = 'vacuum' | 'butler' | 'qa-rig' | 'overseer'
+/** All chassis types. 'overseer' added in v0.4 as the boss chassis;
+ *  'lawnbot', 'security_drone', 'swarmer', 'siege' added in v0.6. */
+export type Chassis =
+  | 'vacuum'
+  | 'butler'
+  | 'qa-rig'
+  | 'overseer'
+  | 'lawnbot'
+  | 'security_drone'
+  | 'swarmer'
+  | 'siege'
 
 export type Side = 'player' | 'enemy'
 

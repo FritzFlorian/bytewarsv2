@@ -8,6 +8,10 @@ import { Vacuum } from '../../../render/units/Vacuum'
 import { Butler } from '../../../render/units/Butler'
 import { QaRig } from '../../../render/units/QaRig'
 import { Overseer } from '../../../render/units/Overseer'
+import { Lawnbot } from '../../../render/units/Lawnbot'
+import { SecurityDrone } from '../../../render/units/SecurityDrone'
+import { Swarmer } from '../../../render/units/Swarmer'
+import { Siege } from '../../../render/units/Siege'
 
 type ChassisEntry = {
   chassis: Chassis
@@ -22,6 +26,10 @@ export const CHASSIS_ENTRIES: ChassisEntry[] = [
   { chassis: 'butler', label: 'Butler', Component: Butler },
   { chassis: 'qa-rig', label: 'QA-Rig', Component: QaRig },
   { chassis: 'overseer', label: 'Overseer', Component: Overseer },
+  { chassis: 'lawnbot', label: 'Lawnbot', Component: Lawnbot },
+  { chassis: 'security_drone', label: 'Security-drone', Component: SecurityDrone },
+  { chassis: 'swarmer', label: 'Swarmer', Component: Swarmer },
+  { chassis: 'siege', label: 'Siege', Component: Siege },
 ]
 
 const STAGE_BG = 'linear-gradient(180deg, #3b3250 0%, #5a3a52 100%)'

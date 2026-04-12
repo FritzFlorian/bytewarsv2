@@ -18,7 +18,16 @@ import type { Chassis } from '../../src/logic'
 
 afterEach(() => cleanup())
 
-const ALL_CHASSIS: Chassis[] = ['vacuum', 'butler', 'qa-rig', 'overseer']
+const ALL_CHASSIS: Chassis[] = [
+  'vacuum',
+  'butler',
+  'qa-rig',
+  'overseer',
+  'lawnbot',
+  'security_drone',
+  'swarmer',
+  'siege',
+]
 
 describe('ChassisPreview — drift guard', () => {
   it('includes exactly one entry per Chassis type', () => {

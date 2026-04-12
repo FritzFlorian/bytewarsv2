@@ -62,7 +62,7 @@ v0.6 delivers the run's growth loop. Today the squad is fixed at whatever `playe
 Content schema and data come first. Everything else depends on the new chassis ids, the starter preset pool, and the expanded `attacks.json`.
 
 #### T-6.1 — New chassis registration
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** v0.5 done
 - **Inputs:** `src/logic/state/types.ts` (`Chassis` type), `src/content/schema/attack.ts`, `src/content/schema/playerSquad.ts`
@@ -73,7 +73,7 @@ Content schema and data come first. Everything else depends on the new chassis i
 - **Acceptance:** `pnpm check` passes. No TypeScript exhaustiveness warnings.
 
 #### T-6.2 — New attacks in `attacks.json`
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-6.1
 - **Inputs:** `src/content/attacks.json`, `src/content/schema/attack.ts`
@@ -83,7 +83,7 @@ Content schema and data come first. Everything else depends on the new chassis i
 - **Acceptance:** `getAttacksForChassis('siege')` returns `siege_cannon`. `getAttackDef('siege_cannon').damage >= 40` (approximate intent — devastating). `pnpm check` passes.
 
 #### T-6.3 — Starter preset pool
-- **Status:** todo
+- **Status:** done
 - **Track:** foundation
 - **Depends on:** T-6.1, T-6.2
 - **Inputs:** existing `src/content/player-squad.json` (to retire), `src/content/schema/`

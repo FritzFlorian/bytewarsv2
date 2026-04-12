@@ -52,5 +52,59 @@
     "initialCooldown": 0,
     "sound": "suppression",
     "chassis": ["overseer"]
+  },
+  {
+    "id": "mow",
+    "name": "Mow",
+    "damage": 10,
+    "cooldown": 0,
+    "initialCooldown": 0,
+    "sound": "mow",
+    "chassis": ["lawnbot"]
+  },
+  {
+    "id": "bash",
+    "name": "Bash",
+    "damage": 22,
+    "cooldown": 2,
+    "initialCooldown": 0,
+    "sound": "bash",
+    "chassis": ["lawnbot"]
+  },
+  {
+    "id": "dart",
+    "name": "Dart",
+    "damage": 9,
+    "cooldown": 0,
+    "initialCooldown": 0,
+    "sound": "dart",
+    "chassis": ["security_drone"]
+  },
+  {
+    "id": "pulse_shot",
+    "name": "Pulse Shot",
+    "damage": 24,
+    "cooldown": 2,
+    "initialCooldown": 1,
+    "sound": "pulse_shot",
+    "chassis": ["security_drone"]
+  },
+  {
+    "id": "bite",
+    "name": "Bite",
+    "damage": 12,
+    "cooldown": 0,
+    "initialCooldown": 0,
+    "sound": "bite",
+    "chassis": ["swarmer"]
+  },
+  {
+    "id": "siege_cannon",
+    "name": "Siege Cannon",
+    "damage": 45,
+    "cooldown": 3,
+    "initialCooldown": 1,
+    "sound": "siege_cannon",
+    "chassis": ["siege"]
   }
 ]

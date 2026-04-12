@@ -145,6 +145,10 @@ function chassisLabel(chassis: UnitInfo['chassis']): string {
     butler: 'Butler',
     'qa-rig': 'QA-Rig',
     overseer: 'Overseer',
+    lawnbot: 'Lawnbot',
+    security_drone: 'Security-drone',
+    swarmer: 'Swarmer',
+    siege: 'Siege',
   }
   return labels[chassis] ?? chassis
 }

@@ -11,6 +11,12 @@ export const AttackIdSchema = z.enum([
   'overload',
   'clamp',
   'suppression',
+  'mow',
+  'bash',
+  'dart',
+  'pulse_shot',
+  'bite',
+  'siege_cannon',
 ])
 
 export type AttackId = z.infer<typeof AttackIdSchema>
