@@ -41,8 +41,8 @@ function buildTurnOrder(slots: SlotMap): Unit[] {
 
 function checkWinner(slots: SlotMap): 'player' | 'enemy' | null {
   const hasPlayer = [...slots.values()].some(u => u.side === 'player')
-  const hasEnemy  = [...slots.values()].some(u => u.side === 'enemy')
-  if (!hasEnemy)  return 'player'
+  const hasEnemy = [...slots.values()].some(u => u.side === 'enemy')
+  if (!hasEnemy) return 'player'
   if (!hasPlayer) return 'enemy'
   return null
 }
@@ -80,11 +80,7 @@ function getCooldown(cooldowns: CooldownMap, unitId: string, attackId: AttackId)
 // Public API
 // ---------------------------------------------------------------------------
 
-export function createCombat(
-  seed: number,
-  playerUnits: Unit[],
-  enemyUnits: Unit[],
-): CombatState {
+export function createCombat(seed: number, playerUnits: Unit[], enemyUnits: Unit[]): CombatState {
   const allUnits = [...playerUnits, ...enemyUnits]
   const slots: SlotMap = new Map()
   for (const unit of allUnits) {
@@ -98,9 +94,7 @@ export function isCombatOver(state: CombatState): false | 'player' | 'enemy' {
   return checkWinner(state.battlefield.slots) ?? false
 }
 
-export function resolveRound(
-  state: CombatState,
-): { state: CombatState; events: CombatEvent[] } {
+export function resolveRound(state: CombatState): { state: CombatState; events: CombatEvent[] } {
   const events: CombatEvent[] = []
   const rng = createRng(state.seed)
 
@@ -140,7 +134,7 @@ export function resolveRound(
       const rule = unit.gambits[i]
       if (!evaluateCondition(rule.condition, unit, bf)) continue
       if (isAttackAction(rule.action) && getCooldown(cooldowns, unit.id, rule.action.kind) > 0) {
-        continue  // on cooldown — fall through to next rule
+        continue // on cooldown — fall through to next rule
       }
       chosenRuleIndex = i
       chosenAction = rule.action
@@ -152,11 +146,21 @@ export function resolveRound(
     if (isAttackAction(chosenAction)) {
       const target = resolveTarget(chosenAction.target, unit, bf, rng)
       const targetIds = target ? [target.id] : []
-      events.push({ kind: 'action_used', unitId: unit.id, action: chosenAction, targets: targetIds })
+      events.push({
+        kind: 'action_used',
+        unitId: unit.id,
+        action: chosenAction,
+        targets: targetIds,
+      })
 
       if (target) {
         const atkDef = getAttackDef(chosenAction.kind)
-        events.push({ kind: 'damage_dealt', sourceId: unit.id, targetId: target.id, amount: atkDef.damage })
+        events.push({
+          kind: 'damage_dealt',
+          sourceId: unit.id,
+          targetId: target.id,
+          amount: atkDef.damage,
+        })
         const newHp = target.hp - atkDef.damage
         if (newHp <= 0) {
           slots.delete(slotKey(target.slot))

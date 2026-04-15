@@ -127,15 +127,11 @@ function SearchableSelect<T extends string>({
 // Condition/action change helpers — produce valid new types
 // ---------------------------------------------------------------------------
 
-function changeConditionKind(
-  kind: Condition['kind'],
-  current: Condition,
-): Condition {
+function changeConditionKind(kind: Condition['kind'], current: Condition): Condition {
   if (kind === 'always') return { kind: 'always' }
   if (kind === 'self_hp_below') return { kind: 'self_hp_below', pct: 50 }
   // target_exists
-  const target =
-    current.kind === 'target_exists' ? current.target : 'nearest_enemy'
+  const target = current.kind === 'target_exists' ? current.target : 'nearest_enemy'
   return { kind: 'target_exists', target }
 }
 

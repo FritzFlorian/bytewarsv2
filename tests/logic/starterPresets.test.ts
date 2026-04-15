@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  getAllStarterPresets,
-  drawStarterSquad,
-} from '../../src/logic/content/starterPresetLoader'
+import { getAllStarterPresets, drawStarterSquad } from '../../src/logic/content/starterPresetLoader'
 import { createRng } from '../../src/logic/rng'
 import { getAttacksForChassis } from '../../src/logic/content/attackLoader'
 import { isAttackAction } from '../../src/logic/gambits/types'

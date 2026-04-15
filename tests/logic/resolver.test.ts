@@ -94,12 +94,12 @@ describe('resolveRound — single round', () => {
     const state = createCombat(42, playerUnits, enemyUnits)
     const { events } = resolveRound(state)
     const starts = events.filter(e => e.kind === 'turn_started')
-    const ends   = events.filter(e => e.kind === 'turn_ended')
+    const ends = events.filter(e => e.kind === 'turn_ended')
     expect(starts).toHaveLength(4) // 2 player + 2 enemy
     expect(ends).toHaveLength(4)
     // Every unit that starts a turn also ends it
     const startIds = starts.map(e => (e as { kind: 'turn_started'; unitId: string }).unitId)
-    const endIds   = ends.map(e => (e as { kind: 'turn_ended'; unitId: string }).unitId)
+    const endIds = ends.map(e => (e as { kind: 'turn_ended'; unitId: string }).unitId)
     expect(startIds).toEqual(endIds)
   })
 
@@ -197,7 +197,10 @@ describe('golden test — walking-skeleton fixture, seed 42', () => {
   it('different seeds produce the same result (no RNG variance in this fixture)', () => {
     const eventsOtherSeed = runToCompletion(999)
     expect(eventsOtherSeed).toHaveLength(events.length)
-    expect(eventsOtherSeed[eventsOtherSeed.length - 1]).toEqual({ kind: 'combat_ended', winner: 'player' })
+    expect(eventsOtherSeed[eventsOtherSeed.length - 1]).toEqual({
+      kind: 'combat_ended',
+      winner: 'player',
+    })
   })
 
   it('combat_ended always emitted within 100 rounds regardless of seed', () => {

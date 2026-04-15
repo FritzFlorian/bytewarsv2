@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { getAllAttacks, getAttackDef, getAttacksForChassis } from '../../src/logic/content/attackLoader'
+import {
+  getAllAttacks,
+  getAttackDef,
+  getAttacksForChassis,
+} from '../../src/logic/content/attackLoader'
 
 describe('attackLoader', () => {
   it('every chassis in the roster has at least one attack', () => {
@@ -53,10 +57,7 @@ describe('attackLoader', () => {
 
   it('T-6.2: lawnbot and security_drone have 2 attacks each', () => {
     expect(getAttacksForChassis('lawnbot').map(a => a.id)).toEqual(['mow', 'bash'])
-    expect(getAttacksForChassis('security_drone').map(a => a.id)).toEqual([
-      'dart',
-      'pulse_shot',
-    ])
+    expect(getAttacksForChassis('security_drone').map(a => a.id)).toEqual(['dart', 'pulse_shot'])
   })
 
   it('T-6.2: swarmer has bite', () => {

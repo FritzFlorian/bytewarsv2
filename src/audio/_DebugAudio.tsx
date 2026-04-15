@@ -83,17 +83,13 @@ export function DebugAudio() {
         <tbody>
           {rows.map(row => (
             <tr key={row.id}>
-              <td style={{ padding: '0.5rem 1rem', minWidth: '6rem' }}>
-                {row.id}
-              </td>
+              <td style={{ padding: '0.5rem 1rem', minWidth: '6rem' }}>{row.id}</td>
               <td>
                 <button onClick={row.action}>
                   {row.toggle ? (row.active ? '■ stop' : '▶ start') : '▶ play'}
                 </button>
               </td>
-              <td style={{ padding: '0.5rem 1rem', color: '#888' }}>
-                {row.description}
-              </td>
+              <td style={{ padding: '0.5rem 1rem', color: '#888' }}>{row.description}</td>
             </tr>
           ))}
         </tbody>

@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Chassis } from '../../src/logic/state/types'
-import {
-  ChassisSchema,
-  StarterPresetSchema,
-} from '../../src/content/schema/starterPreset'
+import { ChassisSchema, StarterPresetSchema } from '../../src/content/schema/starterPreset'
 
 // All 8 chassis ids recognised in v0.6. Writing the literal array with
 // `satisfies` ensures the list stays in sync with the `Chassis` type: any

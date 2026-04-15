@@ -1,6 +1,8 @@
 // Generates the screenshots embedded in the README's Current State section.
-// Outputs go to doc/screenshots/readme/ with stable filenames so re-runs
-// overwrite in place — the /refresh-readme skill invokes this spec.
+// Outputs go to a gitignored scratch dir (test-results/artifacts/readme/) so
+// regular `pnpm check` runs don't dirty the working tree. The
+// `refresh-readme-artifacts` pnpm script copies them into doc/ when the
+// /refresh-readme skill is run.
 //
 // Tests walk the happy path: landing map → gambit editor → combat playback.
 
@@ -8,7 +10,7 @@ import { test, expect } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-const OUT_DIR = 'doc/screenshots/readme'
+const OUT_DIR = 'test-results/artifacts/readme'
 
 function ensureOutDir() {
   mkdirSync(resolve(process.cwd(), OUT_DIR), { recursive: true })

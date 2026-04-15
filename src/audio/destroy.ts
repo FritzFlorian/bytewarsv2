@@ -12,11 +12,7 @@ export function playDestroy(ctx: AudioContext): void {
   const now = ctx.currentTime
 
   // Shared noise buffer (1.2s, used by rumble layer)
-  const noiseBuffer = ctx.createBuffer(
-    1,
-    Math.ceil(ctx.sampleRate * 1.2),
-    ctx.sampleRate,
-  )
+  const noiseBuffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 1.2), ctx.sampleRate)
   const data = noiseBuffer.getChannelData(0)
   for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
 

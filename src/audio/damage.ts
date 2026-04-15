@@ -12,11 +12,7 @@
 export function playDamage(ctx: AudioContext): void {
   const now = ctx.currentTime
 
-  const noiseBuffer = ctx.createBuffer(
-    1,
-    Math.ceil(ctx.sampleRate * 0.12),
-    ctx.sampleRate,
-  )
+  const noiseBuffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.12), ctx.sampleRate)
   const data = noiseBuffer.getChannelData(0)
   for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
 

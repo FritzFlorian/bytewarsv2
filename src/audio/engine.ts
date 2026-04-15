@@ -39,25 +39,58 @@ export function initAudio(): void {
 export function playSound(id: SoundId): void {
   if (!ctx) return
   switch (id) {
-    case 'quick_jab':   playQuickJab(ctx);   break
-    case 'sweep':       playSweep(ctx);       break
-    case 'taser':       playTaser(ctx);       break
-    case 'overload':    playOverload(ctx);    break
-    case 'clamp':       playClamp(ctx);       break
-    case 'suppression': playSuppression(ctx); break
+    case 'quick_jab':
+      playQuickJab(ctx)
+      break
+    case 'sweep':
+      playSweep(ctx)
+      break
+    case 'taser':
+      playTaser(ctx)
+      break
+    case 'overload':
+      playOverload(ctx)
+      break
+    case 'clamp':
+      playClamp(ctx)
+      break
+    case 'suppression':
+      playSuppression(ctx)
+      break
     // Placeholder dispatch for v0.6 attack sounds — T-6.8 will replace these
     // with dedicated synthesis modules. For now they reuse existing textures.
-    case 'mow':          playSweep(ctx);       break
-    case 'bash':         playOverload(ctx);    break
-    case 'dart':         playQuickJab(ctx);    break
-    case 'pulse_shot':   playTaser(ctx);       break
-    case 'bite':         playQuickJab(ctx);    break
-    case 'siege_cannon': playOverload(ctx);    break
-    case 'damage':      playDamage(ctx);      break
-    case 'destroy':     playDestroy(ctx);     break
-    case 'win':         playWin(ctx);         break
-    case 'lose':        playLose(ctx);        break
-    case 'beat':        /* managed via startMusic() */ break
+    case 'mow':
+      playSweep(ctx)
+      break
+    case 'bash':
+      playOverload(ctx)
+      break
+    case 'dart':
+      playQuickJab(ctx)
+      break
+    case 'pulse_shot':
+      playTaser(ctx)
+      break
+    case 'bite':
+      playQuickJab(ctx)
+      break
+    case 'siege_cannon':
+      playOverload(ctx)
+      break
+    case 'damage':
+      playDamage(ctx)
+      break
+    case 'destroy':
+      playDestroy(ctx)
+      break
+    case 'win':
+      playWin(ctx)
+      break
+    case 'lose':
+      playLose(ctx)
+      break
+    case 'beat':
+      /* managed via startMusic() */ break
   }
 }
 

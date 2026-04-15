@@ -34,25 +34,33 @@
 /* Disc-shaped body */
 .vacuum-body {
   position: absolute;
-  left: 0; bottom: 0;
-  width: 72px; height: 38px;
+  left: 0;
+  bottom: 0;
+  width: 72px;
+  height: 38px;
   background: #5ab0ff;
   border: 3px solid var(--unit-ink);
   border-radius: 38px 38px 8px 8px;
   overflow: hidden;
 }
-.vacuum-body::before { /* shadow band — bottom 45% */
+.vacuum-body::before {
+  /* shadow band — bottom 45% */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 45%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
   background: #2d6dc0;
 }
-.vacuum-body::after { /* highlight accent — top-left */
+.vacuum-body::after {
+  /* highlight accent — top-left */
   content: '';
   position: absolute;
-  left: 8px; top: 4px;
-  width: 24px; height: 6px;
+  left: 8px;
+  top: 4px;
+  width: 24px;
+  height: 6px;
   background: #c8e4ff;
   border-radius: 8px;
 }
@@ -60,34 +68,44 @@
 /* Glass dome */
 .vacuum-dome {
   position: absolute;
-  left: 22px; bottom: 30px;
-  width: 28px; height: 24px;
+  left: 22px;
+  bottom: 30px;
+  width: 28px;
+  height: 24px;
   background: #f0f2f8;
   border: 3px solid var(--unit-ink);
   border-radius: 28px 28px 4px 4px;
   overflow: hidden;
 }
-.vacuum-dome::before { /* shadow — right half */
+.vacuum-dome::before {
+  /* shadow — right half */
   content: '';
   position: absolute;
-  right: 0; top: 0;
-  width: 45%; height: 100%;
+  right: 0;
+  top: 0;
+  width: 45%;
+  height: 100%;
   background: #b8bfd0;
 }
 
 /* Eye — single circular sensor */
 .vacuum-eye {
   position: absolute;
-  left: 30px; bottom: 38px;
-  width: 12px; height: 12px;
+  left: 30px;
+  bottom: 38px;
+  width: 12px;
+  height: 12px;
   background: var(--unit-ink);
   border-radius: 50%;
 }
-.vacuum-eye::after { /* glint */
+.vacuum-eye::after {
+  /* glint */
   content: '';
   position: absolute;
-  top: 2px; left: 2px;
-  width: 4px; height: 4px;
+  top: 2px;
+  left: 2px;
+  width: 4px;
+  height: 4px;
   background: #fff;
   border-radius: 50%;
 }
@@ -96,13 +114,17 @@
 .vacuum-wheel {
   position: absolute;
   bottom: -3px;
-  width: 12px; height: 12px;
+  width: 12px;
+  height: 12px;
   background: var(--unit-ink);
   border-radius: 50%;
 }
-.vacuum-wheel--left  { left: 10px; }
-.vacuum-wheel--right { right: 10px; }
-
+.vacuum-wheel--left {
+  left: 10px;
+}
+.vacuum-wheel--right {
+  right: 10px;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    BUTLER — humanoid service robot, player balanced attacker
@@ -118,35 +140,45 @@
 /* Rounded humanoid head */
 .butler-head {
   position: absolute;
-  left: 16px; bottom: 64px;
-  width: 28px; height: 24px;
+  left: 16px;
+  bottom: 64px;
+  width: 28px;
+  height: 24px;
   background: #c0ccdc;
   border: 3px solid var(--unit-ink);
   border-radius: 14px 14px 4px 4px;
   overflow: hidden;
 }
-.butler-head::before { /* shadow — right half */
+.butler-head::before {
+  /* shadow — right half */
   content: '';
   position: absolute;
-  right: 0; top: 0;
-  width: 45%; height: 100%;
+  right: 0;
+  top: 0;
+  width: 45%;
+  height: 100%;
   background: #889aae;
 }
 
 /* Teal rectangular visor / eye */
 .butler-visor {
   position: absolute;
-  left: 20px; bottom: 70px;
-  width: 20px; height: 8px;
+  left: 20px;
+  bottom: 70px;
+  width: 20px;
+  height: 8px;
   background: #20c8b0;
   border: 2px solid var(--unit-ink);
   border-radius: 3px;
 }
-.butler-visor::after { /* visor glint */
+.butler-visor::after {
+  /* visor glint */
   content: '';
   position: absolute;
-  top: 1px; left: 2px;
-  width: 6px; height: 3px;
+  top: 1px;
+  left: 2px;
+  width: 6px;
+  height: 3px;
   background: rgba(255, 255, 255, 0.55);
   border-radius: 2px;
 }
@@ -154,8 +186,10 @@
 /* Narrow neck connector */
 .butler-neck {
   position: absolute;
-  left: 25px; bottom: 58px;
-  width: 10px; height: 8px;
+  left: 25px;
+  bottom: 58px;
+  width: 10px;
+  height: 8px;
   background: #a8b8cc;
   border-left: 2px solid var(--unit-ink);
   border-right: 2px solid var(--unit-ink);
@@ -164,25 +198,33 @@
 /* Main torso */
 .butler-torso {
   position: absolute;
-  left: 8px; bottom: 18px;
-  width: 44px; height: 42px;
+  left: 8px;
+  bottom: 18px;
+  width: 44px;
+  height: 42px;
   background: #a8b8cc;
   border: 3px solid var(--unit-ink);
   border-radius: 6px;
   overflow: hidden;
 }
-.butler-torso::before { /* shadow — bottom 40% */
+.butler-torso::before {
+  /* shadow — bottom 40% */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 40%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
   background: #687890;
 }
-.butler-torso::after { /* highlight */
+.butler-torso::after {
+  /* highlight */
   content: '';
   position: absolute;
-  left: 6px; top: 5px;
-  width: 16px; height: 5px;
+  left: 6px;
+  top: 5px;
+  width: 16px;
+  height: 5px;
   background: #dce8f4;
   border-radius: 4px;
 }
@@ -190,8 +232,10 @@
 /* Copper chest badge — module attachment point */
 .butler-badge {
   position: absolute;
-  left: 20px; bottom: 38px;
-  width: 20px; height: 8px;
+  left: 20px;
+  bottom: 38px;
+  width: 20px;
+  height: 8px;
   background: #d07828;
   border: 2px solid var(--unit-ink);
   border-radius: 2px;
@@ -199,8 +243,10 @@
 .butler-badge::after {
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 45%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
   background: #904e10;
 }
 
@@ -208,33 +254,45 @@
 .butler-arm {
   position: absolute;
   bottom: 22px;
-  width: 10px; height: 32px;
+  width: 10px;
+  height: 32px;
   background: #98a8bc;
   border: 3px solid var(--unit-ink);
   border-radius: 5px;
   overflow: hidden;
 }
-.butler-arm::before { /* shadow */
+.butler-arm::before {
+  /* shadow */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 40%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
   background: #607080;
 }
-.butler-arm--left  { left: 0; }
-.butler-arm--right { right: 0; }
+.butler-arm--left {
+  left: 0;
+}
+.butler-arm--right {
+  right: 0;
+}
 
 /* Rolling casters at base */
 .butler-caster {
   position: absolute;
   bottom: 6px;
-  width: 10px; height: 10px;
+  width: 10px;
+  height: 10px;
   background: var(--unit-ink);
   border-radius: 50%;
 }
-.butler-caster--left  { left: 14px; }
-.butler-caster--right { right: 14px; }
-
+.butler-caster--left {
+  left: 14px;
+}
+.butler-caster--right {
+  right: 14px;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    QA-RIG — factory QA test rig, enemy chassis
@@ -251,18 +309,23 @@
 /* Heavy industrial tread */
 .qa-tread {
   position: absolute;
-  left: 0; bottom: 0;
-  width: 80px; height: 20px;
+  left: 0;
+  bottom: 0;
+  width: 80px;
+  height: 20px;
   background: #484848;
   border: 3px solid var(--unit-ink);
   border-radius: 4px;
   overflow: hidden;
 }
-.qa-tread::before { /* shadow */
+.qa-tread::before {
+  /* shadow */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 50%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
   background: #282828;
 }
 
@@ -270,38 +333,55 @@
 .qa-wheel {
   position: absolute;
   top: 4px;
-  width: 10px; height: 10px;
+  width: 10px;
+  height: 10px;
   background: var(--unit-ink);
   border-radius: 50%;
   z-index: 2;
 }
-.qa-wheel--1 { left: 6px; }
-.qa-wheel--2 { left: 24px; }
-.qa-wheel--3 { left: 44px; }
-.qa-wheel--4 { left: 62px; }
+.qa-wheel--1 {
+  left: 6px;
+}
+.qa-wheel--2 {
+  left: 24px;
+}
+.qa-wheel--3 {
+  left: 44px;
+}
+.qa-wheel--4 {
+  left: 62px;
+}
 
 /* Main body — boxy, angular (fewer rounded corners) */
 .qa-body {
   position: absolute;
-  left: 4px; bottom: 16px;
-  width: 72px; height: 44px;
+  left: 4px;
+  bottom: 16px;
+  width: 72px;
+  height: 44px;
   background: #c8c0a8;
   border: 3px solid var(--unit-ink);
   border-radius: 3px;
   overflow: hidden;
 }
-.qa-body::before { /* shadow — bottom 35% */
+.qa-body::before {
+  /* shadow — bottom 35% */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 35%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 35%;
   background: #8a8060;
 }
-.qa-body::after { /* small highlight */
+.qa-body::after {
+  /* small highlight */
   content: '';
   position: absolute;
-  left: 6px; top: 4px;
-  width: 18px; height: 5px;
+  left: 6px;
+  top: 4px;
+  width: 18px;
+  height: 5px;
   background: #eae4cc;
   border-radius: 2px;
 }
@@ -309,12 +389,16 @@
 /* Warning stripe band — caution tape pattern */
 .qa-stripe {
   position: absolute;
-  left: 4px; bottom: 42px;
-  width: 72px; height: 10px;
+  left: 4px;
+  bottom: 42px;
+  width: 72px;
+  height: 10px;
   background: repeating-linear-gradient(
     -45deg,
-    #f0c030 0px, #f0c030 6px,
-    var(--unit-ink) 6px, var(--unit-ink) 12px
+    #f0c030 0px,
+    #f0c030 6px,
+    var(--unit-ink) 6px,
+    var(--unit-ink) 12px
   );
   border-top: 2px solid var(--unit-ink);
   border-bottom: 2px solid var(--unit-ink);
@@ -323,8 +407,10 @@
 /* Top sensor block */
 .qa-sensor-bar {
   position: absolute;
-  left: 10px; bottom: 58px;
-  width: 60px; height: 18px;
+  left: 10px;
+  bottom: 58px;
+  width: 60px;
+  height: 18px;
   background: #b0a890;
   border: 3px solid var(--unit-ink);
   border-radius: 2px;
@@ -333,37 +419,46 @@
 .qa-sensor-bar::before {
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 50%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
   background: #787060;
 }
 
 /* Main camera sensor eye */
 .qa-eye {
   position: absolute;
-  left: 30px; bottom: 64px;
-  width: 20px; height: 20px;
+  left: 30px;
+  bottom: 64px;
+  width: 20px;
+  height: 20px;
   background: #e03030;
   border: 3px solid var(--unit-ink);
   border-radius: 50%;
 }
-.qa-eye::before { /* inner lens */
+.qa-eye::before {
+  /* inner lens */
   content: '';
   position: absolute;
-  top: 3px; left: 3px;
-  width: 10px; height: 10px;
+  top: 3px;
+  left: 3px;
+  width: 10px;
+  height: 10px;
   background: #900808;
   border-radius: 50%;
 }
-.qa-eye::after { /* lens glint */
+.qa-eye::after {
+  /* lens glint */
   content: '';
   position: absolute;
-  top: 3px; left: 4px;
-  width: 4px; height: 4px;
+  top: 3px;
+  left: 4px;
+  width: 4px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.7);
   border-radius: 50%;
 }
-
 
 /* ══════════════════════════════════════════════════════════════════
    OVERSEER — heavy industrial boss chassis (v0.4)
@@ -380,18 +475,23 @@
 /* Heavy caterpillar tread base */
 .overseer-tread {
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100px; height: 22px;
+  left: 0;
+  bottom: 0;
+  width: 100px;
+  height: 22px;
   background: #383838;
   border: 3px solid var(--unit-ink);
   border-radius: 4px;
   overflow: hidden;
 }
-.overseer-tread::before { /* shadow band */
+.overseer-tread::before {
+  /* shadow band */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 50%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
   background: #1a1a1a;
 }
 
@@ -399,57 +499,81 @@
 .overseer-tread-wheel {
   position: absolute;
   top: 4px;
-  width: 12px; height: 12px;
+  width: 12px;
+  height: 12px;
   background: var(--unit-ink);
   border-radius: 50%;
   z-index: 2;
 }
-.overseer-tread-wheel--1 { left:  6px; }
-.overseer-tread-wheel--2 { left: 24px; }
-.overseer-tread-wheel--3 { left: 42px; }
-.overseer-tread-wheel--4 { left: 60px; }
-.overseer-tread-wheel--5 { left: 78px; }
+.overseer-tread-wheel--1 {
+  left: 6px;
+}
+.overseer-tread-wheel--2 {
+  left: 24px;
+}
+.overseer-tread-wheel--3 {
+  left: 42px;
+}
+.overseer-tread-wheel--4 {
+  left: 60px;
+}
+.overseer-tread-wheel--5 {
+  left: 78px;
+}
 
 /* Lower armour base plate */
 .overseer-base {
   position: absolute;
-  left: 4px; bottom: 18px;
-  width: 92px; height: 20px;
+  left: 4px;
+  bottom: 18px;
+  width: 92px;
+  height: 20px;
   background: #5a3030;
   border: 3px solid var(--unit-ink);
   border-radius: 3px;
   overflow: hidden;
 }
-.overseer-base::before { /* shadow */
+.overseer-base::before {
+  /* shadow */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 50%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
   background: #3a1818;
 }
 
 /* Main reinforced body */
 .overseer-body {
   position: absolute;
-  left: 12px; bottom: 34px;
-  width: 76px; height: 46px;
+  left: 12px;
+  bottom: 34px;
+  width: 76px;
+  height: 46px;
   background: #5a5a5a;
   border: 3px solid var(--unit-ink);
   border-radius: 3px;
   overflow: hidden;
 }
-.overseer-body::before { /* shadow — bottom 40% */
+.overseer-body::before {
+  /* shadow — bottom 40% */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 40%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
   background: #2e2e2e;
 }
-.overseer-body::after { /* armour highlight */
+.overseer-body::after {
+  /* armour highlight */
   content: '';
   position: absolute;
-  left: 8px; top: 5px;
-  width: 22px; height: 5px;
+  left: 8px;
+  top: 5px;
+  width: 22px;
+  height: 5px;
   background: #8a8a8a;
   border-radius: 2px;
 }
@@ -457,12 +581,16 @@
 /* Warning stripe across the body */
 .overseer-stripe {
   position: absolute;
-  left: 12px; bottom: 62px;
-  width: 76px; height: 10px;
+  left: 12px;
+  bottom: 62px;
+  width: 76px;
+  height: 10px;
   background: repeating-linear-gradient(
     -45deg,
-    #e03030 0px,  #e03030 6px,
-    var(--unit-ink) 6px, var(--unit-ink) 12px
+    #e03030 0px,
+    #e03030 6px,
+    var(--unit-ink) 6px,
+    var(--unit-ink) 12px
   );
   border-top: 2px solid var(--unit-ink);
   border-bottom: 2px solid var(--unit-ink);
@@ -471,54 +599,69 @@
 /* Left articulated arm */
 .overseer-arm--left {
   position: absolute;
-  left: 0; bottom: 38px;
-  width: 14px; height: 34px;
+  left: 0;
+  bottom: 38px;
+  width: 14px;
+  height: 34px;
   background: #6a4040;
   border: 3px solid var(--unit-ink);
   border-radius: 4px 4px 6px 6px;
   overflow: hidden;
 }
-.overseer-arm--left::before { /* shadow */
+.overseer-arm--left::before {
+  /* shadow */
   content: '';
   position: absolute;
-  right: 0; top: 0;
-  width: 40%; height: 100%;
+  right: 0;
+  top: 0;
+  width: 40%;
+  height: 100%;
   background: #3a1818;
 }
 
 /* Right articulated arm */
 .overseer-arm--right {
   position: absolute;
-  right: 0; bottom: 38px;
-  width: 14px; height: 34px;
+  right: 0;
+  bottom: 38px;
+  width: 14px;
+  height: 34px;
   background: #6a4040;
   border: 3px solid var(--unit-ink);
   border-radius: 4px 4px 6px 6px;
   overflow: hidden;
 }
-.overseer-arm--right::before { /* shadow */
+.overseer-arm--right::before {
+  /* shadow */
   content: '';
   position: absolute;
-  left: 0; top: 0;
-  width: 40%; height: 100%;
+  left: 0;
+  top: 0;
+  width: 40%;
+  height: 100%;
   background: #3a1818;
 }
 
 /* Sensor cluster — top block */
 .overseer-sensor {
   position: absolute;
-  left: 18px; bottom: 76px;
-  width: 64px; height: 28px;
+  left: 18px;
+  bottom: 76px;
+  width: 64px;
+  height: 28px;
   background: #4a4a4a;
   border: 3px solid var(--unit-ink);
   border-radius: 3px;
   overflow: hidden;
 }
-.overseer-sensor::before { /* shadow */
+.overseer-sensor::before {
+  /* shadow */
   content: '';
   position: absolute;
-  left: 0; bottom: 0;
-  width: 100%; height: 50%;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
   background: #252525;
 }
 
@@ -526,27 +669,40 @@
 .overseer-eye {
   position: absolute;
   top: 5px;
-  width: 14px; height: 14px;
+  width: 14px;
+  height: 14px;
   background: #e03030;
   border: 2px solid var(--unit-ink);
   border-radius: 50%;
 }
-.overseer-eye::before { /* inner lens */
+.overseer-eye::before {
+  /* inner lens */
   content: '';
   position: absolute;
-  top: 2px; left: 2px;
-  width: 6px; height: 6px;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
   background: #900808;
   border-radius: 50%;
 }
-.overseer-eye::after { /* glint */
+.overseer-eye::after {
+  /* glint */
   content: '';
   position: absolute;
-  top: 2px; left: 3px;
-  width: 3px; height: 3px;
+  top: 2px;
+  left: 3px;
+  width: 3px;
+  height: 3px;
   background: rgba(255, 255, 255, 0.75);
   border-radius: 50%;
 }
-.overseer-eye--left   { left:  6px; }
-.overseer-eye--centre { left: 23px; }
-.overseer-eye--right  { left: 40px; }
+.overseer-eye--left {
+  left: 6px;
+}
+.overseer-eye--centre {
+  left: 23px;
+}
+.overseer-eye--right {
+  left: 40px;
+}

@@ -20,7 +20,7 @@ export interface MapNode {
 
 export interface MapEdge {
   from: string // MapNode id
-  to: string   // MapNode id
+  to: string // MapNode id
 }
 
 export interface MapGraph {

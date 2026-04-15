@@ -1,10 +1,14 @@
 /* Global reset — keeps box-sizing and body margin from causing overflow. */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
   height: 100%;

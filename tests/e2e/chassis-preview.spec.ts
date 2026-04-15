@@ -1,27 +1,27 @@
 // Chassis-preview e2e. Two jobs:
-//   1. Screenshot the always-on preview page into doc/screenshots/.
-//   2. Generate doc/generated/chassis-overview.md — the block the README
-//      embeds between <!-- CHASSIS:START --> and <!-- CHASSIS:END -->.
+//   1. Screenshot each chassis card individually into
+//      test-results/artifacts/chassis/<id>.png (the whole page doesn't fit in
+//      one screenshot once the roster grows past a handful of chassis).
+//   2. Generate test-results/artifacts/chassis/chassis-overview.md — the block
+//      the README embeds between <!-- CHASSIS:START --> and <!-- CHASSIS:END -->.
+//      It references the per-chassis PNGs; the cards already render the attack
+//      stats, so no separate stats table is emitted.
 //
-// The /refresh-readme skill invokes this spec to refresh both
-// artifacts after the drift audit has approved the preview's scope.
+// The /refresh-readme skill invokes this spec (via `pnpm refresh-readme-artifacts`)
+// to refresh the artifacts after the drift audit has approved the preview's scope.
 
 import { test, expect } from '@playwright/test'
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-const SCREENSHOT_PATH = 'doc/screenshots/chassis-overview.png'
-const MARKDOWN_PATH = 'doc/generated/chassis-overview.md'
-const README_SCREENSHOT_REF = 'doc/screenshots/chassis-overview.png'
-
-interface AttackJson {
-  id: string
-  name: string
-  damage: number
-  cooldown: number
-  initialCooldown: number
-  chassis: string[]
-}
+// Artifacts land in a gitignored scratch dir; the `refresh-readme-artifacts`
+// pnpm script copies them into doc/ when the /refresh-readme skill is run.
+// README_IMG_DIR is the path embedded inside the generated Markdown — it
+// points to the *final* location (doc/) since that's where the README
+// references images from.
+const ARTIFACTS_DIR = 'test-results/artifacts/chassis'
+const MARKDOWN_PATH = `${ARTIFACTS_DIR}/chassis-overview.md`
+const README_IMG_DIR = 'doc/screenshots/chassis'
 
 // Ordering and display labels for the generated Markdown. Kept aligned with
 // CHASSIS_ENTRIES in src/ui/screens/ChassisPreview/ChassisPreview.tsx; the
@@ -32,30 +32,31 @@ const CHASSIS_ORDER: Array<{ id: string; label: string }> = [
   { id: 'butler', label: 'Butler' },
   { id: 'qa-rig', label: 'QA-Rig' },
   { id: 'overseer', label: 'Overseer' },
+  { id: 'lawnbot', label: 'Lawnbot' },
+  { id: 'security_drone', label: 'Security-drone' },
+  { id: 'swarmer', label: 'Swarmer' },
+  { id: 'siege', label: 'Siege' },
 ]
 
-function buildMarkdown(attacks: AttackJson[]): string {
+function buildMarkdown(): string {
   const lines: string[] = []
-  lines.push(`![Chassis overview](${README_SCREENSHOT_REF})`)
-  lines.push('')
-  lines.push('| Chassis | Attack | DMG | CD | Init |')
-  lines.push('|---|---|---:|---:|---:|')
-  for (const { id, label } of CHASSIS_ORDER) {
-    const rows = attacks.filter(a => a.chassis.includes(id))
-    if (rows.length === 0) {
-      lines.push(`| ${label} | _(no attacks)_ | | | |`)
-      continue
+  // Two-column HTML table so the cards sit side-by-side on GitHub. Markdown
+  // image syntax would stack them vertically, which is a lot of scroll once
+  // the roster grows.
+  lines.push('<table>')
+  for (let i = 0; i < CHASSIS_ORDER.length; i += 2) {
+    const row = CHASSIS_ORDER.slice(i, i + 2)
+    lines.push('  <tr>')
+    for (const { id, label } of row) {
+      lines.push(`    <td><img src="${README_IMG_DIR}/${id}.png" alt="${label}" width="430"/></td>`)
     }
-    for (const a of rows) {
-      lines.push(
-        `| ${label} | ${a.name} | ${a.damage} | ${a.cooldown} | ${a.initialCooldown} |`,
-      )
-    }
+    if (row.length === 1) lines.push('    <td></td>')
+    lines.push('  </tr>')
   }
+  lines.push('</table>')
   lines.push('')
   lines.push(
-    '<sub>DMG = damage per hit · CD = cooldown (rounds) · Init = initial cooldown. '
-      + 'Auto-generated — run `/refresh-readme` to refresh.</sub>',
+    '<sub>Stats are rendered inside each card. Auto-generated — run `/refresh-readme` to refresh.</sub>',
   )
   return lines.join('\n') + '\n'
 }
@@ -68,19 +69,26 @@ test('chassis preview renders all chassis with their attack stats', async ({ pag
   }
 })
 
-test('generate chassis overview screenshot and markdown', async ({ page }) => {
+test('generate per-chassis screenshots and markdown', async ({ page }) => {
   await page.goto('/?preview=chassis')
   const preview = page.getByTestId('chassis-preview')
   await expect(preview).toBeVisible()
   // Wait for any CSS-driven rendering to settle before screenshotting.
   await page.waitForLoadState('networkidle')
 
-  await preview.screenshot({ path: SCREENSHOT_PATH })
+  // Wipe any stale artifacts from previous runs so the downstream `cp *.png`
+  // in `pnpm refresh-readme-artifacts` is deterministic (e.g., if a chassis
+  // was removed from the roster, we don't want its old PNG to tag along).
+  rmSync(resolve(process.cwd(), ARTIFACTS_DIR), { recursive: true, force: true })
+  mkdirSync(resolve(process.cwd(), ARTIFACTS_DIR), { recursive: true })
 
-  const attacksPath = resolve(process.cwd(), 'src/content/attacks.json')
-  const attacks = JSON.parse(readFileSync(attacksPath, 'utf8')) as AttackJson[]
-  const markdown = buildMarkdown(attacks)
+  for (const { id } of CHASSIS_ORDER) {
+    const card = page.getByTestId(`chassis-card-${id}`)
+    await expect(card).toBeVisible()
+    await card.screenshot({ path: `${ARTIFACTS_DIR}/${id}.png` })
+  }
 
+  const markdown = buildMarkdown()
   mkdirSync(dirname(resolve(process.cwd(), MARKDOWN_PATH)), { recursive: true })
   writeFileSync(resolve(process.cwd(), MARKDOWN_PATH), markdown, 'utf8')
 })

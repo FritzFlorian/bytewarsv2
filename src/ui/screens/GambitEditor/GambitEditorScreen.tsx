@@ -21,14 +21,18 @@ function defaultGambits(chassis: Chassis): Rule[] {
   return [
     {
       condition: { kind: 'target_exists', target: 'nearest_enemy' },
-      action: firstAttack != null
-        ? { kind: firstAttack, target: 'nearest_enemy' as const }
-        : { kind: 'idle' as const },
+      action:
+        firstAttack != null
+          ? { kind: firstAttack, target: 'nearest_enemy' as const }
+          : { kind: 'idle' as const },
     },
-    ...Array.from({ length: SLOT_COUNT - 1 }, (): Rule => ({
-      condition: { kind: 'always' },
-      action: { kind: 'idle' },
-    })),
+    ...Array.from(
+      { length: SLOT_COUNT - 1 },
+      (): Rule => ({
+        condition: { kind: 'always' },
+        action: { kind: 'idle' },
+      }),
+    ),
   ]
 }
 

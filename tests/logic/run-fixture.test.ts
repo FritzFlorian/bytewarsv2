@@ -15,15 +15,24 @@ const SEED = 42
 
 function formatEvent(e: CombatEvent): string {
   switch (e.kind) {
-    case 'round_started':    return `\n--- Round ${e.round} ---`
-    case 'round_ended':      return `--- End round ${e.round} ---`
-    case 'turn_started':     return `  [${e.unitId}] turn start`
-    case 'turn_ended':       return `  [${e.unitId}] turn end`
-    case 'rule_fired':       return `  [${e.unitId}] rule #${e.ruleIndex} fired`
-    case 'action_used':      return `  [${e.unitId}] ${e.action.kind} → [${e.targets.join(', ')}]`
-    case 'damage_dealt':     return `  [${e.sourceId}] → [${e.targetId}]  -${e.amount} HP`
-    case 'unit_destroyed':   return `  [${e.unitId}] DESTROYED`
-    case 'combat_ended':     return `\n=== Combat ended — winner: ${e.winner} ===`
+    case 'round_started':
+      return `\n--- Round ${e.round} ---`
+    case 'round_ended':
+      return `--- End round ${e.round} ---`
+    case 'turn_started':
+      return `  [${e.unitId}] turn start`
+    case 'turn_ended':
+      return `  [${e.unitId}] turn end`
+    case 'rule_fired':
+      return `  [${e.unitId}] rule #${e.ruleIndex} fired`
+    case 'action_used':
+      return `  [${e.unitId}] ${e.action.kind} → [${e.targets.join(', ')}]`
+    case 'damage_dealt':
+      return `  [${e.sourceId}] → [${e.targetId}]  -${e.amount} HP`
+    case 'unit_destroyed':
+      return `  [${e.unitId}] DESTROYED`
+    case 'combat_ended':
+      return `\n=== Combat ended — winner: ${e.winner} ===`
   }
 }
 

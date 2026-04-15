@@ -5,10 +5,7 @@
 // both the new-run bootstrap (T-6.12) and the "new unit" reward draw.
 
 import type { Rng } from '../rng'
-import {
-  StarterPresetsSchema,
-  type StarterPreset,
-} from '../../content/schema/starterPreset'
+import { StarterPresetsSchema, type StarterPreset } from '../../content/schema/starterPreset'
 import presetsJson from '../../content/starter-presets.json'
 
 let _cache: StarterPreset[] | null = null
@@ -18,9 +15,7 @@ function load(): StarterPreset[] {
 
   const parsed = StarterPresetsSchema.safeParse(presetsJson)
   if (!parsed.success) {
-    const msg = parsed.error.issues
-      .map(i => `${i.path.join('.')}: ${i.message}`)
-      .join('\n')
+    const msg = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('\n')
     throw new Error(`Invalid starter-presets.json:\n${msg}`)
   }
 
@@ -45,9 +40,7 @@ export function getStarterPreset(id: string): StarterPreset {
 export function drawStarterSquad(rng: Rng, count: number): StarterPreset[] {
   const pool = [...load()]
   if (count > pool.length) {
-    throw new Error(
-      `drawStarterSquad: requested ${count} but pool has ${pool.length}`,
-    )
+    throw new Error(`drawStarterSquad: requested ${count} but pool has ${pool.length}`)
   }
   const picked: StarterPreset[] = []
   for (let i = 0; i < count; i++) {

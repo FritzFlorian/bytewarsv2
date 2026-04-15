@@ -22,20 +22,24 @@ interface SlotProps {
 function Slot({ label, children }: SlotProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-      <div style={{
-        width: SLOT_SIZE,
-        height: SLOT_SIZE,
-        background: STAGE_BG,
-        borderRadius: 6,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        overflow: 'visible',
-      }}>
+      <div
+        style={{
+          width: SLOT_SIZE,
+          height: SLOT_SIZE,
+          background: STAGE_BG,
+          borderRadius: 6,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+          overflow: 'visible',
+        }}
+      >
         {children}
       </div>
-      <span style={{ color: '#8a93a6', fontFamily: 'monospace', fontSize: 11, letterSpacing: '0.06em' }}>
+      <span
+        style={{ color: '#8a93a6', fontFamily: 'monospace', fontSize: 11, letterSpacing: '0.06em' }}
+      >
         {label}
       </span>
     </div>
@@ -44,17 +48,19 @@ function Slot({ label, children }: SlotProps) {
 
 export function DebugUnits() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#1a1d24',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 40,
-      padding: 40,
-      fontFamily: 'monospace',
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#1a1d24',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 40,
+        padding: 40,
+        fontFamily: 'monospace',
+      }}
+    >
       <h2 style={{ margin: 0, color: '#e6e8ee', fontSize: 14, letterSpacing: '0.1em' }}>
         UNIT CHASSIS — DEBUG VIEW
       </h2>
@@ -72,7 +78,8 @@ export function DebugUnits() {
       </div>
 
       <p style={{ margin: 0, color: '#4a5268', fontSize: 11, maxWidth: 480, textAlign: 'center' }}>
-        dev only · silhouette check: all three must be distinguishable in solid black · style: column B
+        dev only · silhouette check: all three must be distinguishable in solid black · style:
+        column B
       </p>
     </div>
   )

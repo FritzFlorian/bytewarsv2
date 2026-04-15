@@ -15,9 +15,7 @@ function loadAttacks(): AttackDef[] {
 
   const parsed = AttacksSchema.safeParse(attacksJson)
   if (!parsed.success) {
-    const msg = parsed.error.issues
-      .map(i => `${i.path.join('.')}: ${i.message}`)
-      .join('\n')
+    const msg = parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('\n')
     throw new Error(`Invalid attacks.json:\n${msg}`)
   }
 

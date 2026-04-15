@@ -59,11 +59,7 @@ export interface CombatSceneProps {
 
 // ── Pure derivation helpers ───────────────────────────────────────────────────
 
-function deriveHps(
-  units: UnitInfo[],
-  events: CombatEvent[],
-  count: number,
-): Map<string, number> {
+function deriveHps(units: UnitInfo[], events: CombatEvent[], count: number): Map<string, number> {
   const hps = new Map(units.map(u => [u.id, u.hp]))
   for (let i = 0; i < count; i++) {
     const e = events[i]
@@ -83,10 +79,7 @@ function deriveDestroyed(events: CombatEvent[], count: number): Set<string> {
   return s
 }
 
-function deriveWinner(
-  events: CombatEvent[],
-  count: number,
-): 'player' | 'enemy' | null {
+function deriveWinner(events: CombatEvent[], count: number): 'player' | 'enemy' | null {
   for (let i = 0; i < count; i++) {
     const e = events[i]
     if (e.kind === 'combat_ended') return e.winner
@@ -198,7 +191,10 @@ function buildLogEntries(
           if (ne.kind === 'turn_ended') break
         }
         const attackName = getAttackDef(e.action.kind).name
-        entries.push({ kind: 'attack', text: `${attackerName} → ${attackName} → ${targetName}${dmgText}` })
+        entries.push({
+          kind: 'attack',
+          text: `${attackerName} → ${attackName} → ${targetName}${dmgText}`,
+        })
       } else if (e.action.kind === 'idle') {
         entries.push({ kind: 'idle', text: `${attackerName} → idle` })
       }
@@ -360,10 +356,7 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
       const pos = posMsRef.current
       const prevCount = appliedCountRef.current
       let newCount = prevCount
-      while (
-        newCount < sched.events.length &&
-        sched.events[newCount].startMs <= pos
-      ) {
+      while (newCount < sched.events.length && sched.events[newCount].startMs <= pos) {
         newCount++
       }
 
@@ -449,31 +442,18 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
   // Auto-play on mount when requested.
   useEffect(() => {
     if (autoPlay) play()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // intentionally empty — only fires once on mount
 
   // ── Derived visual state ───────────────────────────────────────────────────
 
-  const hps = useMemo(
-    () => deriveHps(units, events, appliedCount),
-    [units, events, appliedCount],
-  )
+  const hps = useMemo(() => deriveHps(units, events, appliedCount), [units, events, appliedCount])
   const destroyedUnits = useMemo(
     () => deriveDestroyed(events, appliedCount),
     [events, appliedCount],
   )
-  const winner = useMemo(
-    () => deriveWinner(events, appliedCount),
-    [events, appliedCount],
-  )
-  const activeUnitId = useMemo(
-    () => deriveActiveUnit(events, appliedCount),
-    [events, appliedCount],
-  )
-  const idleUnitId = useMemo(
-    () => deriveIdleUnit(events, appliedCount),
-    [events, appliedCount],
-  )
+  const winner = useMemo(() => deriveWinner(events, appliedCount), [events, appliedCount])
+  const activeUnitId = useMemo(() => deriveActiveUnit(events, appliedCount), [events, appliedCount])
+  const idleUnitId = useMemo(() => deriveIdleUnit(events, appliedCount), [events, appliedCount])
   const currentAttack = useMemo(
     () => deriveCurrentAttack(events, appliedCount),
     [events, appliedCount],
@@ -558,13 +538,15 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
             <div
               key={`proj-${currentAttack.attackerId}-${appliedCount}`}
               className={styles.projectileDot}
-              style={{
-                '--proj-duration': `${220 / speed}ms`,
-                '--proj-dx': `${projectilePos.x2 - projectilePos.x1}px`,
-                '--proj-dy': `${projectilePos.y2 - projectilePos.y1}px`,
-                left: `${projectilePos.x1}px`,
-                top: `${projectilePos.y1}px`,
-              } as CSSProperties}
+              style={
+                {
+                  '--proj-duration': `${220 / speed}ms`,
+                  '--proj-dx': `${projectilePos.x2 - projectilePos.x1}px`,
+                  '--proj-dy': `${projectilePos.y2 - projectilePos.y1}px`,
+                  left: `${projectilePos.x1}px`,
+                  top: `${projectilePos.y1}px`,
+                } as CSSProperties
+              }
             />
           )}
         </div>
@@ -581,11 +563,7 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
           <button className={styles.ctrlBtn} onClick={isPlaying ? pause : play}>
             {isDone ? 'Replay' : isPlaying ? 'Pause' : 'Play'}
           </button>
-          <button
-            className={styles.ctrlBtn}
-            onClick={step}
-            disabled={isPlaying || isDone}
-          >
+          <button className={styles.ctrlBtn} onClick={step} disabled={isPlaying || isDone}>
             Step
           </button>
           <span className={styles.progress}>
@@ -597,9 +575,7 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
       {/* Right half: scrolling combat log */}
       <div className={styles.rightColumn}>
         <div className={styles.logPanel} ref={logRef}>
-          {logEntries.length === 0 && (
-            <div className={styles.logEmpty}>Combat log</div>
-          )}
+          {logEntries.length === 0 && <div className={styles.logEmpty}>Combat log</div>}
           {logEntries.map((entry, i) => (
             <div key={i} className={`${styles.logEntry} ${logKindClass[entry.kind]}`}>
               {entry.text}

@@ -58,7 +58,15 @@ describe('walkingSkeletonFixture', () => {
     for (const unit of [...playerUnits, ...enemyUnits]) {
       for (const rule of unit.gambits) {
         // Every action is either a named attack or idle — no generic 'attack'
-        const validKinds = ['quick_jab', 'sweep', 'taser', 'overload', 'clamp', 'suppression', 'idle']
+        const validKinds = [
+          'quick_jab',
+          'sweep',
+          'taser',
+          'overload',
+          'clamp',
+          'suppression',
+          'idle',
+        ]
         expect(validKinds).toContain(rule.action.kind)
       }
     }

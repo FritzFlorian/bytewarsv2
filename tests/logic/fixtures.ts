@@ -6,5 +6,8 @@ import type { Rule } from '../../src/logic/gambits/types'
 export const sampleRules: Rule[] = [
   { condition: { kind: 'always' }, action: { kind: 'quick_jab', target: 'nearest_enemy' } },
   { condition: { kind: 'self_hp_below', pct: 30 }, action: { kind: 'idle' } },
-  { condition: { kind: 'target_exists', target: 'any_enemy' }, action: { kind: 'quick_jab', target: 'any_enemy' } },
+  {
+    condition: { kind: 'target_exists', target: 'any_enemy' },
+    action: { kind: 'quick_jab', target: 'any_enemy' },
+  },
 ]

@@ -6,7 +6,12 @@ test('T-1.3: CombatEvent round-trips through JSON serialization', () => {
     { kind: 'round_started', round: 1 },
     { kind: 'turn_started', unitId: 'u1' },
     { kind: 'rule_fired', unitId: 'u1', ruleIndex: 0 },
-    { kind: 'action_used', unitId: 'u1', action: { kind: 'quick_jab', target: 'nearest_enemy' }, targets: ['u3'] },
+    {
+      kind: 'action_used',
+      unitId: 'u1',
+      action: { kind: 'quick_jab', target: 'nearest_enemy' },
+      targets: ['u3'],
+    },
     { kind: 'damage_dealt', sourceId: 'u1', targetId: 'u3', amount: 10 },
     { kind: 'turn_ended', unitId: 'u1' },
     { kind: 'round_ended', round: 1 },

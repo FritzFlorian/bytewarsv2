@@ -69,9 +69,7 @@ function ChassisCard({ entry }: { entry: ChassisEntry }) {
           <entry.Component />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <span style={{ color: '#e6e8ee', fontSize: 16, fontWeight: 600 }}>
-            {entry.label}
-          </span>
+          <span style={{ color: '#e6e8ee', fontSize: 16, fontWeight: 600 }}>{entry.label}</span>
           <span style={{ color: '#8a93a6', fontFamily: 'monospace', fontSize: 11 }}>
             {entry.chassis}
           </span>
@@ -105,9 +103,7 @@ function ChassisCard({ entry }: { entry: ChassisEntry }) {
               <td style={{ padding: '4px 8px 4px 0' }}>{a.name}</td>
               <td style={{ padding: '4px 8px', textAlign: 'right' }}>{a.damage}</td>
               <td style={{ padding: '4px 8px', textAlign: 'right' }}>{a.cooldown}</td>
-              <td style={{ padding: '4px 0 4px 8px', textAlign: 'right' }}>
-                {a.initialCooldown}
-              </td>
+              <td style={{ padding: '4px 0 4px 8px', textAlign: 'right' }}>{a.initialCooldown}</td>
             </tr>
           ))}
         </tbody>

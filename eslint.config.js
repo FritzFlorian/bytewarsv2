@@ -1,10 +1,12 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import boundaries from 'eslint-plugin-boundaries'
+import prettier from 'eslint-config-prettier'
 
 export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  prettier,
   {
     rules: {
       // Allow underscore-prefixed names to mark intentionally unused variables/params.
@@ -58,8 +60,7 @@ export default tseslint.config(
       'no-restricted-syntax': [
         'error',
         {
-          selector:
-            "CallExpression[callee.object.name='Math'][callee.property.name='random']",
+          selector: "CallExpression[callee.object.name='Math'][callee.property.name='random']",
           message:
             'Math.random() is banned in the logic layer. Use the seeded RNG from src/logic/rng.ts.',
         },
@@ -95,8 +96,7 @@ export default tseslint.config(
           patterns: [
             {
               group: ['*/ui/*', '*/ui'],
-              message:
-                'Render layer must not import from the UI layer internals.',
+              message: 'Render layer must not import from the UI layer internals.',
             },
           ],
         },

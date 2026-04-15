@@ -14,24 +14,39 @@ import type { GambitList } from '../gambits/types'
 
 const vacuumGambits: GambitList = [
   // Primary: sweep if available (high damage), otherwise quick_jab
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'sweep', target: 'nearest_enemy' } },
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'quick_jab', target: 'nearest_enemy' } },
+  {
+    condition: { kind: 'target_exists', target: 'nearest_enemy' },
+    action: { kind: 'sweep', target: 'nearest_enemy' },
+  },
+  {
+    condition: { kind: 'target_exists', target: 'nearest_enemy' },
+    action: { kind: 'quick_jab', target: 'nearest_enemy' },
+  },
   // Fallback: idle
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
 
 const butlerGambits: GambitList = [
   // When below 50% HP, strike any enemy with overload if available
-  { condition: { kind: 'self_hp_below', pct: 50 }, action: { kind: 'overload', target: 'any_enemy' } },
+  {
+    condition: { kind: 'self_hp_below', pct: 50 },
+    action: { kind: 'overload', target: 'any_enemy' },
+  },
   // Otherwise, taser nearest enemy
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'taser', target: 'nearest_enemy' } },
+  {
+    condition: { kind: 'target_exists', target: 'nearest_enemy' },
+    action: { kind: 'taser', target: 'nearest_enemy' },
+  },
   // Fallback: idle
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
 
 const qaRigGambits: GambitList = [
   // Attack nearest enemy with clamp
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'clamp', target: 'nearest_enemy' } },
+  {
+    condition: { kind: 'target_exists', target: 'nearest_enemy' },
+    action: { kind: 'clamp', target: 'nearest_enemy' },
+  },
   // Fallback: idle
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
@@ -94,7 +109,10 @@ export function walkingSkeletonFixture(): WalkingSkeletonFixture {
 // v0.5 boss encounter — 3 Overseer units at 120 HP each using suppression.
 const overseerGambits: GambitList = [
   // Primary: suppression on nearest enemy
-  { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'suppression', target: 'nearest_enemy' } },
+  {
+    condition: { kind: 'target_exists', target: 'nearest_enemy' },
+    action: { kind: 'suppression', target: 'nearest_enemy' },
+  },
   // Fallback: suppression on any enemy
   { condition: { kind: 'always' }, action: { kind: 'suppression', target: 'any_enemy' } },
 ]

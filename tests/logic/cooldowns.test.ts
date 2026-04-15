@@ -34,15 +34,22 @@ describe('initialCooldown', () => {
   it('overload (initialCooldown=1) is unavailable in round 1, available in round 2', () => {
     // Butler with only overload — should idle round 1, then use overload round 2.
     const player = makeUnit('p1', 'player', 'butler', [
-      { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'overload', target: 'nearest_enemy' } },
+      {
+        condition: { kind: 'target_exists', target: 'nearest_enemy' },
+        action: { kind: 'overload', target: 'nearest_enemy' },
+      },
       { condition: { kind: 'always' }, action: { kind: 'idle' } },
     ])
     // High-HP dummy enemy so combat doesn't end early.
-    const enemy = makeUnit('e1', 'enemy', 'qa-rig', [
-      { condition: { kind: 'always' }, action: { kind: 'idle' } },
-    ], 9999)
+    const enemy = makeUnit(
+      'e1',
+      'enemy',
+      'qa-rig',
+      [{ condition: { kind: 'always' }, action: { kind: 'idle' } }],
+      9999,
+    )
 
-    let state = createCombat(42, [player], [enemy])
+    const state = createCombat(42, [player], [enemy])
 
     // Round 1: overload should be on cooldown (initialCooldown=1), so butler idles.
     const r1 = resolveRound(state)
@@ -64,14 +71,21 @@ describe('cooldown after use', () => {
   it('sweep (cooldown=2) is unavailable for 2 rounds after use', () => {
     // Vacuum with sweep only (no fallback attack) — after using sweep, should idle for 2 rounds.
     const player = makeUnit('p1', 'player', 'vacuum', [
-      { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'sweep', target: 'nearest_enemy' } },
+      {
+        condition: { kind: 'target_exists', target: 'nearest_enemy' },
+        action: { kind: 'sweep', target: 'nearest_enemy' },
+      },
       { condition: { kind: 'always' }, action: { kind: 'idle' } },
     ])
-    const enemy = makeUnit('e1', 'enemy', 'qa-rig', [
-      { condition: { kind: 'always' }, action: { kind: 'idle' } },
-    ], 9999)
+    const enemy = makeUnit(
+      'e1',
+      'enemy',
+      'qa-rig',
+      [{ condition: { kind: 'always' }, action: { kind: 'idle' } }],
+      9999,
+    )
 
-    let state = createCombat(42, [player], [enemy])
+    const state = createCombat(42, [player], [enemy])
 
     // Round 1: sweep fires (no cooldown at start).
     const r1 = resolveRound(state)
@@ -97,15 +111,25 @@ describe('cooldown after use', () => {
   it('unit falls through to next rule when preferred attack is on cooldown', () => {
     // Vacuum: try sweep first, fall through to quick_jab when sweep is on cooldown.
     const player = makeUnit('p1', 'player', 'vacuum', [
-      { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'sweep', target: 'nearest_enemy' } },
-      { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'quick_jab', target: 'nearest_enemy' } },
+      {
+        condition: { kind: 'target_exists', target: 'nearest_enemy' },
+        action: { kind: 'sweep', target: 'nearest_enemy' },
+      },
+      {
+        condition: { kind: 'target_exists', target: 'nearest_enemy' },
+        action: { kind: 'quick_jab', target: 'nearest_enemy' },
+      },
       { condition: { kind: 'always' }, action: { kind: 'idle' } },
     ])
-    const enemy = makeUnit('e1', 'enemy', 'qa-rig', [
-      { condition: { kind: 'always' }, action: { kind: 'idle' } },
-    ], 9999)
+    const enemy = makeUnit(
+      'e1',
+      'enemy',
+      'qa-rig',
+      [{ condition: { kind: 'always' }, action: { kind: 'idle' } }],
+      9999,
+    )
 
-    let state = createCombat(42, [player], [enemy])
+    const state = createCombat(42, [player], [enemy])
 
     // Round 1: sweep fires.
     const r1 = resolveRound(state)
@@ -126,12 +150,19 @@ describe('cooldown after use', () => {
 describe('damage values', () => {
   it('damage dealt matches attack definition', () => {
     const player = makeUnit('p1', 'player', 'vacuum', [
-      { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'quick_jab', target: 'nearest_enemy' } },
+      {
+        condition: { kind: 'target_exists', target: 'nearest_enemy' },
+        action: { kind: 'quick_jab', target: 'nearest_enemy' },
+      },
       { condition: { kind: 'always' }, action: { kind: 'idle' } },
     ])
-    const enemy = makeUnit('e1', 'enemy', 'qa-rig', [
-      { condition: { kind: 'always' }, action: { kind: 'idle' } },
-    ], 9999)
+    const enemy = makeUnit(
+      'e1',
+      'enemy',
+      'qa-rig',
+      [{ condition: { kind: 'always' }, action: { kind: 'idle' } }],
+      9999,
+    )
 
     const state = createCombat(42, [player], [enemy])
     const { events } = resolveRound(state)
@@ -145,12 +176,19 @@ describe('damage values', () => {
 
   it('clamp deals 15 damage', () => {
     const player = makeUnit('p1', 'player', 'qa-rig', [
-      { condition: { kind: 'target_exists', target: 'nearest_enemy' }, action: { kind: 'clamp', target: 'nearest_enemy' } },
+      {
+        condition: { kind: 'target_exists', target: 'nearest_enemy' },
+        action: { kind: 'clamp', target: 'nearest_enemy' },
+      },
       { condition: { kind: 'always' }, action: { kind: 'idle' } },
     ])
-    const enemy = makeUnit('e1', 'enemy', 'vacuum', [
-      { condition: { kind: 'always' }, action: { kind: 'idle' } },
-    ], 9999)
+    const enemy = makeUnit(
+      'e1',
+      'enemy',
+      'vacuum',
+      [{ condition: { kind: 'always' }, action: { kind: 'idle' } }],
+      9999,
+    )
 
     const state = createCombat(42, [player], [enemy])
     const { events } = resolveRound(state)

@@ -15,11 +15,7 @@ export function getReachableNodes(run: RunState): MapNode[] {
     return run.graph.nodes.filter(n => n.column === minCol)
   }
 
-  const targets = new Set(
-    run.graph.edges
-      .filter(e => e.from === run.currentNodeId)
-      .map(e => e.to),
-  )
+  const targets = new Set(run.graph.edges.filter(e => e.from === run.currentNodeId).map(e => e.to))
   return run.graph.nodes.filter(n => targets.has(n.id))
 }
 
@@ -30,9 +26,7 @@ export function getReachableNodes(run: RunState): MapNode[] {
 export function selectNode(run: RunState, nodeId: string): RunState {
   const reachable = getReachableNodes(run)
   if (!reachable.some(n => n.id === nodeId)) {
-    throw new Error(
-      `Node "${nodeId}" is not reachable from "${run.currentNodeId ?? 'start'}"`,
-    )
+    throw new Error(`Node "${nodeId}" is not reachable from "${run.currentNodeId ?? 'start'}"`)
   }
 
   const newVisited = new Set(run.visitedNodeIds)

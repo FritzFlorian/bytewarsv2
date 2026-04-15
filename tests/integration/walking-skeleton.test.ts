@@ -12,12 +12,7 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
 import React from 'react'
 import App from '../../src/ui/App'
-import {
-  createCombat,
-  resolveRound,
-  isCombatOver,
-  walkingSkeletonFixture,
-} from '../../src/logic'
+import { createCombat, resolveRound, isCombatOver, walkingSkeletonFixture } from '../../src/logic'
 import type { CombatEvent } from '../../src/logic'
 
 afterEach(() => cleanup())
@@ -55,24 +50,28 @@ describe('walking skeleton — logic', () => {
 
 describe('walking skeleton — UI integration', () => {
   it('map → gambit editor → Run → combat scene loads with events', async () => {
-    await act(async () => { render(React.createElement(App)) })
+    await act(async () => {
+      render(React.createElement(App))
+    })
 
     // Landing page is now the map screen — find a reachable combat node (icon ⚙).
     const nodeButtons = screen.getAllByRole('button', { name: '⚙' })
-    const reachableNode = nodeButtons.find(
-      btn => !(btn as HTMLButtonElement).disabled,
-    )
+    const reachableNode = nodeButtons.find(btn => !(btn as HTMLButtonElement).disabled)
     expect(reachableNode).toBeDefined()
 
     // Click a reachable node → transition to gambit editor.
-    await act(async () => { fireEvent.click(reachableNode!) })
+    await act(async () => {
+      fireEvent.click(reachableNode!)
+    })
 
     // Gambit editor is now visible with a Run button.
     const runBtn = screen.getByRole('button', { name: 'Run' })
     expect((runBtn as HTMLButtonElement).disabled).toBe(false)
 
     // Click Run — App resolves the fight and transitions to CombatScreen.
-    await act(async () => { fireEvent.click(runBtn) })
+    await act(async () => {
+      fireEvent.click(runBtn)
+    })
 
     // CombatScene progress counter is visible: "0 / N events"
     const progress = screen.getByText(/\d+ \/ \d+ events/)

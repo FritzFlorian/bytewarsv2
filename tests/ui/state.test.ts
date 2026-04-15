@@ -17,7 +17,9 @@ describe('gameStore', () => {
 
   it('notifies subscribers when state changes', () => {
     let notified = false
-    const unsub = gameStore.subscribe(() => { notified = true })
+    const unsub = gameStore.subscribe(() => {
+      notified = true
+    })
     gameStore.setState(null) // trigger with null to test notification
     unsub()
     expect(notified).toBe(true)
@@ -25,7 +27,9 @@ describe('gameStore', () => {
 
   it('unsubscribes correctly', () => {
     let count = 0
-    const unsub = gameStore.subscribe(() => { count++ })
+    const unsub = gameStore.subscribe(() => {
+      count++
+    })
     gameStore.setState(null)
     unsub()
     gameStore.setState(null)

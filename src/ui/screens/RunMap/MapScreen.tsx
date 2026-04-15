@@ -88,11 +88,7 @@ function SquadStrip({ units }: { units: UnitStatus[] }) {
         const hpPct = u.maxHp > 0 ? Math.round((u.hp / u.maxHp) * 100) : 0
         const barClass = [
           styles.hpBarInner,
-          hpPct <= 25
-            ? styles.hpBarInnerCritical
-            : hpPct <= 50
-              ? styles.hpBarInnerLow
-              : '',
+          hpPct <= 25 ? styles.hpBarInnerCritical : hpPct <= 50 ? styles.hpBarInnerLow : '',
         ]
           .filter(Boolean)
           .join(' ')
@@ -101,9 +97,7 @@ function SquadStrip({ units }: { units: UnitStatus[] }) {
           <div
             key={u.id}
             className={
-              u.sittingOut
-                ? `${styles.unitCard} ${styles.unitCardSittingOut}`
-                : styles.unitCard
+              u.sittingOut ? `${styles.unitCard} ${styles.unitCardSittingOut}` : styles.unitCard
             }
           >
             <span className={styles.unitName}>{u.name}</span>
@@ -145,12 +139,7 @@ export function MapScreen({ runState, unitStatuses, onNodeSelect }: MapScreenPro
 
   // Determine which edges connect to reachable nodes (for styling).
   const reachableEdges = useMemo(
-    () =>
-      new Set(
-        graph.edges
-          .filter(e => reachableSet.has(e.to))
-          .map(e => `${e.from}:${e.to}`),
-      ),
+    () => new Set(graph.edges.filter(e => reachableSet.has(e.to)).map(e => `${e.from}:${e.to}`)),
     [graph.edges, reachableSet],
   )
 
@@ -186,9 +175,7 @@ export function MapScreen({ runState, unitStatuses, onNodeSelect }: MapScreenPro
               return (
                 <line
                   key={key}
-                  className={
-                    reachableEdges.has(key) ? styles.edgeLineReachable : styles.edgeLine
-                  }
+                  className={reachableEdges.has(key) ? styles.edgeLineReachable : styles.edgeLine}
                   x1={from.x}
                   y1={from.y}
                   x2={to.x}

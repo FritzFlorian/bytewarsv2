@@ -33,7 +33,13 @@ export interface CombatScreenProps {
   onSpeedChange?: (speed: PlaybackSpeed) => void
 }
 
-export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSpeedChange }: CombatScreenProps) {
+export function CombatScreen({
+  units,
+  events,
+  onContinue,
+  initialSpeed = 1,
+  onSpeedChange,
+}: CombatScreenProps) {
   const [speed, setSpeed] = useState<PlaybackSpeed>(initialSpeed)
   const [combatDone, setCombatDone] = useState(false)
 
@@ -42,7 +48,7 @@ export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSp
   }, [])
 
   // Audio state — kept in refs to avoid spurious re-renders.
-  const wallStartRef = useRef(0)       // Date.now() when playback began
+  const wallStartRef = useRef(0) // Date.now() when playback began
   const stopBeatRef = useRef<(() => void) | null>(null)
   const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
   const speedRef = useRef<PlaybackSpeed>(initialSpeed)
@@ -56,11 +62,7 @@ export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSp
    * Schedule audio cues for events[fromEventIndex..] relative to wallStart.
    * Uses a pre-built schedule at the given speed.
    */
-  function scheduleAudio(
-    fromEventIndex: number,
-    wallStart: number,
-    spd: PlaybackSpeed,
-  ) {
+  function scheduleAudio(fromEventIndex: number, wallStart: number, spd: PlaybackSpeed) {
     clearTimers()
     const sched = buildSchedule(events, spd)
     const now = Date.now()
@@ -106,7 +108,6 @@ export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSp
       stopBeatRef.current = null
       clearTimers()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // intentionally empty — fires once on mount
 
   // On speed change: cancel pending timers and reschedule remaining events
@@ -120,10 +121,7 @@ export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSp
     // Find which event index we've reached in the OLD schedule.
     const oldSched = buildSchedule(events, speedRef.current)
     let fromIndex = 0
-    while (
-      fromIndex < oldSched.events.length &&
-      oldSched.events[fromIndex].startMs <= elapsed
-    ) {
+    while (fromIndex < oldSched.events.length && oldSched.events[fromIndex].startMs <= elapsed) {
       fromIndex++
     }
 
@@ -141,7 +139,6 @@ export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSp
     wallStartRef.current = newWallStart
     speedRef.current = speed
     scheduleAudio(fromIndex, newWallStart, speed)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speed])
 
   return (
@@ -164,7 +161,13 @@ export function CombatScreen({ units, events, onContinue, initialSpeed = 1, onSp
         </select>
       </header>
 
-      <CombatScene units={units} events={events} speed={speed} autoPlay onComplete={handleComplete} />
+      <CombatScene
+        units={units}
+        events={events}
+        speed={speed}
+        autoPlay
+        onComplete={handleComplete}
+      />
       {combatDone && onContinue && (
         <div style={{ padding: '0 0 0.5rem 0' }}>
           <button className={styles.continueButton} onClick={onContinue}>

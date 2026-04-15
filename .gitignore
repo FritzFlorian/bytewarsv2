@@ -27,3 +27,4 @@ Thumbs.db
 # Playwright output (generated artifacts — not source)
 tests/e2e/.output/
 playwright-report/
+test-results/

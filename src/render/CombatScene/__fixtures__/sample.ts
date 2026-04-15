@@ -52,11 +52,7 @@ export const sampleUnits: UnitInfo[] = [
 ]
 
 // Helpers to reduce repetition when building turns.
-function attackTurn(
-  actorId: string,
-  targetId: string,
-  damage: number,
-): CombatEvent[] {
+function attackTurn(actorId: string, targetId: string, damage: number): CombatEvent[] {
   return [
     { kind: 'turn_started', unitId: actorId },
     { kind: 'rule_fired', unitId: actorId, ruleIndex: 0 },
@@ -71,11 +67,7 @@ function attackTurn(
   ]
 }
 
-function destroyingTurn(
-  actorId: string,
-  targetId: string,
-  damage: number,
-): CombatEvent[] {
+function destroyingTurn(actorId: string, targetId: string, damage: number): CombatEvent[] {
   return [
     { kind: 'turn_started', unitId: actorId },
     { kind: 'rule_fired', unitId: actorId, ruleIndex: 0 },
@@ -94,46 +86,46 @@ function destroyingTurn(
 export const sampleEvents: CombatEvent[] = [
   // ── Round 1 ─────────────────────────────────────────────────────────
   { kind: 'round_started', round: 1 },
-  ...attackTurn('p-vacuum', 'e-qr1', 10),  // e-qr1: 60→50
-  ...attackTurn('e-qr1',   'p-vacuum', 10), // p-vacuum: 80→70
-  ...attackTurn('p-butler', 'e-qr1', 10),  // e-qr1: 50→40
-  ...attackTurn('e-qr2',   'p-vacuum', 10), // p-vacuum: 70→60
+  ...attackTurn('p-vacuum', 'e-qr1', 10), // e-qr1: 60→50
+  ...attackTurn('e-qr1', 'p-vacuum', 10), // p-vacuum: 80→70
+  ...attackTurn('p-butler', 'e-qr1', 10), // e-qr1: 50→40
+  ...attackTurn('e-qr2', 'p-vacuum', 10), // p-vacuum: 70→60
   { kind: 'round_ended', round: 1 },
 
   // ── Round 2 ─────────────────────────────────────────────────────────
   { kind: 'round_started', round: 2 },
-  ...attackTurn('p-vacuum', 'e-qr1', 10),  // e-qr1: 40→30
-  ...attackTurn('e-qr1',   'p-vacuum', 10), // p-vacuum: 60→50
-  ...attackTurn('p-butler', 'e-qr1', 10),  // e-qr1: 30→20
-  ...attackTurn('e-qr2',   'p-vacuum', 10), // p-vacuum: 50→40
+  ...attackTurn('p-vacuum', 'e-qr1', 10), // e-qr1: 40→30
+  ...attackTurn('e-qr1', 'p-vacuum', 10), // p-vacuum: 60→50
+  ...attackTurn('p-butler', 'e-qr1', 10), // e-qr1: 30→20
+  ...attackTurn('e-qr2', 'p-vacuum', 10), // p-vacuum: 50→40
   { kind: 'round_ended', round: 2 },
 
   // ── Round 3 ─────────────────────────────────────────────────────────
   { kind: 'round_started', round: 3 },
-  ...attackTurn('p-vacuum', 'e-qr1', 10),        // e-qr1: 20→10
-  ...attackTurn('e-qr1',   'p-vacuum', 10),       // p-vacuum: 40→30
-  ...destroyingTurn('p-butler', 'e-qr1', 10),     // e-qr1: 10→0, DESTROYED
-  ...attackTurn('e-qr2',   'p-vacuum', 10),       // p-vacuum: 30→20
+  ...attackTurn('p-vacuum', 'e-qr1', 10), // e-qr1: 20→10
+  ...attackTurn('e-qr1', 'p-vacuum', 10), // p-vacuum: 40→30
+  ...destroyingTurn('p-butler', 'e-qr1', 10), // e-qr1: 10→0, DESTROYED
+  ...attackTurn('e-qr2', 'p-vacuum', 10), // p-vacuum: 30→20
   { kind: 'round_ended', round: 3 },
 
   // ── Round 4 (e-qr1 dead; both players switch to e-qr2) ──────────────
   { kind: 'round_started', round: 4 },
-  ...attackTurn('p-vacuum', 'e-qr2', 10),  // e-qr2: 60→50
-  ...attackTurn('p-butler', 'e-qr2', 10),  // e-qr2: 50→40
-  ...attackTurn('e-qr2',   'p-vacuum', 10), // p-vacuum: 20→10
+  ...attackTurn('p-vacuum', 'e-qr2', 10), // e-qr2: 60→50
+  ...attackTurn('p-butler', 'e-qr2', 10), // e-qr2: 50→40
+  ...attackTurn('e-qr2', 'p-vacuum', 10), // p-vacuum: 20→10
   { kind: 'round_ended', round: 4 },
 
   // ── Round 5 ─────────────────────────────────────────────────────────
   { kind: 'round_started', round: 5 },
-  ...attackTurn('p-vacuum', 'e-qr2', 10),        // e-qr2: 40→30
-  ...attackTurn('p-butler', 'e-qr2', 10),        // e-qr2: 30→20
-  ...destroyingTurn('e-qr2',  'p-vacuum', 10),   // p-vacuum: 10→0, DESTROYED
+  ...attackTurn('p-vacuum', 'e-qr2', 10), // e-qr2: 40→30
+  ...attackTurn('p-butler', 'e-qr2', 10), // e-qr2: 30→20
+  ...destroyingTurn('e-qr2', 'p-vacuum', 10), // p-vacuum: 10→0, DESTROYED
   { kind: 'round_ended', round: 5 },
 
   // ── Round 6 (only p-butler vs e-qr2) ────────────────────────────────
   { kind: 'round_started', round: 6 },
-  ...attackTurn('p-butler', 'e-qr2', 10),  // e-qr2: 20→10
-  ...attackTurn('e-qr2',   'p-butler', 10), // p-butler: 80→70
+  ...attackTurn('p-butler', 'e-qr2', 10), // e-qr2: 20→10
+  ...attackTurn('e-qr2', 'p-butler', 10), // p-butler: 80→70
   { kind: 'round_ended', round: 6 },
 
   // ── Round 7 (final blow) ─────────────────────────────────────────────

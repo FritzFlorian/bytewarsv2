@@ -87,10 +87,7 @@ function startRun(): RunContext {
 }
 
 /** Derive BattleResult by replaying damage events. */
-function extractBattleResult(
-  startHp: Record<string, number>,
-  events: CombatEvent[],
-): BattleResult {
+function extractBattleResult(startHp: Record<string, number>, events: CombatEvent[]): BattleResult {
   const hps: Record<string, number> = { ...startHp }
   let winner: 'player' | 'enemy' = 'enemy'
 
@@ -156,59 +153,46 @@ export default function App() {
 
   // ── Map ─────────────────────────────────────────────────────────────────
 
-  const handleNodeSelect = useCallback(
-    (nodeId: string) => {
-      initAudio()
-      setCtx(prev => ({
-        ...prev,
-        runState: selectNode(prev.runState, nodeId),
-        phase: 'gambit-editor',
-      }))
-    },
-    [],
-  )
+  const handleNodeSelect = useCallback((nodeId: string) => {
+    initAudio()
+    setCtx(prev => ({
+      ...prev,
+      runState: selectNode(prev.runState, nodeId),
+      phase: 'gambit-editor',
+    }))
+  }, [])
 
   // ── Gambit editor ────────────────────────────────────────────────────────
 
-  const handleRun = useCallback(
-    (gambits: Record<string, GambitList>) => {
-      setCtx(prev => {
-        // Apply updated gambits to playerUnits.
-        const updatedUnits: Unit[] = prev.playerUnits.map(u => ({
-          ...u,
-          gambits: gambits[u.id] ?? u.gambits,
-          hp: prev.runState.hpSnapshot[u.id] ?? u.hp,
-        }))
+  const handleRun = useCallback((gambits: Record<string, GambitList>) => {
+    setCtx(prev => {
+      // Apply updated gambits to playerUnits.
+      const updatedUnits: Unit[] = prev.playerUnits.map(u => ({
+        ...u,
+        gambits: gambits[u.id] ?? u.gambits,
+        hp: prev.runState.hpSnapshot[u.id] ?? u.hp,
+      }))
 
-        // Determine enemy lineup based on node type.
-        const currentNode = prev.runState.graph.nodes.find(
-          n => n.id === prev.runState.currentNodeId,
-        )
-        const enemyUnits = currentNode?.type === 'boss'
+      // Determine enemy lineup based on node type.
+      const currentNode = prev.runState.graph.nodes.find(n => n.id === prev.runState.currentNodeId)
+      const enemyUnits =
+        currentNode?.type === 'boss'
           ? bossEncounterFixture().enemyUnits
           : walkingSkeletonFixture().enemyUnits
 
-        // Only non-sitting-out player units fight.
-        const fightingUnits = updatedUnits.filter(
-          u => !prev.runState.sittingOut.has(u.id),
-        )
+      // Only non-sitting-out player units fight.
+      const fightingUnits = updatedUnits.filter(u => !prev.runState.sittingOut.has(u.id))
 
-        const { units, events } = resolveCombat(
-          prev.seed,
-          fightingUnits,
-          enemyUnits,
-        )
+      const { units, events } = resolveCombat(prev.seed, fightingUnits, enemyUnits)
 
-        return {
-          ...prev,
-          playerUnits: updatedUnits,
-          phase: 'combat',
-          combatProps: { units, events },
-        }
-      })
-    },
-    [],
-  )
+      return {
+        ...prev,
+        playerUnits: updatedUnits,
+        phase: 'combat',
+        combatProps: { units, events },
+      }
+    })
+  }, [])
 
   // ── Combat continue ──────────────────────────────────────────────────────
 
@@ -218,9 +202,7 @@ export default function App() {
 
       // Compute which player units fought (not sitting out).
       const fightingIds = new Set(
-        prev.playerUnits
-          .filter(u => !prev.runState.sittingOut.has(u.id))
-          .map(u => u.id),
+        prev.playerUnits.filter(u => !prev.runState.sittingOut.has(u.id)).map(u => u.id),
       )
 
       // Build starting HP map for only the fighting units.
@@ -279,11 +261,7 @@ export default function App() {
     }))
 
     return (
-      <MapScreen
-        runState={runState}
-        unitStatuses={unitStatuses}
-        onNodeSelect={handleNodeSelect}
-      />
+      <MapScreen runState={runState} unitStatuses={unitStatuses} onNodeSelect={handleNodeSelect} />
     )
   }
 
@@ -308,7 +286,9 @@ export default function App() {
         {...combatProps}
         onContinue={handleContinue}
         initialSpeed={playbackSpeedRef.current}
-        onSpeedChange={s => { playbackSpeedRef.current = s }}
+        onSpeedChange={s => {
+          playbackSpeedRef.current = s
+        }}
       />
     )
   }

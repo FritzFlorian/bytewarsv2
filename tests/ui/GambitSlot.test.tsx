@@ -64,7 +64,13 @@ describe('GambitSlot — conditional field visibility', () => {
 // Interaction — stateful wrapper so the slot reflects prop changes
 // ---------------------------------------------------------------------------
 
-function SlotWrapper({ initialRule, chassis = 'vacuum' as const }: { initialRule: Rule; chassis?: 'vacuum' | 'butler' | 'qa-rig' | 'overseer' }) {
+function SlotWrapper({
+  initialRule,
+  chassis = 'vacuum' as const,
+}: {
+  initialRule: Rule
+  chassis?: 'vacuum' | 'butler' | 'qa-rig' | 'overseer'
+}) {
   const [rule, setRule] = useState(initialRule)
   return <GambitSlot index={0} rule={rule} onChange={setRule} chassis={chassis} />
 }
@@ -102,7 +108,10 @@ describe('GambitSlot — interaction', () => {
   })
 
   it('selecting always hides all condition extras', () => {
-    const initial: Rule = { condition: { kind: 'self_hp_below', pct: 50 }, action: { kind: 'idle' } }
+    const initial: Rule = {
+      condition: { kind: 'self_hp_below', pct: 50 },
+      action: { kind: 'idle' },
+    }
     render(<SlotWrapper initialRule={initial} />)
 
     expect(screen.getByLabelText('HP threshold 1')).toBeTruthy()

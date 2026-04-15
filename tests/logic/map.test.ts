@@ -105,9 +105,7 @@ describe('getReachableNodes', () => {
 
     const reachable = getReachableNodes(runAtFirst)
     const expectedTargets = new Set(
-      run.graph.edges
-        .filter(e => e.from === firstCol[0].id)
-        .map(e => e.to),
+      run.graph.edges.filter(e => e.from === firstCol[0].id).map(e => e.to),
     )
     expect(reachable.length).toBe(expectedTargets.size)
     for (const n of reachable) {

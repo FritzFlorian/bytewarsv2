@@ -13,12 +13,12 @@ export type Condition =
   | { kind: 'self_hp_below'; pct: number }
   | { kind: 'target_exists'; target: TargetSelector }
 
-export type Action =
-  | { kind: AttackId; target: TargetSelector }
-  | { kind: 'idle' }
+export type Action = { kind: AttackId; target: TargetSelector } | { kind: 'idle' }
 
 /** True when the action is a named attack (not idle). */
-export function isAttackAction(action: Action): action is { kind: AttackId; target: TargetSelector } {
+export function isAttackAction(
+  action: Action,
+): action is { kind: AttackId; target: TargetSelector } {
   return action.kind !== 'idle'
 }
 

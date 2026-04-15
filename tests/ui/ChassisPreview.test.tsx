@@ -9,10 +9,7 @@
 
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, within } from '@testing-library/react'
-import {
-  ChassisPreview,
-  CHASSIS_ENTRIES,
-} from '../../src/ui/screens/ChassisPreview/ChassisPreview'
+import { ChassisPreview, CHASSIS_ENTRIES } from '../../src/ui/screens/ChassisPreview/ChassisPreview'
 import { getAllAttacks, getAttacksForChassis } from '../../src/logic'
 import type { Chassis } from '../../src/logic'
 
@@ -61,7 +58,9 @@ describe('ChassisPreview — drift guard', () => {
 
       for (const attack of expected) {
         const row = within(table).getByTestId(`attack-row-${attack.id}`)
-        const cells = within(row).getAllByRole('cell').map(c => c.textContent)
+        const cells = within(row)
+          .getAllByRole('cell')
+          .map(c => c.textContent)
         expect(cells).toEqual([
           attack.name,
           String(attack.damage),

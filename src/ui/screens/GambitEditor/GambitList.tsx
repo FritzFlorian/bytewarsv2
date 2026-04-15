@@ -55,7 +55,9 @@ export function GambitList({ rules, onChange, chassis }: GambitListProps) {
           onDragOver={e => handleDragOver(e, i)}
           onDragEnd={handleDragEnd}
         >
-          <span className={styles.dragHandle} aria-hidden>⠿</span>
+          <span className={styles.dragHandle} aria-hidden>
+            ⠿
+          </span>
           <GambitSlot
             index={i}
             rule={rule}

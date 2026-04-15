@@ -136,7 +136,9 @@
   height: 100%;
   border-radius: 2px;
   /* Smooth width change when HP drops */
-  transition: width 0.4s ease-out, background-color 0.3s;
+  transition:
+    width 0.4s ease-out,
+    background-color 0.3s;
   background: #38c060;
 }
 
@@ -222,7 +224,9 @@
 
 .slotActive {
   border-color: #7eb8f0;
-  box-shadow: 0 0 0 2px rgba(126, 184, 240, 0.35), inset 0 0 6px rgba(126, 184, 240, 0.08);
+  box-shadow:
+    0 0 0 2px rgba(126, 184, 240, 0.35),
+    inset 0 0 6px rgba(126, 184, 240, 0.08);
   animation: highlight-on 0.2s ease-out;
 }
 
@@ -248,7 +252,9 @@
   height: 8px;
   border-radius: 50%;
   background: #ffe84d;
-  box-shadow: 0 0 8px #ffb300, 0 0 18px rgba(255, 180, 0, 0.5);
+  box-shadow:
+    0 0 8px #ffb300,
+    0 0 18px rgba(255, 180, 0, 0.5);
   pointer-events: none;
   /* Center on the computed position */
   margin-left: -4px;
@@ -278,7 +284,7 @@
 }
 
 .logEntry {
-  flex-shrink: 0;       /* don't squish entries — let the panel scroll instead */
+  flex-shrink: 0; /* don't squish entries — let the panel scroll instead */
   font-size: 0.7rem;
   line-height: 1.5;
   white-space: nowrap;
@@ -333,35 +339,83 @@
  * The keyframes below cover the overlay effects. */
 
 @keyframes damage-popup {
-  0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
-  15%  { opacity: 1; transform: translateX(-50%) translateY(-6px); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-38px); }
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-38px);
+  }
 }
 
 @keyframes unit-destroyed {
-  0%   { opacity: 1; transform: scale(1)    rotate(0deg);   filter: brightness(1) saturate(1); }
-  25%  { opacity: 0.9; transform: scale(1.05) rotate(-4deg); filter: brightness(2) saturate(0.2); }
-  100% { opacity: 0; transform: scale(0.65) rotate(-14deg); filter: brightness(0) saturate(0); }
+  0% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1) saturate(1);
+  }
+  25% {
+    opacity: 0.9;
+    transform: scale(1.05) rotate(-4deg);
+    filter: brightness(2) saturate(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.65) rotate(-14deg);
+    filter: brightness(0) saturate(0);
+  }
 }
 
 @keyframes winner-appear {
-  0%   { opacity: 0; transform: scale(0.8); }
-  60%  { transform: scale(1.04); }
-  100% { opacity: 1; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    transform: scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes highlight-on {
-  from { box-shadow: 0 0 0 0 rgba(126, 184, 240, 0.8); border-color: #1e2840; }
-  to   { box-shadow: 0 0 0 2px rgba(126, 184, 240, 0.35); border-color: #7eb8f0; }
+  from {
+    box-shadow: 0 0 0 0 rgba(126, 184, 240, 0.8);
+    border-color: #1e2840;
+  }
+  to {
+    box-shadow: 0 0 0 2px rgba(126, 184, 240, 0.35);
+    border-color: #7eb8f0;
+  }
 }
 
 @keyframes idle-pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.25; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
 }
 
 @keyframes proj-travel {
-  from { transform: translate(0, 0); opacity: 1; }
-  80%  { opacity: 1; }
-  to   { transform: translate(var(--proj-dx, 0px), var(--proj-dy, 0px)); opacity: 0; }
+  from {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--proj-dx, 0px), var(--proj-dy, 0px));
+    opacity: 0;
+  }
 }

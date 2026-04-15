@@ -30,9 +30,7 @@ export function DebugScene() {
         fontFamily: 'monospace',
       }}
     >
-      <h2 style={{ color: '#7eb8f0', margin: 0, letterSpacing: '0.1em' }}>
-        _DebugScene
-      </h2>
+      <h2 style={{ color: '#7eb8f0', margin: 0, letterSpacing: '0.1em' }}>_DebugScene</h2>
       <p style={{ color: '#506080', margin: 0, fontSize: '0.8rem' }}>
         sample fixture · {sampleEvents.length} events · 7 rounds · player wins
       </p>

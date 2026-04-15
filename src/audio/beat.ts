@@ -16,22 +16,17 @@
  */
 export function startBeat(ctx: AudioContext): () => void {
   const bpm = 118
-  const beat = 60 / bpm      // seconds per quarter note
-  const eighth = beat / 2    // seconds per eighth note
+  const beat = 60 / bpm // seconds per quarter note
+  const eighth = beat / 2 // seconds per eighth note
   const sixteenth = beat / 4 // seconds per sixteenth note
   let stopped = false
   let nextTime = ctx.currentTime
   let barCount = 0
 
   // Pre-generate a shared noise buffer (reused for snare and hi-hat).
-  const noiseBuffer = ctx.createBuffer(
-    1,
-    Math.ceil(ctx.sampleRate * 0.08),
-    ctx.sampleRate,
-  )
+  const noiseBuffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.08), ctx.sampleRate)
   const noiseData = noiseBuffer.getChannelData(0)
-  for (let i = 0; i < noiseData.length; i++)
-    noiseData[i] = Math.random() * 2 - 1
+  for (let i = 0; i < noiseData.length; i++) noiseData[i] = Math.random() * 2 - 1
 
   function kick(t: number, vol = 0.7) {
     const osc = ctx.createOscillator()
@@ -81,8 +76,7 @@ export function startBeat(ctx: AudioContext): () => void {
 
   /** Four rapid snare hits (16th notes) starting at t — drum fill. */
   function snareRoll(t: number) {
-    for (let i = 0; i < 4; i++)
-      snare(t + i * sixteenth, 0.25 + i * 0.05)
+    for (let i = 0; i < 4; i++) snare(t + i * sixteenth, 0.25 + i * 0.05)
   }
 
   /**
@@ -149,5 +143,7 @@ export function startBeat(ctx: AudioContext): () => void {
   }
 
   tick()
-  return () => { stopped = true }
+  return () => {
+    stopped = true
+  }
 }

@@ -51,10 +51,7 @@ const BASE_DURATION_MS: Record<CombatEvent['kind'], number> = {
   combat_ended: 700,
 }
 
-export function buildSchedule(
-  events: CombatEvent[],
-  speed: PlaybackSpeed,
-): PlaybackSchedule {
+export function buildSchedule(events: CombatEvent[], speed: PlaybackSpeed): PlaybackSchedule {
   const scheduled: ScheduledEvent[] = []
   let cursor = 0
 

@@ -6,7 +6,10 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "quick_jab", "target": "nearest_enemy" } },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "quick_jab", "target": "nearest_enemy" }
+      },
       { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
     ]
   },
@@ -17,7 +20,10 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "sweep", "target": "nearest_enemy" } },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "sweep", "target": "nearest_enemy" }
+      },
       { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
     ]
   },
@@ -28,7 +34,10 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "taser", "target": "nearest_enemy" } },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "taser", "target": "nearest_enemy" }
+      },
       { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
     ]
   },
@@ -39,8 +48,14 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "self_hp_below", "pct": 60 }, "action": { "kind": "overload", "target": "any_enemy" } },
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "taser", "target": "nearest_enemy" } }
+      {
+        "condition": { "kind": "self_hp_below", "pct": 60 },
+        "action": { "kind": "overload", "target": "any_enemy" }
+      },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "taser", "target": "nearest_enemy" }
+      }
     ]
   },
   {
@@ -50,7 +65,10 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "mow", "target": "nearest_enemy" } },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "mow", "target": "nearest_enemy" }
+      },
       { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
     ]
   },
@@ -61,8 +79,14 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "bash", "target": "nearest_enemy" } },
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "mow", "target": "nearest_enemy" } }
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "bash", "target": "nearest_enemy" }
+      },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "mow", "target": "nearest_enemy" }
+      }
     ]
   },
   {
@@ -72,7 +96,10 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "dart", "target": "nearest_enemy" } },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "dart", "target": "nearest_enemy" }
+      },
       { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
     ]
   },
@@ -83,8 +110,14 @@
     "hp": 50,
     "ruleSlots": 2,
     "gambits": [
-      { "condition": { "kind": "target_exists", "target": "any_enemy" }, "action": { "kind": "pulse_shot", "target": "any_enemy" } },
-      { "condition": { "kind": "target_exists", "target": "nearest_enemy" }, "action": { "kind": "dart", "target": "nearest_enemy" } }
+      {
+        "condition": { "kind": "target_exists", "target": "any_enemy" },
+        "action": { "kind": "pulse_shot", "target": "any_enemy" }
+      },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "dart", "target": "nearest_enemy" }
+      }
     ]
   }
 ]
