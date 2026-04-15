@@ -90,5 +90,23 @@ export function generateMap(rng: Rng): MapGraph {
     }
   }
 
+  // --- Elite node placement (T-6.10) ---
+  // Per Q-R6: ~2 Elite nodes per map. Placement rules:
+  //   - Never on the first column (column 0) — gives the player a softer ramp.
+  //   - Never two Elites in the same column — keeps each Elite a distinct hard pick.
+  //   - Never on the boss column (last column).
+  // Implementation: pick 2 distinct columns from [1, numColumns-2] uniformly,
+  // then mutate one node in each chosen column from 'combat' → 'elite'.
+  const eliteCandidateColumns: number[] = []
+  for (let c = 1; c < numColumns - 1; c++) eliteCandidateColumns.push(c)
+  const shuffledCols = shuffle(eliteCandidateColumns, rng)
+  const ELITE_COUNT = 2
+  for (let i = 0; i < Math.min(ELITE_COUNT, shuffledCols.length); i++) {
+    const col = shuffledCols[i]
+    const inCol = columnNodes[col]
+    const pick = inCol[rng.nextInt(inCol.length)]
+    pick.type = 'elite'
+  }
+
   return { nodes, edges }
 }

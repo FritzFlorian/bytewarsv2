@@ -9,7 +9,7 @@
 
 import type { Reward } from '../rewards/types'
 
-export type NodeType = 'combat' | 'boss'
+export type NodeType = 'combat' | 'elite' | 'boss'
 
 export interface MapNode {
   id: string

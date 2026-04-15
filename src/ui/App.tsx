@@ -22,6 +22,7 @@ import {
   applyBattleResult,
   bossEncounterFixture,
   walkingSkeletonFixture,
+  drawEliteEncounter,
   createRng,
 } from '../logic'
 import type { CombatEvent, GambitList, Unit, RunState, BattleResult } from '../logic'
@@ -61,6 +62,19 @@ interface RunContext {
 
 /** Grid columns (0, 1, 2) used in order when placing drawn starter presets. */
 const STARTER_COLUMNS = [0, 1, 2] as const
+
+/**
+ * djb2-ish string hash → 32-bit unsigned int. Used to derive a deterministic
+ * per-node seed for elite-fixture draws (so the same map seed + same node id
+ * always rolls the same elite fixture).
+ */
+function hashString(s: string): number {
+  let h = 5381 >>> 0
+  for (let i = 0; i < s.length; i++) {
+    h = (((h << 5) + h) ^ s.charCodeAt(i)) >>> 0
+  }
+  return h
+}
 
 /** Build a fresh run by drawing 2 starter presets and seating them front-row. */
 function startRun(): RunContext {
@@ -175,10 +189,18 @@ export default function App() {
 
       // Determine enemy lineup based on node type.
       const currentNode = prev.runState.graph.nodes.find(n => n.id === prev.runState.currentNodeId)
-      const enemyUnits =
-        currentNode?.type === 'boss'
-          ? bossEncounterFixture().enemyUnits
-          : walkingSkeletonFixture().enemyUnits
+      let enemyUnits
+      if (currentNode?.type === 'boss') {
+        enemyUnits = bossEncounterFixture().enemyUnits
+      } else if (currentNode?.type === 'elite') {
+        // Use the run seed mixed with the node id so each elite node draws
+        // deterministically and two elites in the same run can roll different
+        // fixtures (or the same — Q-R6 doesn't require de-duplication).
+        const eliteSeed = prev.seed ^ hashString(currentNode.id)
+        enemyUnits = drawEliteEncounter(createRng(eliteSeed)).enemyUnits
+      } else {
+        enemyUnits = walkingSkeletonFixture().enemyUnits
+      }
 
       // Only non-sitting-out player units fight.
       const fightingUnits = updatedUnits.filter(u => !prev.runState.sittingOut.has(u.id))

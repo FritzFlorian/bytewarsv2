@@ -153,7 +153,7 @@ M3 starts after M1 (T-6.1, T-6.2, T-6.3) is done. Tasks are **(parallel)** excep
 - **Acceptance:** `pnpm check` passes. Tests cover weighting, cap, and each reward kind's state delta.
 
 #### T-6.10 — Elite node type + 4 fixtures + map-gen integration
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-6.1, T-6.2 (needs siege attack)
 - **Inputs:** `src/logic/content/fixtures.ts`, `src/logic/map/generateMap.ts`, `src/logic/map/types.ts` (`NodeKind`)

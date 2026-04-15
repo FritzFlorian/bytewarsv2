@@ -34,8 +34,17 @@ export { createRng } from './rng'
 
 export { createCombat, resolveRound, isCombatOver } from './combat/resolver'
 
-export { walkingSkeletonFixture, bossEncounterFixture } from './content/fixtures'
-export type { WalkingSkeletonFixture, BossEncounterFixture } from './content/fixtures'
+export {
+  walkingSkeletonFixture,
+  bossEncounterFixture,
+  getAllEliteFixtures,
+  drawEliteEncounter,
+} from './content/fixtures'
+export type {
+  WalkingSkeletonFixture,
+  BossEncounterFixture,
+  EliteEncounterFixture,
+} from './content/fixtures'
 
 export {
   getAllStarterPresets,
