@@ -23,9 +23,9 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 - Content layer (`src/content/`): `starter-presets.json`, `attacks.json`, Zod schemas for both.
 
 **What is not built yet (v0.6+):**
-- Reward selection screen
 - Modules and vocabulary expansion
 - Meta-progression / unlocks
+- Balance pass (T-6.16)
 
 ---
 

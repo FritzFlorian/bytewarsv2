@@ -14,9 +14,16 @@ export interface GambitListProps {
   rules: Rule[]
   onChange: (rules: Rule[]) => void
   chassis: Chassis
+  /** Number of active rule slots for this unit (T-6.14). `rules.length` should
+   *  equal this; locked rows beyond it are rendered up to `ruleSlotCap`. */
+  ruleSlots: number
+  /** Absolute cap on rule slots (Q-R4 — 6). Rows between `ruleSlots` and
+   *  `ruleSlotCap` are shown as locked placeholders: visible so the player
+   *  can see the ceiling, inert so they can't edit them. */
+  ruleSlotCap: number
 }
 
-export function GambitList({ rules, onChange, chassis }: GambitListProps) {
+export function GambitList({ rules, onChange, chassis, ruleSlots, ruleSlotCap }: GambitListProps) {
   /** Index of the slot currently being dragged. */
   const dragIndex = useRef<number | null>(null)
 
@@ -44,9 +51,12 @@ export function GambitList({ rules, onChange, chassis }: GambitListProps) {
     dragIndex.current = null
   }
 
+  const activeCount = Math.min(rules.length, ruleSlots)
+  const lockedCount = Math.max(0, ruleSlotCap - ruleSlots)
+
   return (
     <div>
-      {rules.map((rule, i) => (
+      {rules.slice(0, activeCount).map((rule, i) => (
         <div
           key={i}
           className={styles.draggableRow}
@@ -64,6 +74,17 @@ export function GambitList({ rules, onChange, chassis }: GambitListProps) {
             onChange={updated => handleSlotChange(i, updated)}
             chassis={chassis}
           />
+        </div>
+      ))}
+      {Array.from({ length: lockedCount }).map((_, i) => (
+        <div key={`locked-${i}`} className={styles.lockedRow} aria-label="locked rule slot">
+          <span className={styles.dragHandle} aria-hidden>
+            ⠿
+          </span>
+          <div className={styles.lockedSlot}>
+            <span className={styles.lockedIndex}>{activeCount + i + 1}</span>
+            <span className={styles.lockedLabel}>🔒 locked — unlock with a +rule-slot reward</span>
+          </div>
         </div>
       ))}
     </div>

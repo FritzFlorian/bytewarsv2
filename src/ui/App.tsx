@@ -24,9 +24,21 @@ import {
   walkingSkeletonFixture,
   drawEliteEncounter,
   applyRepairBay,
+  drawRewardOffers,
+  applyReward,
+  setPendingRewardOffers,
+  clearPendingRewardOffers,
   createRng,
 } from '../logic'
-import type { CombatEvent, GambitList, Unit, RunState, BattleResult } from '../logic'
+import type {
+  CombatEvent,
+  GambitList,
+  Unit,
+  RunState,
+  BattleResult,
+  Reward,
+  RewardSelection,
+} from '../logic'
 import { GambitEditorScreen } from './screens/GambitEditor/GambitEditorScreen'
 import type { UnitEditorEntry } from './screens/GambitEditor/GambitEditorScreen'
 import { CombatScreen } from './screens/Combat/CombatScreen'
@@ -34,6 +46,7 @@ import type { CombatScreenProps } from './screens/Combat/CombatScreen'
 import { MapScreen } from './screens/RunMap/MapScreen'
 import { GameOverScreen } from './screens/GameOver/GameOverScreen'
 import { VictoryScreen } from './screens/Victory/VictoryScreen'
+import { RewardScreen } from './screens/Reward/RewardScreen'
 import { DebugUnits } from './screens/Combat/_DebugUnits'
 import { ChassisPreview } from './screens/ChassisPreview/ChassisPreview'
 import { DebugScene } from '../render/CombatScene'
@@ -46,7 +59,7 @@ import type { PlaybackSpeed } from '../render/playback'
 // Types
 // ---------------------------------------------------------------------------
 
-type AppPhase = 'map' | 'gambit-editor' | 'combat' | 'game-over' | 'victory'
+type AppPhase = 'map' | 'gambit-editor' | 'combat' | 'reward' | 'game-over' | 'victory'
 
 interface RunContext {
   playerUnits: Unit[]
@@ -77,9 +90,22 @@ function hashString(s: string): number {
   return h
 }
 
+/**
+ * Read an optional `?seed=N` URL parameter to force a deterministic run.
+ * Useful for reproducing bug reports and for e2e tests that must see a
+ * specific fight outcome. Returns null if not present or malformed.
+ */
+function readSeedOverride(): number | null {
+  if (typeof window === 'undefined') return null
+  const raw = new URLSearchParams(window.location.search).get('seed')
+  if (raw === null) return null
+  const n = Number(raw)
+  return Number.isFinite(n) ? Math.floor(n) : null
+}
+
 /** Build a fresh run by drawing 2 starter presets and seating them front-row. */
 function startRun(): RunContext {
-  const seed = Date.now()
+  const seed = readSeedOverride() ?? Date.now()
   const rng = createRng(seed)
   const presets = drawStarterSquad(rng, 2)
   const playerUnits: Unit[] = presets.map((p, i) => ({
@@ -271,9 +297,61 @@ export default function App() {
         return { ...prev, playerUnits: newPlayerUnits, runState: newRunState, phase: 'victory' }
       }
 
+      // Non-boss victory → draw reward offers deterministically from the run
+      // seed + the node id, stash them on RunState, and show the reward screen
+      // before returning to the map (T-6.13, Q-R8).
+      const currentNode = newRunState.graph.nodes.find(n => n.id === newRunState.currentNodeId)
+      if (currentNode?.type === 'combat' || currentNode?.type === 'elite') {
+        const rewardSeed = prev.seed ^ hashString(`reward:${currentNode.id}`)
+        const offers = drawRewardOffers(
+          createRng(rewardSeed),
+          currentNode.type === 'elite' ? 'elite' : 'combat',
+        )
+        return {
+          ...prev,
+          playerUnits: newPlayerUnits,
+          runState: setPendingRewardOffers(newRunState, offers),
+          phase: 'reward',
+        }
+      }
+
       return { ...prev, playerUnits: newPlayerUnits, runState: newRunState, phase: 'map' }
     })
   }, [])
+
+  // ── Reward pick ──────────────────────────────────────────────────────────
+
+  const handleRewardCommit = useCallback(
+    (reward: Reward, selection: RewardSelection, newUnit?: Unit) => {
+      setCtx(prev => {
+        let nextRunState = applyReward(prev.runState, reward, selection)
+        nextRunState = clearPendingRewardOffers(nextRunState)
+
+        // new_unit: append the freshly-created Unit to playerUnits so the
+        // gambit editor, map strip, and combat resolver see it next fight.
+        let nextPlayerUnits = prev.playerUnits
+        if (reward.kind === 'new_unit' && newUnit) {
+          nextPlayerUnits = [...prev.playerUnits, newUnit]
+        }
+
+        // Keep each Unit's hp field in sync with the RunState snapshot so the
+        // map strip and editor render the post-reward values (heal_one /
+        // heal_all mutate hpSnapshot, not the Unit objects).
+        nextPlayerUnits = nextPlayerUnits.map(u => ({
+          ...u,
+          hp: nextRunState.hpSnapshot[u.id] ?? u.hp,
+        }))
+
+        return {
+          ...prev,
+          playerUnits: nextPlayerUnits,
+          runState: nextRunState,
+          phase: 'map',
+        }
+      })
+    },
+    [],
+  )
 
   // ── Try Again ────────────────────────────────────────────────────────────
 
@@ -319,9 +397,21 @@ export default function App() {
         currentHp: runState.hpSnapshot[u.id] ?? u.hp,
         maxHp: u.maxHp,
         gambits: u.gambits,
+        ruleSlots: runState.ruleSlotsMap[u.id] ?? u.ruleSlots ?? 2,
       }))
 
     return <GambitEditorScreen units={editorUnits} onRun={handleRun} />
+  }
+
+  if (phase === 'reward' && runState.pendingRewardOffers) {
+    return (
+      <RewardScreen
+        offers={runState.pendingRewardOffers}
+        playerUnits={playerUnits}
+        runState={runState}
+        onCommit={handleRewardCommit}
+      />
+    )
   }
 
   if (phase === 'combat' && combatProps) {

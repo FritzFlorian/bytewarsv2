@@ -1,0 +1,282 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #141a2e, #1f2440);
+  color: #d0d8f0;
+  font-family: 'Courier New', monospace;
+  padding: 1rem 1.5rem;
+  gap: 1.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #c8d8f0;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: #8890b8;
+  letter-spacing: 0.05em;
+}
+
+/* ── Offer cards ──────────────────────────────────────────────────── */
+
+.offersRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.offerCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid rgba(200, 216, 240, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
+}
+
+.offerCard:hover {
+  background: rgba(160, 192, 240, 0.12);
+  border-color: rgba(200, 216, 240, 0.5);
+  transform: translateY(-2px);
+}
+
+.offerCardSelected {
+  background: rgba(126, 184, 240, 0.22);
+  border-color: #7eb8f0;
+  box-shadow: 0 0 14px rgba(126, 184, 240, 0.35);
+}
+
+.offerIcon {
+  font-size: 2rem;
+  line-height: 1;
+  color: #7eb8f0;
+}
+
+.offerTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #e0e8ff;
+}
+
+.offerDescription {
+  font-size: 0.8rem;
+  color: #9aa4c8;
+  line-height: 1.4;
+}
+
+/* ── Sub-picker section ───────────────────────────────────────────── */
+
+.subSection {
+  flex: 1;
+  padding: 1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(200, 216, 240, 0.12);
+  border-radius: 4px;
+  min-height: 180px;
+}
+
+.placeholder {
+  margin: 0;
+  color: #6a7290;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.subHeading {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: #c8d8f0;
+  letter-spacing: 0.03em;
+}
+
+/* ── Unit list (heal_one / rule_slot target picker) ──────────────── */
+
+.unitList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.unitItem {
+  display: grid;
+  grid-template-columns: minmax(100px, 140px) 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(200, 216, 240, 0.15);
+  border-radius: 4px;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+
+.unitItem:hover {
+  background: rgba(160, 192, 240, 0.12);
+  border-color: rgba(200, 216, 240, 0.4);
+}
+
+.unitItemDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.unitItemDisabled:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(200, 216, 240, 0.15);
+}
+
+.unitItemSelected {
+  background: rgba(126, 184, 240, 0.22);
+  border-color: #7eb8f0;
+}
+
+.unitItemName {
+  font-weight: 600;
+  color: #e0e8ff;
+}
+
+.unitItemHp {
+  color: #9aa4c8;
+}
+
+.unitItemTag {
+  color: #c0a090;
+  font-style: italic;
+}
+
+.unitItemExtra {
+  color: #9aa4c8;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+/* ── 3×3 slot grid (new_unit slot picker) ─────────────────────────── */
+
+.slotGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: fit-content;
+}
+
+.slotRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slotRowLabel {
+  width: 4.5rem;
+  text-align: right;
+  font-size: 0.75rem;
+  color: #8890b8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.slotCell {
+  width: 52px;
+  height: 52px;
+  border: 2px dashed rgba(200, 216, 240, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  color: #9aa4c8;
+  font-family: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    border-color 0.1s,
+    transform 0.1s;
+}
+
+.slotCellEmpty:hover {
+  background: rgba(160, 192, 240, 0.2);
+  border-color: rgba(200, 216, 240, 0.6);
+  transform: scale(1.05);
+}
+
+.slotCellOccupied {
+  border-style: solid;
+  border-color: rgba(200, 216, 240, 0.35);
+  background: rgba(0, 0, 0, 0.25);
+  color: #6a7290;
+  cursor: not-allowed;
+}
+
+.slotCellSelected {
+  background: rgba(126, 184, 240, 0.32);
+  border-style: solid;
+  border-color: #7eb8f0;
+  color: #e0e8ff;
+}
+
+/* ── Footer / confirm ─────────────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.confirmButton {
+  padding: 0.6rem 2rem;
+  background: #2a4a7a;
+  color: #e0e8ff;
+  border: 2px solid #7eb8f0;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.1s;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: #386299;
+  transform: translateY(-1px);
+}
+
+.confirmButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

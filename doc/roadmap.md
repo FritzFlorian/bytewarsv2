@@ -192,7 +192,7 @@ M3 starts after M1 (T-6.1, T-6.2, T-6.3) is done. Tasks are **(parallel)** excep
 M4 starts once T-6.9 through T-6.12 are done. These tasks can run **(parallel)**.
 
 #### T-6.13 — RewardScreen component + flow wiring
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-6.9, T-6.12
 - **Inputs:** `src/ui/App.tsx` (screen routing), `src/ui/screens/`
@@ -203,7 +203,7 @@ M4 starts once T-6.9 through T-6.12 are done. These tasks can run **(parallel)**
 - **Acceptance:** Running through a combat in `pnpm dev` displays the reward screen, each reward kind can be picked and applied, and the player lands back on the map. `pnpm e2e` includes a spec covering at least one full combat → reward → map cycle.
 
 #### T-6.14 — Gambit editor supports variable rule slot counts
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-6.9 (introduces per-unit `ruleSlots`), T-6.12
 - **Inputs:** `src/ui/screens/GambitEditor/`
@@ -211,7 +211,7 @@ M4 starts once T-6.9 through T-6.12 are done. These tasks can run **(parallel)**
 - **Acceptance:** A unit with 2 slots shows 2 active + 4 locked (cap 6). After a +rule-slot reward, that unit shows 3 active. `pnpm check` passes.
 
 #### T-6.15 — Map screen: Elite and Repair Bay node visuals
-- **Status:** todo
+- **Status:** done
 - **Track:** ui
 - **Depends on:** T-6.10, T-6.11
 - **Inputs:** `src/ui/screens/RunMap/`
