@@ -23,6 +23,7 @@ import {
   bossEncounterFixture,
   walkingSkeletonFixture,
   drawEliteEncounter,
+  applyRepairBay,
   createRng,
 } from '../logic'
 import type { CombatEvent, GambitList, Unit, RunState, BattleResult } from '../logic'
@@ -93,6 +94,7 @@ function startRun(): RunContext {
     hp: p.hp,
     maxHp: p.hp,
     gambits: p.gambits,
+    ruleSlots: p.ruleSlots,
   }))
   const map = generateMap(rng)
   const runState = createRunState(map, playerUnits)
@@ -169,11 +171,31 @@ export default function App() {
 
   const handleNodeSelect = useCallback((nodeId: string) => {
     initAudio()
-    setCtx(prev => ({
-      ...prev,
-      runState: selectNode(prev.runState, nodeId),
-      phase: 'gambit-editor',
-    }))
+    setCtx(prev => {
+      const movedRun = selectNode(prev.runState, nodeId)
+      const targetNode = prev.runState.graph.nodes.find(n => n.id === nodeId)
+
+      // Repair Bay: apply the heal and stay on the map screen — no fight.
+      if (targetNode?.type === 'repair_bay') {
+        const healedRun = applyRepairBay(movedRun)
+        const newPlayerUnits: Unit[] = prev.playerUnits.map(u => ({
+          ...u,
+          hp: healedRun.hpSnapshot[u.id] ?? u.hp,
+        }))
+        return {
+          ...prev,
+          runState: healedRun,
+          playerUnits: newPlayerUnits,
+          phase: 'map',
+        }
+      }
+
+      return {
+        ...prev,
+        runState: movedRun,
+        phase: 'gambit-editor',
+      }
+    })
   }, [])
 
   // ── Gambit editor ────────────────────────────────────────────────────────

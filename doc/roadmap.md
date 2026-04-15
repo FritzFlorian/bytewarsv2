@@ -166,7 +166,7 @@ M3 starts after M1 (T-6.1, T-6.2, T-6.3) is done. Tasks are **(parallel)** excep
 - **Acceptance:** `pnpm check` passes. Map generation snapshot test updated.
 
 #### T-6.11 — Repair Bay node type
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-6.1
 - **Inputs:** `src/logic/map/types.ts`, `src/logic/map/progression.ts`, `src/logic/map/generateMap.ts`
@@ -178,7 +178,7 @@ M3 starts after M1 (T-6.1, T-6.2, T-6.3) is done. Tasks are **(parallel)** excep
 - **Acceptance:** `pnpm check` passes. Repair Bay reachable on generated maps.
 
 #### T-6.12 — Run bootstrap uses starter preset draw
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-6.3
 - **Inputs:** `src/logic/state/` run initialization, wherever `player-squad.json` was loaded

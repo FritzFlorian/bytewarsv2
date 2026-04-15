@@ -25,8 +25,6 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 **What is not built yet (v0.6+):**
 - Reward selection screen
 - Modules and vocabulary expansion
-- Additional chassis (Lawnbot, Security-drone)
-- Repair Bay / Elite node types
 - Meta-progression / unlocks
 
 ---

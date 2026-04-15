@@ -8,6 +8,26 @@
 //   4. Run status updated (lost if enemy wins; won if boss was beaten).
 
 import type { RunState, BattleResult } from './types'
+import { HEAL_ALL_PCT } from '../rewards/apply'
+
+/**
+ * Apply the Repair Bay heal effect (T-6.11): every living unit (HP > 0 and
+ * not in sittingOut) regains HEAL_ALL_PCT of its maxHp, capped at maxHp.
+ *
+ * Mirrors the reward-system "heal_all" semantics intentionally — Q-G6 ties the
+ * Repair Bay to the same partial-heal-all subtype.
+ */
+export function applyRepairBay(run: RunState): RunState {
+  const newHp: Record<string, number> = { ...run.hpSnapshot }
+  for (const id of Object.keys(newHp)) {
+    if (run.sittingOut.has(id)) continue
+    if ((newHp[id] ?? 0) <= 0) continue
+    const max = run.maxHpMap[id] ?? newHp[id]
+    const heal = Math.ceil(max * HEAL_ALL_PCT)
+    newHp[id] = Math.min(max, newHp[id] + heal)
+  }
+  return { ...run, hpSnapshot: newHp }
+}
 
 export function applyBattleResult(run: RunState, result: BattleResult): RunState {
   const newHpSnapshot = { ...run.hpSnapshot }

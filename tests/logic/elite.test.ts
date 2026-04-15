@@ -51,7 +51,7 @@ describe('generateMap: elite placement', () => {
       expect(bosses).toHaveLength(1)
       // Every non-boss node is either combat or elite — no other types leak in.
       for (const n of map.nodes) {
-        expect(['combat', 'elite', 'boss']).toContain(n.type)
+        expect(['combat', 'elite', 'boss', 'repair_bay']).toContain(n.type)
       }
     }
   })

@@ -49,9 +49,9 @@ export function createRunState(graph: MapGraph, playerUnits: Unit[]): RunState {
   for (const unit of playerUnits) {
     hpSnapshot[unit.id] = unit.hp
     maxHpMap[unit.id] = unit.maxHp
-    // Until T-6.12 puts ruleSlots on Unit, every starter defaults to the
-    // Q-R3 baseline of 2. Reward apply (T-6.9) mutates this map per-unit.
-    ruleSlotsMap[unit.id] = DEFAULT_RULE_SLOTS
+    // T-6.12: Unit carries its own ruleSlots (seeded from the preset). Fall
+    // back to the Q-R3 baseline of 2 for older fixtures that pre-date the field.
+    ruleSlotsMap[unit.id] = unit.ruleSlots ?? DEFAULT_RULE_SLOTS
   }
 
   return {

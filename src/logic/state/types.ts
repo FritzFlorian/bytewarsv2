@@ -49,6 +49,14 @@ export interface Unit {
   hp: number
   maxHp: number
   gambits: GambitList
+  /**
+   * Per-unit rule-slot count (T-6.12). Baseline 2, capped at 6 (Q-R4). Only
+   * meaningful for owned (player) units — enemy fixtures may omit it. The
+   * RunState's `ruleSlotsMap` is the runtime source of truth (so rule-slot
+   * rewards can mutate it without rebuilding Unit objects); this field exists
+   * so starter presets and reward-spawned units can seed that map.
+   */
+  ruleSlots?: number
 }
 
 /** All slots on the battlefield, keyed by a stable string `${side}-${row}-${column}`. */

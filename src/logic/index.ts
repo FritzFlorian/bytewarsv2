@@ -58,7 +58,7 @@ export type { AttackDef } from '../content/schema/attack'
 export type { NodeType, MapNode, MapEdge, MapGraph, BattleResult, RunState } from './map/types'
 export { generateMap } from './map/generate'
 export { getReachableNodes, selectNode, createRunState } from './map/navigation'
-export { applyBattleResult } from './map/progression'
+export { applyBattleResult, applyRepairBay } from './map/progression'
 
 export type { Reward, RewardKind, RewardContext, RewardSelection } from './rewards/types'
 export { drawRewardOffers, COMBAT_WEIGHTS, ELITE_WEIGHTS } from './rewards/pool'

@@ -44,7 +44,23 @@ function NodeButton({ node, isCurrent, isReachable, isVisited, onSelect }: NodeB
   const typeClass = node.type === 'boss' ? styles.boss : ''
   const className = [styles.nodeButton, stateClass, typeClass].filter(Boolean).join(' ')
 
-  const icon = node.type === 'boss' ? '★' : '⚙'
+  const icon =
+    node.type === 'boss'
+      ? '★'
+      : node.type === 'elite'
+        ? '✦'
+        : node.type === 'repair_bay'
+          ? '+'
+          : '⚙'
+
+  const title =
+    node.type === 'boss'
+      ? 'Boss Fight'
+      : node.type === 'elite'
+        ? `Elite (col ${node.column})`
+        : node.type === 'repair_bay'
+          ? `Repair Bay (col ${node.column})`
+          : `Combat (col ${node.column})`
 
   const center = nodeCenter(node)
 
@@ -62,7 +78,7 @@ function NodeButton({ node, isCurrent, isReachable, isVisited, onSelect }: NodeB
         className={className}
         disabled={!isReachable}
         onClick={isReachable ? () => onSelect(node.id) : undefined}
-        title={node.type === 'boss' ? 'Boss Fight' : `Combat (col ${node.column})`}
+        title={title}
       >
         {icon}
       </button>

@@ -108,5 +108,34 @@ export function generateMap(rng: Rng): MapGraph {
     pick.type = 'elite'
   }
 
+  // --- Repair Bay placement (T-6.11) ---
+  // Exactly 1 Repair Bay per map, biased toward the middle third of the
+  // path. Constraints (parallel to elite rules):
+  //   - Never on the first column or the boss column.
+  //   - Never on a column that already contains an elite (keeps each column's
+  //     identity unambiguous and prevents two "decision" nodes stacking).
+  //   - Prefer columns inside the middle third [floor(N/3), ceil(2N/3)). If
+  //     no candidate survives there (rare on small maps with both elites in
+  //     that band), fall back to any non-first, non-boss, non-elite column.
+  const eliteColumns = new Set(
+    columnNodes.flatMap((col, idx) => (col.some(n => n.type === 'elite') ? [idx] : [])),
+  )
+  const middleStart = Math.floor(numColumns / 3)
+  const middleEnd = Math.ceil((numColumns * 2) / 3) // exclusive
+  const middleCandidates: number[] = []
+  const fallbackCandidates: number[] = []
+  for (let c = 1; c < numColumns - 1; c++) {
+    if (eliteColumns.has(c)) continue
+    if (c >= middleStart && c < middleEnd) middleCandidates.push(c)
+    else fallbackCandidates.push(c)
+  }
+  const repairPool = middleCandidates.length > 0 ? middleCandidates : fallbackCandidates
+  if (repairPool.length > 0) {
+    const repairCol = repairPool[rng.nextInt(repairPool.length)]
+    const inCol = columnNodes[repairCol]
+    const pick = inCol[rng.nextInt(inCol.length)]
+    pick.type = 'repair_bay'
+  }
+
   return { nodes, edges }
 }
