@@ -22,10 +22,9 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 - Audio layer (`src/audio/`): per-attack synthesized sounds (`quick_jab`, `sweep`, `taser`, `overload`, `clamp`, `suppression`), damage / destroy sounds, looping background beat, win/lose stingers.
 - Content layer (`src/content/`): `starter-presets.json`, `attacks.json`, Zod schemas for both.
 
-**What is not built yet (v0.6+):**
+**What is not built yet (v0.7+):**
 - Modules and vocabulary expansion
 - Meta-progression / unlocks
-- Balance pass (T-6.16)
 
 ---
 

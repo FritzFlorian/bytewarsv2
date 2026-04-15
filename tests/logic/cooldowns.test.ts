@@ -174,7 +174,7 @@ describe('damage values', () => {
     }
   })
 
-  it('clamp deals 15 damage', () => {
+  it('clamp deals 10 damage', () => {
     const player = makeUnit('p1', 'player', 'qa-rig', [
       {
         condition: { kind: 'target_exists', target: 'nearest_enemy' },
@@ -195,7 +195,7 @@ describe('damage values', () => {
 
     const dmgEvent = events.find(e => e.kind === 'damage_dealt' && e.sourceId === 'p1')
     if (dmgEvent?.kind === 'damage_dealt') {
-      expect(dmgEvent.amount).toBe(15)
+      expect(dmgEvent.amount).toBe(10)
     }
   })
 })

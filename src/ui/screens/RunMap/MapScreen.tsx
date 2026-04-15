@@ -86,6 +86,8 @@ function NodeButton({ node, isCurrent, isReachable, isVisited, onSelect }: NodeB
         disabled={!isReachable}
         onClick={isReachable ? () => onSelect(node.id) : undefined}
         title={title}
+        data-node-id={node.id}
+        data-node-type={node.type}
       >
         <span className={styles.nodeIcon}>{icon}</span>
       </button>

@@ -135,58 +135,56 @@ describe('resolveRound — single round', () => {
 // ---------------------------------------------------------------------------
 // Golden test — full fight with pinned seed
 //
-// Fight trace (seed=42, v0.5 named attacks + cooldowns):
-//   Fixture: vacuum (sweep 18dmg cd2 / quick_jab 8dmg) vs qa-rig×2 (clamp 15dmg cd1)
+// Fight trace (seed=42, post-T-6.16 balance pass):
+//   Fixture: vacuum (sweep 18dmg cd2 / quick_jab 8dmg) vs qa-rig×2 (clamp 10dmg cd1, HP 40)
 //            butler (overload 30dmg init-cd1 cd3 / taser 7dmg) — overload avail from round 2
 //
 //   Damage values (no ATTACK_DAMAGE constant):
 //     vacuum  : sweep=18, quick_jab=8
 //     butler  : taser=7, overload=30 (cd1 initial → avail round 2)
-//     qa-rig  : clamp=15 (cd1 → avail every other round)
+//     qa-rig  : clamp=10 (cd1 → avail every other round)
 //
-//   Result: player wins after 7 rounds, 134 events total.
+//   Result: player wins after 4 rounds, 78 events total. Both qa-rigs die;
+//   player vacuum survives.
 // ---------------------------------------------------------------------------
 
 describe('golden test — walking-skeleton fixture, seed 42', () => {
   const events = runToCompletion(42)
 
-  it('produces exactly 134 events', () => {
-    expect(events).toHaveLength(134)
+  it('produces exactly 78 events', () => {
+    expect(events).toHaveLength(78)
   })
 
   it('ends with combat_ended winner=player', () => {
     expect(events[events.length - 1]).toEqual({ kind: 'combat_ended', winner: 'player' })
   })
 
-  it('runs exactly 7 rounds', () => {
+  it('runs exactly 4 rounds', () => {
     const roundEnds = events.filter(e => e.kind === 'round_ended')
-    expect(roundEnds).toHaveLength(7)
+    expect(roundEnds).toHaveLength(4)
   })
 
-  it('destroys exactly 3 units in the correct order', () => {
+  it('destroys exactly 2 units in the correct order', () => {
     const destroyed = events
       .filter(e => e.kind === 'unit_destroyed')
       .map(e => (e as { kind: 'unit_destroyed'; unitId: string }).unitId)
-    expect(destroyed).toEqual(['enemy-qa-rig-1', 'player-vacuum-1', 'enemy-qa-rig-2'])
+    expect(destroyed).toEqual(['enemy-qa-rig-1', 'enemy-qa-rig-2'])
   })
 
-  it('enemy-qa-rig-1 is destroyed in round 4', () => {
+  it('enemy-qa-rig-1 is destroyed in round 2', () => {
     const firstDestroyIdx = events.findIndex(e => e.kind === 'unit_destroyed')
     const lastRoundStart = events
       .slice(0, firstDestroyIdx)
       .filter(e => e.kind === 'round_started')
       .pop() as { kind: 'round_started'; round: number }
-    expect(lastRoundStart.round).toBe(4)
+    expect(lastRoundStart.round).toBe(2)
   })
 
-  it('player-vacuum-1 is destroyed in round 7', () => {
-    const destroyEvents = events.filter(e => e.kind === 'unit_destroyed')
-    const vacuumDestroyIdx = events.indexOf(destroyEvents[1])
-    const lastRoundStart = events
-      .slice(0, vacuumDestroyIdx)
-      .filter(e => e.kind === 'round_started')
-      .pop() as { kind: 'round_started'; round: number }
-    expect(lastRoundStart.round).toBe(7)
+  it('player vacuum survives the fight', () => {
+    const destroyed = events.filter(e => e.kind === 'unit_destroyed')
+    expect(destroyed.some(e => e.kind === 'unit_destroyed' && e.unitId.startsWith('player-'))).toBe(
+      false,
+    )
   })
 
   it('is deterministic — same seed produces identical events', () => {

@@ -22,10 +22,10 @@ describe('walkingSkeletonFixture', () => {
     }
   })
 
-  it('enemy units have 60 HP (per Q-V0.1-2)', () => {
+  it('enemy units have 40 HP (T-6.16 balance pass)', () => {
     for (const unit of enemyUnits) {
-      expect(unit.hp).toBe(60)
-      expect(unit.maxHp).toBe(60)
+      expect(unit.hp).toBe(40)
+      expect(unit.maxHp).toBe(40)
     }
   })
 

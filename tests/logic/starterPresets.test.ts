@@ -18,9 +18,9 @@ describe('T-6.3: starter preset pool', () => {
     expect(chassisSet.has('security_drone')).toBe(true)
   })
 
-  it('every preset ships at baseline 50 HP / 2 rule slots', () => {
+  it('every preset ships at baseline 70 HP / 2 rule slots (post-T-6.16 balance)', () => {
     for (const p of getAllStarterPresets()) {
-      expect(p.hp).toBe(50)
+      expect(p.hp).toBe(70)
       expect(p.ruleSlots).toBe(2)
     }
   })

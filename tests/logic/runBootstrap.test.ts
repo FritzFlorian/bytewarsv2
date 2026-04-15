@@ -32,11 +32,11 @@ describe('drawStarterSquad — deterministic bootstrap', () => {
     expect(a.map(p => p.id)).toEqual(b.map(p => p.id))
   })
 
-  it('produces 2 starters at 50 HP / 2 rule slots each', () => {
+  it('produces 2 starters at 70 HP / 2 rule slots each (post-T-6.16 balance)', () => {
     const presets = drawStarterSquad(createRng(42), 2)
     expect(presets).toHaveLength(2)
     for (const p of presets) {
-      expect(p.hp).toBe(50)
+      expect(p.hp).toBe(70)
       expect(p.ruleSlots).toBe(2)
     }
   })

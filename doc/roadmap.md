@@ -45,7 +45,7 @@ v0.5 replaced the generic `attack` action with 6 named attacks across 4 chassis 
 
 ---
 
-## v0.6 — Rewards, Elite & Repair Bay, Two New Chassis Per Side
+## v0.6 — Rewards, Elite & Repair Bay, Two New Chassis Per Side (done)
 
 v0.6 delivers the run's growth loop. Today the squad is fixed at whatever `player-squad.json` declares and never changes across a run; v0.6 replaces that with a **starter preset pool** (players start with 2 random, deliberately weak presets at 50 HP / 2 rule slots) and a **3-pick reward screen** after every combat and elite node. It also introduces the **Elite** and **Repair Bay** node types, two new player chassis (**Lawnbot**, **Security-drone**), and two new enemy chassis (**Swarmer** in the regular pool and **Siege** in elite encounters only). Full decision log in `open-questions.md` Q-R1 through Q-R8.
 
@@ -221,7 +221,7 @@ M4 starts once T-6.9 through T-6.12 are done. These tasks can run **(parallel)**
 ### M5 — Balance + integration pass
 
 #### T-6.16 — Balance pass + end-to-end smoke
-- **Status:** todo
+- **Status:** done
 - **Track:** integration
 - **Depends on:** T-6.13, T-6.14, T-6.15
 - **Outputs:**

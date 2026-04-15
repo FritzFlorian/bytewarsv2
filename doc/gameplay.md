@@ -45,7 +45,7 @@ The rewards menu is the primary place where the player decides whether to grow w
 - The player commands **up to 9 robot units**, filling the 3×3 slot grid on their side of the battlefield.
 - **No bench, no reserves, no swap-in.** Every owned unit is on the field.
 - The player **starts a run with 2 units**, each drawn randomly from a hand-authored **starter preset pool** (one preset per draw; presets define chassis, starting HP, rule slot count, and opening gambits). Presets are deliberately *weak* — the reward loop is what makes the squad grow.
-- Starter baseline: **50 HP** and **2 rule slots** per unit. Rewards push both upward (heal, +1 rule slot).
+- Starter baseline: **70 HP** and **2 rule slots** per unit (post-T-6.16 balance pass). Rewards push both upward (heal, +1 rule slot).
 - New units are acquired during the run as one of several competing reward choices. "+1 unit" is never automatic — it always costs an upgrade slot.
 - Units lost during a fight skip the next fight (deactivated) and then come back with 42% hp next fight. 
 

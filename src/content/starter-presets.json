@@ -3,7 +3,7 @@
     "id": "vacuum-scout",
     "name": "Scout Vacuum",
     "chassis": "vacuum",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {
@@ -17,7 +17,7 @@
     "id": "vacuum-sweeper",
     "name": "Sweeper Vacuum",
     "chassis": "vacuum",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {
@@ -31,7 +31,7 @@
     "id": "butler-servitor",
     "name": "Servitor Butler",
     "chassis": "butler",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {
@@ -45,7 +45,7 @@
     "id": "butler-overloader",
     "name": "Overloader Butler",
     "chassis": "butler",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {
@@ -62,7 +62,7 @@
     "id": "lawnbot-mower",
     "name": "Mower Lawnbot",
     "chassis": "lawnbot",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {
@@ -76,7 +76,7 @@
     "id": "lawnbot-basher",
     "name": "Basher Lawnbot",
     "chassis": "lawnbot",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {
@@ -93,7 +93,7 @@
     "id": "security-drone-sentinel",
     "name": "Sentinel Drone",
     "chassis": "security_drone",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {
@@ -107,7 +107,7 @@
     "id": "security-drone-pulser",
     "name": "Pulser Drone",
     "chassis": "security_drone",
-    "hp": 50,
+    "hp": 70,
     "ruleSlots": 2,
     "gambits": [
       {

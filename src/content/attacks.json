@@ -38,7 +38,7 @@
   {
     "id": "clamp",
     "name": "Clamp",
-    "damage": 15,
+    "damage": 10,
     "cooldown": 1,
     "initialCooldown": 0,
     "sound": "clamp",
@@ -47,8 +47,8 @@
   {
     "id": "suppression",
     "name": "Suppression",
-    "damage": 20,
-    "cooldown": 1,
+    "damage": 12,
+    "cooldown": 2,
     "initialCooldown": 0,
     "sound": "suppression",
     "chassis": ["overseer"]
