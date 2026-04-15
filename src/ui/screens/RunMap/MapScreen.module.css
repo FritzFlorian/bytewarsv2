@@ -157,9 +157,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 2px solid rgba(200, 180, 240, 0.4);
-  background: rgba(255, 255, 255, 0.06);
-  color: #c8b8f0;
+  border: 2px solid;
   font-size: 1.2rem;
   cursor: default;
   display: flex;
@@ -168,58 +166,103 @@
   transition:
     background 0.15s,
     border-color 0.15s,
-    transform 0.1s;
+    transform 0.1s,
+    box-shadow 0.15s;
   position: relative;
+  /* Per-type color is set via CSS custom properties below. The same
+     --node-color drives border + icon + background tint so unreachable/
+     visited states stay readable: dim the opacity of the color, don't
+     wash it out to grey. */
+  --node-color: 200, 180, 240;
+  --node-alpha-bg: 0.08;
+  --node-alpha-border: 0.35;
+  --node-alpha-icon: 0.55;
+  border-color: rgba(var(--node-color), var(--node-alpha-border));
+  background: rgba(var(--node-color), var(--node-alpha-bg));
+  color: rgba(var(--node-color), var(--node-alpha-icon));
 }
 
-/* Reachable (clickable) nodes */
+/* ── Per-type shape + color (applies in every state) ──────────────── */
+
+/* Combat — circle, cool purple, sword */
+.nodeButton.combat {
+  --node-color: 160, 144, 224;
+}
+
+/* Repair bay — circle with inner ring, green, cross */
+.nodeButton.repair {
+  --node-color: 96, 208, 128;
+  box-shadow: inset 0 0 0 2px rgba(var(--node-color), 0.25);
+}
+
+/* Elite — diamond (rotated square), larger, orange, star */
+.nodeButton.elite {
+  --node-color: 240, 168, 72;
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  transform: rotate(45deg);
+  font-size: 1.25rem;
+}
+/* Counter-rotate the icon so it reads upright inside the diamond */
+.nodeButton.elite .nodeIcon {
+  transform: rotate(-45deg);
+  display: inline-block;
+}
+
+.nodeIcon {
+  display: inline-block;
+  line-height: 1;
+}
+
+/* Boss — rounded square, larger, red, skull */
+.nodeButton.boss {
+  --node-color: 224, 96, 96;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  font-size: 1.4rem;
+}
+
+/* ── State modulation: change alpha, not hue ──────────────────────── */
+
+/* Reachable (clickable) */
 .nodeButton.reachable {
   cursor: pointer;
-  border-color: #a090e0;
-  background: rgba(160, 144, 224, 0.18);
+  --node-alpha-bg: 0.22;
+  --node-alpha-border: 0.85;
+  --node-alpha-icon: 1;
 }
 
 .nodeButton.reachable:hover {
-  background: rgba(160, 144, 224, 0.35);
-  border-color: #c8b8f0;
+  --node-alpha-bg: 0.38;
   transform: scale(1.1);
 }
+.nodeButton.elite.reachable:hover {
+  transform: rotate(45deg) scale(1.1);
+}
 
-/* Current node (where the player is) */
+/* Current node (where the player is) — yellow halo overrides color */
 .nodeButton.current {
+  --node-alpha-bg: 0.28;
+  --node-alpha-border: 1;
+  --node-alpha-icon: 1;
   border-color: #e0d060;
-  background: rgba(224, 208, 96, 0.2);
-  box-shadow: 0 0 12px rgba(224, 208, 96, 0.5);
+  box-shadow: 0 0 14px rgba(224, 208, 96, 0.6);
 }
 
-/* Visited nodes */
+/* Visited — keep the tint but desaturate + dim */
 .nodeButton.visited {
-  opacity: 0.35;
+  --node-alpha-bg: 0.05;
+  --node-alpha-border: 0.3;
+  --node-alpha-icon: 0.35;
 }
 
-/* Unreachable (neither current nor reachable nor visited) */
+/* Unreachable — dimmest, but still color-tinted so type is still readable */
 .nodeButton.unreachable {
-  opacity: 0.2;
-}
-
-/* Boss node gets a square instead of a circle */
-.nodeButton.boss {
-  border-radius: 6px;
-}
-
-.nodeButton.boss.reachable {
-  border-color: #e06060;
-  background: rgba(224, 96, 96, 0.18);
-}
-
-.nodeButton.boss.reachable:hover {
-  background: rgba(224, 96, 96, 0.35);
-  border-color: #f09090;
-}
-
-.nodeButton.boss.current {
-  border-color: #f09090;
-  box-shadow: 0 0 14px rgba(224, 96, 96, 0.6);
+  --node-alpha-bg: 0.06;
+  --node-alpha-border: 0.25;
+  --node-alpha-icon: 0.4;
 }
 
 /* Column depth label */

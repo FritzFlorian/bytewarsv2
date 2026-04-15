@@ -47,7 +47,7 @@ The full run loop is playable end-to-end.
 **How to play:**
 1. `pnpm install && pnpm dev`
 2. Open [http://localhost:5173](http://localhost:5173)
-3. The map loads automatically — click a reachable node (⚙) to enter the gambit editor
+3. The map loads automatically — click a reachable node (⚔) to enter the gambit editor
 4. Author rules for each unit, click **Run**
 5. Watch the fight play out; when it ends click **Continue →** to return to the map
 6. Reach and defeat the boss (★) to win the run — or lose all units and get a game-over

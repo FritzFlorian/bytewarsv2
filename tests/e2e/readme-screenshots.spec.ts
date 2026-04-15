@@ -20,14 +20,14 @@ test('readme: map screen', async ({ page }) => {
   ensureOutDir()
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Bytewars' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '⚙' }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: '⚔' }).first()).toBeVisible()
   await page.screenshot({ path: `${OUT_DIR}/map.png`, fullPage: true })
 })
 
 test('readme: gambit editor', async ({ page }) => {
   ensureOutDir()
   await page.goto('/')
-  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚙' }).first()
+  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   await expect(page.getByRole('button', { name: 'Run' })).toBeVisible()
   await page.screenshot({ path: `${OUT_DIR}/editor.png`, fullPage: true })
@@ -36,7 +36,7 @@ test('readme: gambit editor', async ({ page }) => {
 test('readme: combat playback mid-fight', async ({ page }) => {
   ensureOutDir()
   await page.goto('/')
-  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚙' }).first()
+  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   await page.getByRole('button', { name: 'Run' }).click()
   await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible()

@@ -54,8 +54,8 @@ describe('walking skeleton — UI integration', () => {
       render(React.createElement(App))
     })
 
-    // Landing page is now the map screen — find a reachable combat node (icon ⚙).
-    const nodeButtons = screen.getAllByRole('button', { name: '⚙' })
+    // Landing page is now the map screen — find a reachable combat node (icon ⚔).
+    const nodeButtons = screen.getAllByRole('button', { name: '⚔' })
     const reachableNode = nodeButtons.find(btn => !(btn as HTMLButtonElement).disabled)
     expect(reachableNode).toBeDefined()
 

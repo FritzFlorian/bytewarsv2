@@ -6,15 +6,15 @@ const OUT = 'tests/e2e/.output'
 test('map screen loads as landing page', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Bytewars' })).toBeVisible()
-  // The map shows node buttons — first column nodes are reachable (⚙)
-  await expect(page.getByRole('button', { name: '⚙' }).first()).toBeVisible()
+  // The map shows node buttons — first column nodes are reachable (⚔)
+  await expect(page.getByRole('button', { name: '⚔' }).first()).toBeVisible()
   await page.screenshot({ path: `${OUT}/01-map.png`, fullPage: true })
 })
 
 test('clicking a map node opens the gambit editor', async ({ page }) => {
   await page.goto('/')
   // Click the first enabled (reachable) combat node
-  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚙' }).first()
+  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   // Gambit editor is now showing with a Run button and unit tabs
   await expect(page.getByRole('button', { name: 'Run' })).toBeVisible()
@@ -23,7 +23,7 @@ test('clicking a map node opens the gambit editor', async ({ page }) => {
 
 test('unit tabs switch correctly in gambit editor', async ({ page }) => {
   await page.goto('/')
-  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚙' }).first()
+  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   // First unit tab is active by default — heading with the unit name visible
   // (The chassis name is displayed as the unit heading in the editor)
@@ -38,7 +38,7 @@ test('unit tabs switch correctly in gambit editor', async ({ page }) => {
 test('Run resolves combat and begins playback automatically', async ({ page }) => {
   await page.goto('/')
   // Navigate: map → gambit editor → combat
-  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚙' }).first()
+  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   await page.getByRole('button', { name: 'Run' }).click()
   // CombatScene is now showing — Pause button means autoPlay fired
