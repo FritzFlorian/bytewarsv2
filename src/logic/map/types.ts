@@ -7,6 +7,8 @@
 // RunState tracks everything needed to carry a run from the first fight
 // through to victory or defeat.
 
+import type { Reward } from '../rewards/types'
+
 export type NodeType = 'combat' | 'boss'
 
 export interface MapNode {
@@ -47,5 +49,9 @@ export interface RunState {
   maxHpMap: Record<string, number>
   /** Unit ids sitting out the next fight (died last fight, return the fight after). */
   sittingOut: Set<string>
+  /** Per-unit rule-slot count (T-6.9). Baseline 2, capped at 6 (Q-R4). */
+  ruleSlotsMap: Record<string, number>
   status: 'active' | 'won' | 'lost'
+  /** Reward offers awaiting player selection — set after combat/elite, cleared on pick (T-6.9). */
+  pendingRewardOffers?: Reward[]
 }

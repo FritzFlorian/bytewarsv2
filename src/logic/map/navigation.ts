@@ -37,14 +37,21 @@ export function selectNode(run: RunState, nodeId: string): RunState {
   return { ...run, currentNodeId: nodeId, visitedNodeIds: newVisited }
 }
 
+/** Default rule-slot count for a fresh starter unit (Q-R3 baseline). */
+const DEFAULT_RULE_SLOTS = 2
+
 /** Build the initial RunState for a new run. */
 export function createRunState(graph: MapGraph, playerUnits: Unit[]): RunState {
   const hpSnapshot: Record<string, number> = {}
   const maxHpMap: Record<string, number> = {}
+  const ruleSlotsMap: Record<string, number> = {}
 
   for (const unit of playerUnits) {
     hpSnapshot[unit.id] = unit.hp
     maxHpMap[unit.id] = unit.maxHp
+    // Until T-6.12 puts ruleSlots on Unit, every starter defaults to the
+    // Q-R3 baseline of 2. Reward apply (T-6.9) mutates this map per-unit.
+    ruleSlotsMap[unit.id] = DEFAULT_RULE_SLOTS
   }
 
   return {
@@ -54,6 +61,7 @@ export function createRunState(graph: MapGraph, playerUnits: Unit[]): RunState {
     hpSnapshot,
     maxHpMap,
     sittingOut: new Set<string>(),
+    ruleSlotsMap,
     status: 'active',
   }
 }

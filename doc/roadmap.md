@@ -140,7 +140,7 @@ M2 starts after T-6.1. Four tasks are **(parallel)** — each adds one chassis r
 M3 starts after M1 (T-6.1, T-6.2, T-6.3) is done. Tasks are **(parallel)** except where noted.
 
 #### T-6.9 — Reward pool + draw + application
-- **Status:** todo
+- **Status:** done
 - **Track:** logic
 - **Depends on:** T-6.3
 - **Inputs:** `src/logic/state/` (RunState), `src/logic/map/progression.ts`
