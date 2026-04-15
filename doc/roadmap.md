@@ -127,7 +127,7 @@ M2 starts after T-6.1. Four tasks are **(parallel)** — each adds one chassis r
 - **Acceptance:** Visible in debug page. Silhouette distinct.
 
 #### T-6.8 — Per-attack sounds for new attacks
-- **Status:** todo
+- **Status:** done
 - **Track:** ui (audio)
 - **Depends on:** T-6.2
 - **Outputs:**

@@ -8,21 +8,16 @@
  *   - Calling playSound() or startMusic() before initAudio() is safe — it is
  *     a no-op, not an error.
  *   - beat is managed via startMusic() / the returned stop function, not via
- *     playSound('beat') (which is a no-op).
+ *     playSound('beat') (which is a no-op by the registry entry in dispatch.ts).
+ *
+ * Dispatch is delegated to SOUND_DISPATCH (dispatch.ts). That registry is a
+ * Record<SoundId, ...>, so adding a new SoundId without wiring a synthesis
+ * function is a TypeScript error — no need for an exhaustive switch here.
  */
 
 import type { SoundId } from './sounds'
-import { playQuickJab } from './quickJab'
-import { playSweep } from './sweep'
-import { playTaser } from './taser'
-import { playOverload } from './overload'
-import { playClamp } from './clamp'
-import { playSuppression } from './suppression'
-import { playDamage } from './damage'
-import { playDestroy } from './destroy'
+import { SOUND_DISPATCH } from './dispatch'
 import { startBeat } from './beat'
-import { playWin } from './win'
-import { playLose } from './lose'
 
 let ctx: AudioContext | null = null
 
@@ -38,60 +33,7 @@ export function initAudio(): void {
  */
 export function playSound(id: SoundId): void {
   if (!ctx) return
-  switch (id) {
-    case 'quick_jab':
-      playQuickJab(ctx)
-      break
-    case 'sweep':
-      playSweep(ctx)
-      break
-    case 'taser':
-      playTaser(ctx)
-      break
-    case 'overload':
-      playOverload(ctx)
-      break
-    case 'clamp':
-      playClamp(ctx)
-      break
-    case 'suppression':
-      playSuppression(ctx)
-      break
-    // Placeholder dispatch for v0.6 attack sounds — T-6.8 will replace these
-    // with dedicated synthesis modules. For now they reuse existing textures.
-    case 'mow':
-      playSweep(ctx)
-      break
-    case 'bash':
-      playOverload(ctx)
-      break
-    case 'dart':
-      playQuickJab(ctx)
-      break
-    case 'pulse_shot':
-      playTaser(ctx)
-      break
-    case 'bite':
-      playQuickJab(ctx)
-      break
-    case 'siege_cannon':
-      playOverload(ctx)
-      break
-    case 'damage':
-      playDamage(ctx)
-      break
-    case 'destroy':
-      playDestroy(ctx)
-      break
-    case 'win':
-      playWin(ctx)
-      break
-    case 'lose':
-      playLose(ctx)
-      break
-    case 'beat':
-      /* managed via startMusic() */ break
-  }
+  SOUND_DISPATCH[id].play(ctx)
 }
 
 /**
