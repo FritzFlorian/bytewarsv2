@@ -1,20 +1,27 @@
-// Placeholder component — T-6.4 replaces with a cel-shaded flat-vector
-// silhouette per setting.md §4. Minimal shape shipped now so the chassis
-// drift guard and exhaustive dispatches compile.
+// Lawnbot-class chassis — treaded yard-maintenance robot, player tank.
+// Style: Column B (anime-flavored cel-shading, setting.md §4).
+// Parts are separate elements so module attachments can be added as children.
+//
+// Silhouette notes:
+//  - wide low stance with continuous tracked base (not wheels) → reads "tank"
+//  - forward-projecting mower-deck cowl, distinct from Vacuum's round body
+//  - exhaust stack on the back-top → unique to this chassis
+//
+// Bounding box: 88 × 58 px.
+
+import '../../styles/units.css'
 
 export function Lawnbot() {
   return (
-    <div
-      className="unit unit-lawnbot"
-      style={{
-        width: 72,
-        height: 56,
-        background: '#4a7c2a',
-        borderRadius: '6px 6px 20px 20px',
-        border: '2px solid #2d4d1a',
-        position: 'relative',
-      }}
-      data-placeholder="true"
-    />
+    <div className="unit unit-lawnbot">
+      <div className="lawnbot-stack" />
+      <div className="lawnbot-stack-cap" />
+      <div className="lawnbot-body" />
+      <div className="lawnbot-grill" />
+      <div className="lawnbot-eye lawnbot-eye--left" />
+      <div className="lawnbot-eye lawnbot-eye--right" />
+      <div className="lawnbot-deck" />
+      <div className="lawnbot-tread" />
+    </div>
   )
 }

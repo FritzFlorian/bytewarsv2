@@ -99,28 +99,28 @@ Content schema and data come first. Everything else depends on the new chassis i
 M2 starts after T-6.1. Four tasks are **(parallel)** — each adds one chassis render component. These cannot be done before T-6.1 because the `Chassis` dispatch in `src/render/units/` must know about the new ids.
 
 #### T-6.4 — Lawnbot render component
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-6.1
 - **Outputs:** `src/render/units/Lawnbot.tsx` — DOM/SVG tree, cel-shaded flat-vector per `setting.md` §4, silhouette test passes ("tell apart from Vacuum, Butler, QA-Rig, Overseer in solid black"). Debug page `_DebugUnits.tsx` renders it.
 - **Acceptance:** Visible in `pnpm dev` debug route. Silhouette distinct from all existing chassis.
 
 #### T-6.5 — Security-drone render component
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-6.1
 - **Outputs:** `src/render/units/SecurityDrone.tsx` — flying/wall-mounted silhouette, smaller footprint than Vacuum. Debug page updated.
 - **Acceptance:** Visible in debug page. Silhouette distinct.
 
 #### T-6.6 — Swarmer render component
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-6.1
 - **Outputs:** `src/render/units/Swarmer.tsx` — low-profile, aggressive-looking enemy silhouette, industrial per `setting.md` §3. Debug page updated.
 - **Acceptance:** Visible in debug page. Silhouette distinct.
 
 #### T-6.7 — Siege render component
-- **Status:** todo
+- **Status:** done
 - **Track:** render
 - **Depends on:** T-6.1
 - **Outputs:** `src/render/units/Siege.tsx` — heavy, imposing enemy silhouette; visually clearly an elite-tier threat. Debug page updated.

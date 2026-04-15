@@ -1,31 +1,40 @@
-// Dev-only debug page — renders all three chassis side-by-side at slot size
+// Dev-only debug page — renders every chassis side-by-side at slot size
 // for visual review. Accessible at /?debug in development (import.meta.env.DEV).
 //
-// T-2C.1 acceptance: "silhouettes pass the 'tell apart in solid black' check"
-// — manually confirm by inspecting the screenshot produced by pnpm e2e.
+// Acceptance guardrail (T-2C.1, carried through T-6.4–T-6.7):
+//   "silhouettes pass the 'tell apart in solid black' check"
+// Manually confirm by inspecting the screenshots produced by pnpm e2e.
 
 import { Vacuum } from '../../../render/units/Vacuum'
 import { Butler } from '../../../render/units/Butler'
 import { QaRig } from '../../../render/units/QaRig'
+import { Overseer } from '../../../render/units/Overseer'
+import { Lawnbot } from '../../../render/units/Lawnbot'
+import { SecurityDrone } from '../../../render/units/SecurityDrone'
+import { Swarmer } from '../../../render/units/Swarmer'
+import { Siege } from '../../../render/units/Siege'
 
 // Stage background from art-style-samples.html column B
 const STAGE_BG = 'linear-gradient(180deg, #3b3250 0%, #5a3a52 100%)'
 
-// Slot size matches CombatScreen layout (5rem × 5rem = 80px)
+// Slot size matches CombatScreen layout (5rem × 5rem = 80px); widened on the
+// Siege row since the siege silhouette exceeds the standard slot.
 const SLOT_SIZE = 80
+const SLOT_SIZE_LARGE = 120
 
 interface SlotProps {
   label: string
+  size?: number
   children: React.ReactNode
 }
 
-function Slot({ label, children }: SlotProps) {
+function Slot({ label, size = SLOT_SIZE, children }: SlotProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
       <div
         style={{
-          width: SLOT_SIZE,
-          height: SLOT_SIZE,
+          width: size,
+          height: size,
           background: STAGE_BG,
           borderRadius: 6,
           display: 'flex',
@@ -56,7 +65,7 @@ export function DebugUnits() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 40,
+        gap: 32,
         padding: 40,
         fontFamily: 'monospace',
       }}
@@ -65,20 +74,38 @@ export function DebugUnits() {
         UNIT CHASSIS — DEBUG VIEW
       </h2>
 
-      <div style={{ display: 'flex', gap: 48, alignItems: 'flex-end' }}>
+      <div style={{ display: 'flex', gap: 32, alignItems: 'flex-end', flexWrap: 'wrap' }}>
         <Slot label="vacuum-class">
           <Vacuum />
         </Slot>
         <Slot label="butler-class">
           <Butler />
         </Slot>
-        <Slot label="qa-rig (enemy)">
-          <QaRig />
+        <Slot label="lawnbot-class">
+          <Lawnbot />
+        </Slot>
+        <Slot label="security-drone">
+          <SecurityDrone />
         </Slot>
       </div>
 
-      <p style={{ margin: 0, color: '#4a5268', fontSize: 11, maxWidth: 480, textAlign: 'center' }}>
-        dev only · silhouette check: all three must be distinguishable in solid black · style:
+      <div style={{ display: 'flex', gap: 32, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <Slot label="qa-rig (enemy)">
+          <QaRig />
+        </Slot>
+        <Slot label="swarmer (enemy)">
+          <Swarmer />
+        </Slot>
+        <Slot label="siege (elite)" size={SLOT_SIZE_LARGE}>
+          <Siege />
+        </Slot>
+        <Slot label="overseer (boss)" size={SLOT_SIZE_LARGE}>
+          <Overseer />
+        </Slot>
+      </div>
+
+      <p style={{ margin: 0, color: '#4a5268', fontSize: 11, maxWidth: 520, textAlign: 'center' }}>
+        dev only · silhouette check: every chassis must be distinguishable in solid black · style:
         column B
       </p>
     </div>

@@ -706,3 +706,719 @@
 .overseer-eye--right {
   left: 40px;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   LAWNBOT — treaded yard-maintenance robot, player tank (v0.6)
+   Deep-green palette, wide low stance, forward mower-deck cowl,
+   exhaust stack, bi-ocular sensor.
+   Bounding box: 88 × 58 px
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-lawnbot {
+  width: 88px;
+  height: 58px;
+}
+
+/* Continuous tracked base — heavier than Vacuum's wheels, wider than QA-Rig */
+.lawnbot-tread {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 88px;
+  height: 14px;
+  background: #2a2a2a;
+  border: 3px solid var(--unit-ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.lawnbot-tread::before {
+  /* shadow */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
+  background: #131313;
+}
+.lawnbot-tread::after {
+  /* track pattern — hatched tread plates */
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 6px,
+    rgba(255, 255, 255, 0.08) 6px,
+    rgba(255, 255, 255, 0.08) 8px
+  );
+}
+
+/* Forward mower-deck cowl — overhangs the tread, unique silhouette feature */
+.lawnbot-deck {
+  position: absolute;
+  left: -2px;
+  bottom: 10px;
+  width: 30px;
+  height: 16px;
+  background: #3a6a1a;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px 12px 4px 3px;
+  overflow: hidden;
+  z-index: 2;
+}
+.lawnbot-deck::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
+  background: #1f3d0c;
+}
+
+/* Main body — chunky rectangular block in lawn-green */
+.lawnbot-body {
+  position: absolute;
+  left: 10px;
+  bottom: 12px;
+  width: 74px;
+  height: 30px;
+  background: #5a9a2a;
+  border: 3px solid var(--unit-ink);
+  border-radius: 6px 6px 4px 4px;
+  overflow: hidden;
+}
+.lawnbot-body::before {
+  /* shadow — bottom 40% */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
+  background: #2f5a10;
+}
+.lawnbot-body::after {
+  /* highlight */
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 4px;
+  width: 22px;
+  height: 5px;
+  background: #b7e585;
+  border-radius: 3px;
+}
+
+/* Yellow grill slats above the mower deck — domestic-appliance texture */
+.lawnbot-grill {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  width: 20px;
+  height: 10px;
+  background: repeating-linear-gradient(
+    0deg,
+    #e0b820 0px,
+    #e0b820 2px,
+    var(--unit-ink) 2px,
+    var(--unit-ink) 4px
+  );
+  border: 2px solid var(--unit-ink);
+  border-radius: 2px;
+  z-index: 3;
+}
+
+/* Bi-ocular eye pair — player-friendly, rounded (contrast with QA single red) */
+.lawnbot-eye {
+  position: absolute;
+  bottom: 30px;
+  width: 8px;
+  height: 8px;
+  background: #20c8b0;
+  border: 2px solid var(--unit-ink);
+  border-radius: 50%;
+}
+.lawnbot-eye::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 3px;
+  height: 3px;
+  background: #fff;
+  border-radius: 50%;
+}
+.lawnbot-eye--left {
+  left: 40px;
+}
+.lawnbot-eye--right {
+  left: 62px;
+}
+
+/* Exhaust stack rising from back-top — silhouette disambiguator */
+.lawnbot-stack {
+  position: absolute;
+  right: 10px;
+  bottom: 42px;
+  width: 10px;
+  height: 14px;
+  background: #7a7a7a;
+  border: 2px solid var(--unit-ink);
+  border-radius: 2px 2px 0 0;
+  overflow: hidden;
+}
+.lawnbot-stack::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 45%;
+  height: 100%;
+  background: #3a3a3a;
+}
+.lawnbot-stack-cap {
+  position: absolute;
+  right: 6px;
+  bottom: 54px;
+  width: 18px;
+  height: 5px;
+  background: #4a4a4a;
+  border: 2px solid var(--unit-ink);
+  border-radius: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SECURITY-DRONE — flying surveillance drone, player ranged (v0.6)
+   Silver body, cyan surveillance lens, quadcopter rotor booms.
+   Airborne stance: body + rotors sit above the ground line; a faint
+   hover-shadow sits on the ground to read "this thing is floating".
+   Bounding box: 64 × 72 px
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-security-drone {
+  width: 64px;
+  height: 72px;
+}
+
+/* Diamond/hex body — compact airborne chassis */
+.drone-body {
+  position: absolute;
+  left: 14px;
+  bottom: 22px;
+  width: 36px;
+  height: 26px;
+  background: #c6ccd6;
+  border: 3px solid var(--unit-ink);
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 3;
+}
+.drone-body::before {
+  /* shadow — bottom 45% */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
+  background: #7a8296;
+}
+.drone-body::after {
+  /* highlight */
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  width: 12px;
+  height: 4px;
+  background: #eef1f6;
+  border-radius: 2px;
+}
+
+/* Wide cyan surveillance lens across the body */
+.drone-lens {
+  position: absolute;
+  left: 18px;
+  bottom: 30px;
+  width: 28px;
+  height: 10px;
+  background: #22c8e0;
+  border: 2px solid var(--unit-ink);
+  border-radius: 5px;
+  z-index: 4;
+}
+.drone-lens::before {
+  /* inner glow band */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
+  background: #0e7a94;
+}
+.drone-lens::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  width: 6px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 2px;
+}
+
+/* Short antenna on top — small silhouette cue */
+.drone-antenna {
+  position: absolute;
+  left: 30px;
+  bottom: 48px;
+  width: 4px;
+  height: 10px;
+  background: var(--unit-ink);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Rotor booms — X-shape through the body, below the top of the chassis */
+.drone-boom {
+  position: absolute;
+  bottom: 32px;
+  width: 56px;
+  height: 6px;
+  background: #5a626f;
+  border: 2px solid var(--unit-ink);
+  border-radius: 3px;
+  z-index: 1;
+}
+.drone-boom--left {
+  left: 4px;
+  transform: rotate(18deg);
+  transform-origin: center;
+}
+.drone-boom--right {
+  left: 4px;
+  transform: rotate(-18deg);
+  transform-origin: center;
+}
+
+/* Rotor discs — four small circles at the boom ends */
+.drone-rotor {
+  position: absolute;
+  width: 16px;
+  height: 6px;
+  background: #383c45;
+  border: 2px solid var(--unit-ink);
+  border-radius: 8px;
+  z-index: 2;
+}
+.drone-rotor::after {
+  /* highlight — motion blur hint */
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  width: 8px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.4);
+}
+.drone-rotor--tl {
+  left: -2px;
+  bottom: 46px;
+}
+.drone-rotor--tr {
+  right: -2px;
+  bottom: 46px;
+}
+.drone-rotor--bl {
+  left: -2px;
+  bottom: 18px;
+}
+.drone-rotor--br {
+  right: -2px;
+  bottom: 18px;
+}
+
+/* Hover shadow on the ground — sells the "flying" read */
+.drone-shadow {
+  position: absolute;
+  left: 14px;
+  bottom: 2px;
+  width: 36px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SWARMER — low-HP high-speed regular enemy (v0.6)
+   Rust-red carapace, sharp angular shell, insectoid four-leg stance,
+   single crimson eye, hazard stripe.
+   Bounding box: 64 × 44 px  (smallest in the roster)
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-swarmer {
+  width: 64px;
+  height: 44px;
+}
+
+/* Four spiky legs — angled outward, fast/aggressive read */
+.swarmer-leg {
+  position: absolute;
+  bottom: 0;
+  width: 4px;
+  height: 14px;
+  background: #2a2a2a;
+  border: 2px solid var(--unit-ink);
+  border-radius: 2px;
+}
+.swarmer-leg--fl {
+  left: 6px;
+  transform: rotate(-18deg);
+  transform-origin: top center;
+}
+.swarmer-leg--fr {
+  right: 6px;
+  transform: rotate(18deg);
+  transform-origin: top center;
+}
+.swarmer-leg--bl {
+  left: 20px;
+  transform: rotate(-8deg);
+  transform-origin: top center;
+}
+.swarmer-leg--br {
+  right: 20px;
+  transform: rotate(8deg);
+  transform-origin: top center;
+}
+
+/* Sharp angled carapace — hex-ish shell via clip-path */
+.swarmer-shell {
+  position: absolute;
+  left: 4px;
+  bottom: 10px;
+  width: 56px;
+  height: 28px;
+  background: #8a2a20;
+  border: 3px solid var(--unit-ink);
+  clip-path: polygon(0 55%, 18% 0, 82% 0, 100% 55%, 88% 100%, 12% 100%);
+  overflow: hidden;
+  z-index: 2;
+}
+.swarmer-shell::before {
+  /* shadow — bottom half */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
+  background: #4a1008;
+}
+.swarmer-shell::after {
+  /* highlight — top plate */
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 2px;
+  width: 16px;
+  height: 3px;
+  background: #d85040;
+}
+
+/* Hazard warning stripe across the shell */
+.swarmer-stripe {
+  position: absolute;
+  left: 14px;
+  bottom: 18px;
+  width: 36px;
+  height: 5px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #f0c030 0px,
+    #f0c030 4px,
+    var(--unit-ink) 4px,
+    var(--unit-ink) 8px
+  );
+  z-index: 3;
+}
+
+/* Single crimson eye — enemy signal */
+.swarmer-eye {
+  position: absolute;
+  left: 28px;
+  bottom: 28px;
+  width: 8px;
+  height: 8px;
+  background: #e03030;
+  border: 2px solid var(--unit-ink);
+  border-radius: 50%;
+  z-index: 4;
+}
+.swarmer-eye::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
+
+/* Pointed mandibles jutting forward — aggressive posture cue */
+.swarmer-mandible {
+  position: absolute;
+  bottom: 12px;
+  width: 8px;
+  height: 6px;
+  background: #2a2a2a;
+  border: 2px solid var(--unit-ink);
+  z-index: 1;
+}
+.swarmer-mandible--left {
+  left: 2px;
+  clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
+.swarmer-mandible--right {
+  right: 2px;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SIEGE — elite-only heavy enemy with forward cannon (v0.6)
+   Gunmetal + rust-red accent, largest footprint in the roster.
+   Defining shape: long horizontal cannon barrel protruding to the side.
+   Bounding box: 112 × 90 px
+   ══════════════════════════════════════════════════════════════════ */
+
+.unit-siege {
+  width: 112px;
+  height: 90px;
+}
+
+/* Heavy tracked base — wider than Overseer's */
+.siege-tread {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 112px;
+  height: 22px;
+  background: #2a2a2a;
+  border: 3px solid var(--unit-ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.siege-tread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 55%;
+  background: #121212;
+}
+
+.siege-tread-wheel {
+  position: absolute;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  background: var(--unit-ink);
+  border-radius: 50%;
+  z-index: 2;
+}
+.siege-tread-wheel--1 {
+  left: 4px;
+}
+.siege-tread-wheel--2 {
+  left: 25px;
+}
+.siege-tread-wheel--3 {
+  left: 46px;
+}
+.siege-tread-wheel--4 {
+  left: 67px;
+}
+.siege-tread-wheel--5 {
+  left: 88px;
+}
+
+/* Rust-red skirt armour between tread and hull */
+.siege-skirt {
+  position: absolute;
+  left: 4px;
+  bottom: 18px;
+  width: 104px;
+  height: 16px;
+  background: #6a3020;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.siege-skirt::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
+  background: #3a1408;
+}
+
+/* Main hull — gunmetal armoured block */
+.siege-hull {
+  position: absolute;
+  left: 10px;
+  bottom: 32px;
+  width: 92px;
+  height: 36px;
+  background: #555a62;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.siege-hull::before {
+  /* shadow — bottom 40% */
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
+  background: #252830;
+}
+.siege-hull::after {
+  /* highlight */
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 4px;
+  width: 24px;
+  height: 5px;
+  background: #8a909c;
+  border-radius: 2px;
+}
+
+/* Hazard warning stripe across the hull */
+.siege-stripe {
+  position: absolute;
+  left: 10px;
+  bottom: 52px;
+  width: 92px;
+  height: 8px;
+  background: repeating-linear-gradient(
+    -45deg,
+    #e03030 0px,
+    #e03030 6px,
+    var(--unit-ink) 6px,
+    var(--unit-ink) 12px
+  );
+  border-top: 2px solid var(--unit-ink);
+  border-bottom: 2px solid var(--unit-ink);
+  z-index: 2;
+}
+
+/* Armour rivets at the corners — reinforced-plate feel */
+.siege-rivet {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: var(--unit-ink);
+  border-radius: 50%;
+  z-index: 3;
+}
+.siege-rivet--tl {
+  left: 16px;
+  bottom: 60px;
+}
+.siege-rivet--tr {
+  right: 16px;
+  bottom: 60px;
+}
+.siege-rivet--bl {
+  left: 16px;
+  bottom: 36px;
+}
+.siege-rivet--br {
+  right: 16px;
+  bottom: 36px;
+}
+
+/* Turret mount on top of the hull */
+.siege-turret {
+  position: absolute;
+  left: 28px;
+  bottom: 68px;
+  width: 40px;
+  height: 18px;
+  background: #4a4f58;
+  border: 3px solid var(--unit-ink);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.siege-turret::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
+  background: #20232a;
+}
+
+/* Forward-facing cannon barrel — the siege silhouette signature */
+.siege-barrel {
+  position: absolute;
+  left: 60px;
+  bottom: 72px;
+  width: 48px;
+  height: 10px;
+  background: #5a5f68;
+  border: 3px solid var(--unit-ink);
+  border-radius: 2px;
+  overflow: hidden;
+  z-index: 4;
+}
+.siege-barrel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
+  background: #24272e;
+}
+
+/* Reinforcement ring where the barrel meets the turret */
+.siege-barrel-ring {
+  position: absolute;
+  left: 58px;
+  bottom: 68px;
+  width: 10px;
+  height: 18px;
+  background: #383c44;
+  border: 3px solid var(--unit-ink);
+  border-radius: 2px;
+  z-index: 5;
+}
+
+/* Muzzle — flared tip of the barrel */
+.siege-muzzle {
+  position: absolute;
+  right: 0;
+  bottom: 70px;
+  width: 8px;
+  height: 14px;
+  background: #2a2d34;
+  border: 3px solid var(--unit-ink);
+  border-radius: 2px;
+  z-index: 6;
+}

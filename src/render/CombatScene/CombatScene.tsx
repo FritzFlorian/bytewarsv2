@@ -25,6 +25,10 @@ import { Vacuum } from '../units/Vacuum'
 import { Butler } from '../units/Butler'
 import { QaRig } from '../units/QaRig'
 import { Overseer } from '../units/Overseer'
+import { Lawnbot } from '../units/Lawnbot'
+import { SecurityDrone } from '../units/SecurityDrone'
+import { Swarmer } from '../units/Swarmer'
+import { Siege } from '../units/Siege'
 import styles from './CombatScene.module.css'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -214,10 +218,24 @@ function buildLogEntries(
 // ── Sub-components ───────────────────────────────────────────────────────────
 
 function ChassisComponent({ chassis }: { chassis: UnitInfo['chassis'] }) {
-  if (chassis === 'vacuum') return <Vacuum />
-  if (chassis === 'butler') return <Butler />
-  if (chassis === 'overseer') return <Overseer />
-  return <QaRig />
+  switch (chassis) {
+    case 'vacuum':
+      return <Vacuum />
+    case 'butler':
+      return <Butler />
+    case 'qa-rig':
+      return <QaRig />
+    case 'overseer':
+      return <Overseer />
+    case 'lawnbot':
+      return <Lawnbot />
+    case 'security_drone':
+      return <SecurityDrone />
+    case 'swarmer':
+      return <Swarmer />
+    case 'siege':
+      return <Siege />
+  }
 }
 
 interface SlotProps {
