@@ -28,15 +28,21 @@ v1 supports the following node types. Distribution is tuned per act.
 
 ### Rewards
 
-After most nodes (especially combat), the player is offered a **choice of upgrade** drawn from a pool. **v1 has five reward categories** (see `open-questions.md` Q-G2):
+After most nodes (especially combat), the player is offered a **choice of upgrade** drawn from a pool. **v1 reward categories** (see `open-questions.md` Q-G2):
 
-1. A **new module** for one of their existing units (class-locked — see §6). *Post-v0.6.*
-2. A **new unit** added to the squad (up to the cap of 9). Drawn from the starter preset pool; player picks the empty grid slot.
-3. A **heal** — two subtypes: **full-heal one chosen unit** or **partial-heal all living units**.
-4. **+1 rule slot** for a chosen unit, up to a cap of 6.
-5. A **vocabulary unlock** — a new condition or action becomes available to write in gambits. *Post-v0.6.*
+1. A **module drop** — an active or passive module for one of the player's existing units (chassis-agnostic — see §6). *v0.7.*
+2. **Remove module** — choose a unit, then choose an installed module to destroy, freeing the slot for a future drop. Cannot remove the last active module (≥1 enforced). A flexibility reward, not a power reward. *v0.7.*
+3. A **new unit** added to the squad (up to the cap of 9). Drawn from a **recruitment pool** (distinct from the starter pool; may share content initially). Player picks the empty grid slot.
+4. A **heal** — two subtypes: **full-heal one chosen unit** or **partial-heal all living units**.
+5. A **vocabulary unlock** — a new condition or action becomes available to write in gambits. *Post-v0.7.*
 
-v0.6 ships categories 2, 3, and 4; modules and vocabulary unlocks land in later versions. After a combat or elite node, the player is shown **3 random options from the enabled pool** and must pick one (no reroll, no skip — see `open-questions.md` Q-R1). The reward pool is **not filtered for usefulness** — a full-HP squad can still be offered a heal. The boss node awards no reward; beating it ends the run with the victory screen.
+**v0.6 note:** v0.6 shipped categories 2, 3, and a standalone "+1 rule slot" reward. In v0.7, "+1 rule slot" becomes a passive module drop (category 1), module drops dominate the reward pool, and "remove module" (category 2) adds slot management.
+
+After a combat or elite node, the player is shown **3 random options from the enabled pool** and must pick one (no reroll, no skip — see `open-questions.md` Q-R1). The reward pool is **not filtered for usefulness** — a full-HP squad can still be offered a heal. If a module drop is offered but no unit has a free slot of the matching type, the card is shown but **marked as "no space" and unselectable** — the player must pick one of the other rewards.
+
+Module drops are weighted by a **rarity system**: each module has a `rarity` integer (1–4). Drop weight = `1 / rarity ^ exponent`, where the exponent varies by node type — regular combat uses super-linear scaling (rare items extra unlikely), elite uses linear scaling (fair chance), boss uses sub-linear scaling (tilted toward rare drops). See §6 for the `rarity` field on module definitions.
+
+The boss node currently awards no reward (beating the final boss ends the run). Boss reward scaling is defined for future multi-act runs.
 
 The rewards menu is the primary place where the player decides whether to grow wide (more bodies) or grow deep (stronger existing units).
 
@@ -44,8 +50,8 @@ The rewards menu is the primary place where the player decides whether to grow w
 
 - The player commands **up to 9 robot units**, filling the 3×3 slot grid on their side of the battlefield.
 - **No bench, no reserves, no swap-in.** Every owned unit is on the field.
-- The player **starts a run with 2 units**, each drawn randomly from a hand-authored **starter preset pool** (one preset per draw; presets define chassis, starting HP, rule slot count, and opening gambits). Presets are deliberately *weak* — the reward loop is what makes the squad grow.
-- Starter baseline: **70 HP** and **2 rule slots** per unit (post-T-6.16 balance pass). Rewards push both upward (heal, +1 rule slot).
+- The player **starts a run by drafting 2 units** (v0.7 starter draft). Two sequential picks: each round shows 3 random presets from the starter pool (no duplicates within the 3 shown), player picks one. The second draw is independent — presets from round 1 (including the chosen one) can reappear. Each preset defines chassis, pre-installed modules, and opening gambits. Presets are deliberately *weak* — the reward loop is what makes the squad grow.
+- Starter baseline: **70 HP** and **2 rule slots** per unit (post-T-6.16 balance pass; v0.7 makes both per-chassis via `baseHp` and `baseRuleSlots`). Every starter unit ships with ≥1 active module pre-installed.
 - New units are acquired during the run as one of several competing reward choices. "+1 unit" is never automatic — it always costs an upgrade slot.
 - Units lost during a fight skip the next fight (deactivated) and then come back with 42% hp next fight. 
 
@@ -93,9 +99,7 @@ The player does not click during combat. After committing gambits and placement,
 
 ### Starting roster
 
-You start with 2 robots. They are chosen randomly from a pool of robots (similar to new units you can find during a run).
-Starter robots differ in their initial HP, number of action slots and modules assigned to them.
-These presets are hand crafted to e.g. also include some lore and consistency around them (not only randomly generated).
+At run start the player drafts 2 units via two sequential picks (v0.7 starter draft). Each pick shows 3 random presets from the **starter pool**; the player picks one. Draws are independent — the second round can show any preset, including ones from round 1. Starter presets are hand-crafted — each defines chassis, pre-installed active/passive modules, and opening gambits. They differ in HP, slot counts, and module loadout, and include lore and consistency (not randomly generated). The **recruitment pool** (used for mid-run "new unit" rewards) is distinct from the starter pool, though they may share content initially (v0.7: identical).
 
 ## 5. Chassis and classes
 
@@ -120,27 +124,176 @@ Additional chassis (Kitchen-arm, delivery cart, pool cleaner, etc.) are deferred
 
 ### What a chassis provides
 
-- **Base stats**: starting HP, rule-slot count (starter baseline 2, cap 6 — see §7).
+- **Base stats**: `baseHp`, `baseRuleSlots`, `activeSlots`, `passiveSlots` (defined in `src/content/chassis/<id>.json`, v0.7). Chassis differentiate by their stat spread — e.g., a brawler might have high HP and active slots but few passive slots.
 - **Silhouette and render**: each chassis has its own render component (`src/render/units/*.tsx`) per the cel-shaded flat-vector style in `setting.md` §4.
-- **Attack pool**: *current model* (v0.5\u2013v0.6) — each attack declares which chassis it's valid for via a `chassis[]` whitelist in `src/content/attacks.json`. The gambit editor filters attacks per unit's chassis. *Future model* (v0.7+, see `roadmap.md` idea bucket) — chassis provide only base stats + slot counts; attacks come from chassis-agnostic modules. §6 describes the future model.
+- **No inherent attacks** (v0.7+): actions come from chassis-agnostic **active modules** installed in the unit's active slots. See §6. *(v0.5–v0.6 legacy: attacks declared valid chassis via a `chassis[]` whitelist in `attacks.json`.)*
 
 ## 6. Modules
 
-> **Status:** Modules are **post-v0.6**. The v0.7+ idea bucket in `roadmap.md` reworks the module system (chassis-agnostic attack modules, base+max slots growing via buff modules, vocabulary unlocks as a buff-module kind). The section below captures the original v1 intent and is kept as design context; expect revision when modules actually land.
+> **Status:** The module system lands in **v0.7**. See `roadmap.md` for the full milestone breakdown. Design settled in T-7.1 (2026-05-10).
 
-A **module** is an upgrade installed on a single unit. Modules are the run's loot economy and the main way the player customizes.
+A **module** is an upgrade installed on a single unit. Modules are chassis-agnostic — any module fits any chassis that has a free slot of the right type. Modules are the run's primary loot economy and the main way the player customizes their squad.
 
-A module does one of two things:
+### Slot types
 
-1. **Buff Module** — more damage, more range, extra target, status effect, lower cooldown, etc. 
-2. **Action Module** — adds an ability slot to the unit, giving a new action.
+Each chassis has two kinds of slots:
 
-Rules:
+1. **Active slots (1–4 per chassis):** Hold modules that provide actions usable in combat — attacks or heals (v0.7). One active module fires per turn via the gambit system. More active slots = more tactical options, but with diminishing returns since only one fires per turn. The count can be increased by a passive module ("+1 active slot"), with no hard cap.
+2. **Passive slots (1–6 per chassis):** Hold modules that grant always-on effects: +HP, +damage, +1 active slot, +1 rule slot, etc. The count is fixed — passive slots cannot be increased.
 
-- A chassis has a **limited number of module slots**. This makes it important to also replace chassis (units) in the run if needed; the chassis itself is fixed once the unit joins.
+### Content data layout
+
+Each module is a **single JSON file** in `src/content/modules/<id>.json`. Each chassis is a single JSON file in `src/content/chassis/<id>.json`. This keeps files lean and the folder directly shows available content.
+
+#### Chassis definition (`src/content/chassis/<id>.json`)
+
+```json
+{
+  "id": "vacuum",
+  "name": "Vacuum",
+  "availability": "player",
+  "baseHp": 70,
+  "baseRuleSlots": 2,
+  "activeSlots": 2,
+  "passiveSlots": 3
+}
+```
+
+`baseRuleSlots` is the starting number of gambit rule slots (previously a global constant of 2; now per-chassis so chassis can differentiate on programmability). `availability` is `"player"`, `"enemy"`, or `"both"` — a **strict constraint** on which side can use this chassis. Player chassis: `vacuum`, `butler`, `lawnbot`, `security_drone`. Enemy chassis: `qa-rig`, `overseer`, `swarmer`, `siege`.
+
+#### Active module definition (`src/content/modules/<id>.json`)
+
+Active modules are a **union type** discriminated by `actionKind`. Each kind has its own nested properties block, keeping the schema extensible for future action kinds (AoE, debuff, shield, etc.).
+
+```json
+{
+  "id": "quick_jab",
+  "name": "Quick Jab",
+  "type": "active",
+  "availability": "both",
+  "rarity": 1,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 8,
+    "cooldown": 0,
+    "initialCooldown": 0
+  },
+  "sound": "quick_jab"
+}
+```
+
+```json
+{
+  "id": "patch_kit",
+  "name": "Patch Kit",
+  "type": "active",
+  "availability": "player",
+  "rarity": 2,
+  "actionKind": "heal",
+  "healProperties": {
+    "healAmount": 15,
+    "cooldown": 2,
+    "initialCooldown": 1
+  },
+  "sound": "patch_kit"
+}
+```
+
+`sound` is top-level (not inside the properties block) because every active module produces a sound regardless of kind. No `chassis[]` field — fits any active slot.
+
+#### Passive module definition (`src/content/modules/<id>.json`)
+
+```json
+{
+  "id": "reinforced_plating",
+  "name": "Reinforced Plating",
+  "type": "passive",
+  "availability": "both",
+  "rarity": 1,
+  "effects": [
+    { "kind": "bonus_hp", "value": 15 }
+  ]
+}
+```
+
+v0.7 passive effect kinds: `bonus_hp`, `bonus_damage`, `extra_active_slot`, `extra_rule_slot`. Most passive modules have one effect; the `effects` array allows future multi-effect modules.
+
+All modules carry a `rarity` integer (1–4). Higher rarity = less likely to drop. Enemy-only modules (`availability: "enemy"`) omit `rarity` since they never appear in the reward pool. See §1 Rewards for the drop-weight formula.
+
+### Runtime unit model
+
+Units are **instantiated** from static content at run start (or recruitment) and carry all state as a `UnitInstance` class. No external cooldown maps — cooldowns live on the module instances themselves.
+
+```ts
+/** Instance of an active module on a specific unit — carries runtime state */
+interface ActiveModuleInstance {
+  defId: ActiveModuleId
+  cooldownRemaining: number    // 0 = ready to fire
+}
+
+/** Instance of a passive module — carries runtime state (empty in v0.7) */
+interface PassiveModuleInstance {
+  defId: PassiveModuleId
+}
+
+class UnitInstance {
+  readonly id: UnitId
+  readonly side: Side
+  slot: SlotRef
+  readonly chassis: ChassisId
+  hp: number                   // current HP (mutable during combat)
+  activeModules: ActiveModuleInstance[]
+  passiveModules: PassiveModuleInstance[]
+  gambits: GambitList
+
+  // --- Computed stats (derived live from chassis base + passive effects) ---
+  get maxHp(): number
+  get effectiveActiveSlots(): number
+  get ruleSlots(): number
+  get bonusDamage(): number
+
+  // --- Module management ---
+  canInstallActive(): boolean
+  installActive(defId: ActiveModuleId): void
+  installPassive(defId: PassiveModuleId): void
+
+  // --- Combat helpers ---
+  getAvailableActions(): ActiveModuleInstance[]
+  tickCooldowns(): void
+}
+```
+
+**Key design principles:**
+- **No stored derived stats.** `maxHp`, `ruleSlots`, `effectiveActiveSlots`, and `bonusDamage` are always computed by iterating the unit's passive modules against the chassis base. This cleanly supports stacking, mid-run module changes, and future stateful effects (e.g., "+1 HP per round" as passive module instance state).
+- **Cooldowns on the instance.** `ActiveModuleInstance.cooldownRemaining` replaces the old `CooldownMap`. Each unit fully represents its own state.
+- **Passive instance state is extensible.** `PassiveModuleInstance` is just `{ defId }` in v0.7. Future stateful passives (poison counters, stacking buffs, duration tracking) add fields here without restructuring.
+
+### Heal target selectors
+
+v0.7 ships with ally target selectors: `any_ally` (random alive ally) and `weakest_ally` (lowest current HP). Additional selectors (e.g., `weakest_ally_pct`, positional selectors) are planned as future unlocks — potentially gated behind targeting-upgrade passive modules.
+
+### Availability
+
+All modules and chassis carry an `availability` field: `"player"`, `"enemy"`, or `"both"`. This is a **strict constraint**:
+
+- A player-side unit may only use `"player"` or `"both"` modules and chassis.
+- An enemy-side unit may only use `"enemy"` or `"both"` modules and chassis.
+- The reward pool only draws from modules available to the player (`"player"` or `"both"`).
+- A **unit test** validates all fixtures and presets against this rule to catch authoring errors.
+
+This enables deliberate design: some modules are boss-exclusive (e.g., `siege_cannon`), some are player-exclusive (e.g., `emergency_repair`), and shared modules (`"both"`) create a consistent world where enemies visibly use the same equipment the player can find.
+
+### Rules
+
+- Modules are **chassis-agnostic**: any active module fits any active slot, any passive module fits any passive slot (within availability constraints).
+- A chassis has a **fixed number of passive slots** and a **starting number of active slots** (expandable via passive modules).
 - Modules are persistent for the duration of the run only — no cross-run carryover in v1.
+- Every unit must have ≥1 active module installed at all times (enforced by starter presets and recruitment pool).
+- Duplicate passive modules are allowed on the same unit (e.g., two `reinforced_plating` for +30 HP). Slot cost is the natural limit.
 
-Adding a new action via a module *literally expands the gambit vocabulary on that specific unit*. This is the core feedback loop between the loot layer and the programming layer: better loot = a richer set of rules you can write.
+### Core feedback loop
+
+Adding a new active module *literally expands the gambit vocabulary on that specific unit*: the player gains a new action to write rules around. This is the core feedback loop between the loot layer and the programming layer — better loot = a richer set of rules you can write.
 
 ## 7. The gambit system
 

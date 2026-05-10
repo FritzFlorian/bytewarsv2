@@ -23,7 +23,7 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 - Content layer (`src/content/`): `starter-presets.json`, `attacks.json`, Zod schemas for both.
 
 **What is not built yet (v0.7+):**
-- Modules and vocabulary expansion
+- Module system: `UnitInstance` class with active/passive module instances, chassis + module JSON catalogs (`src/content/chassis/`, `src/content/modules/`), computed stats, heal actions, starter draft, recruitment pool. Design settled in T-7.1; see `gameplay.md` §6 for full schema.
 - Meta-progression / unlocks
 
 ---
@@ -138,9 +138,11 @@ type Rule = { condition: Condition; action: Action }
 type GambitList = Rule[]   // ordered, top to bottom
 ```
 
-Attacks are defined in `src/content/attacks.json`. Each has: `id`, `name`, `damage`, `cooldown` (rounds after use), `initialCooldown` (rounds unavailable at battle start), `chassis[]`. Adding a new attack means adding a row to attacks.json — no TypeScript changes required beyond adding the id to the Zod enum.
+**v0.5–v0.6 model:** Attacks are defined in `src/content/attacks.json`. Each has: `id`, `name`, `damage`, `cooldown`, `initialCooldown`, `chassis[]`. Cooldowns tracked in `CombatState.cooldowns`.
 
-Cooldowns are tracked in `CombatState.cooldowns`. The interpreter skips a rule silently if the chosen attack is on cooldown, falling through to the next rule. Damage per attack comes from the attack definition, not a hardcoded constant.
+**v0.7 model (design settled, not yet implemented):** Actions come from installed active modules on the `UnitInstance`. Cooldowns live on `ActiveModuleInstance.cooldownRemaining` — no external `CooldownMap`. The interpreter resolves available actions from `unit.getAvailableActions()`. Target selectors expand to include `any_ally` and `weakest_ally` for heal modules. See `gameplay.md` §6.
+
+In both models, the interpreter skips a rule silently if the chosen action is on cooldown, falling through to the next rule. Damage/heal amounts come from the module definition, not hardcoded constants.
 
 **Planned v0.6+ vocabulary additions**: `target_hp_below`, `self_in_row`, `ally.count`, `target.distance`, `target.has_status`; actions: `repair`, `advance`, `retreat`, `swap_with`, `use_ability`.
 
@@ -187,9 +189,11 @@ bytewars/
 │   │   ├── engine.ts             # * lazy AudioContext init, playSound dispatcher
 │   │   └── sounds.ts             # * SoundId type + synthesis functions
 │   ├── content/                  # * JSON content data
+│   │   ├── chassis/              # (v0.7) one JSON per chassis (baseHp, slots, etc.)
+│   │   ├── modules/              # (v0.7) one JSON per module (active or passive)
 │   │   ├── starter-presets.json  # * pool of starter unit presets drawn at run start (v0.6)
-│   │   ├── attacks.json          # * attack definitions (id, name, damage, cooldown, chassis[])
-│   │   └── schema/               # * Zod schemas (starterPreset.ts, attack.ts)
+│   │   ├── attacks.json          # * attack definitions — replaced by modules/ in v0.7
+│   │   └── schema/               # * Zod schemas (starterPreset.ts, attack.ts, + v0.7 chassis/module)
 │   ├── styles/                   # * global CSS + unit shading rules
 │   └── main.tsx                  # * Vite entry
 ├── tests/
@@ -215,9 +219,14 @@ Classes, enemies, encounters, and (later) modules are **data, not code**. They l
 
 Currently shipped:
 - `src/content/starter-presets.json` + `schema/starterPreset.ts` — pool of starter unit presets (v0.6). A new run draws 2 via seeded `drawStarterSquad(rng, n)`; the same pool feeds the "new unit" reward.
-- `src/content/attacks.json` + `schema/attack.ts` — attack definitions with per-chassis whitelists (v0.5).
+- `src/content/attacks.json` + `schema/attack.ts` — attack definitions with per-chassis whitelists (v0.5). **Replaced in v0.7** by the module system (see below).
 
-Still in code, not JSON (migration candidates): enemy-squad fixtures (`src/logic/content/fixtures.ts`). Modules are post-v0.6 and will introduce a `modules.json` + schema when they land.
+**v0.7 content layout (design settled, not yet implemented):**
+- `src/content/chassis/<id>.json` — one file per chassis (baseHp, baseRuleSlots, activeSlots, passiveSlots).
+- `src/content/modules/<id>.json` — one file per module (active or passive, discriminated by `type`). Active modules use a union on `actionKind` with per-kind nested properties. See `gameplay.md` §6 for full schema.
+- `src/content/starter-presets.json` — updated to reference module IDs instead of chassis-fixed attacks.
+
+Still in code, not JSON (migration candidates): enemy-squad fixtures (`src/logic/content/fixtures.ts`).
 
 ## 8. RNG and determinism
 
