@@ -244,13 +244,15 @@ class UnitInstance {
   hp: number                   // current HP (mutable during combat)
   activeModules: ActiveModuleInstance[]
   passiveModules: PassiveModuleInstance[]
+  statusEffects: StatusEffectInstance[]   // v0.8 — see "Status effects" below
   gambits: GambitList
 
-  // --- Computed stats (derived live from chassis base + passive effects) ---
+  // --- Computed stats (derived live from chassis base + passive effects + active statuses) ---
   get maxHp(): number
   get effectiveActiveSlots(): number
   get ruleSlots(): number
-  get bonusDamage(): number
+  get bonusDamage(): number          // folds passive bonus_damage + active damage_boost statuses
+  isDisabled(): boolean              // v0.8 — true if any `disabled` status is active
 
   // --- Module management ---
   canInstallActive(): boolean
@@ -260,13 +262,62 @@ class UnitInstance {
   // --- Combat helpers ---
   getAvailableActions(): ActiveModuleInstance[]
   tickCooldowns(): void
+  applyStatus(s: StatusEffectInstance): void   // v0.8 — appends to statusEffects[]
+  tickStatusesStart(): void                    // v0.8 — start-of-turn DoT damage
+  tickStatusesEnd(): void                      // v0.8 — end-of-turn duration decrement + expiry
 }
 ```
 
 **Key design principles:**
-- **No stored derived stats.** `maxHp`, `ruleSlots`, `effectiveActiveSlots`, and `bonusDamage` are always computed by iterating the unit's passive modules against the chassis base. This cleanly supports stacking, mid-run module changes, and future stateful effects (e.g., "+1 HP per round" as passive module instance state).
+- **No stored derived stats.** `maxHp`, `ruleSlots`, `effectiveActiveSlots`, and `bonusDamage` are always computed by iterating the unit's passive modules against the chassis base, **and (v0.8+) the active status-effect list**. This cleanly supports stacking, mid-run module changes, and stateful effects.
 - **Cooldowns on the instance.** `ActiveModuleInstance.cooldownRemaining` replaces the old `CooldownMap`. Each unit fully represents its own state.
 - **Passive instance state is extensible.** `PassiveModuleInstance` is just `{ defId }` in v0.7. Future stateful passives (poison counters, stacking buffs, duration tracking) add fields here without restructuring.
+- **Statuses live on the unit, not the board.** Board-wide effects (persistent zones, weather) would belong on a `Battlefield.zones[]` collection — not in scope for v0.8.
+
+### Status effects (v0.8)
+
+> **Status:** design settled 2026-05-10 in T-8.1 — see `open-questions.md` Q-V8-1…Q-V8-8 and `roadmap.md` v0.8 for the implementation plan.
+
+A **status effect** is a typed, time-bounded modifier on a single `UnitInstance`. It's the v0.8 primitive that powers buffs, debuffs, and damage-over-time. Status effects are applied by active modules (either by a pure `buff`/`debuff` module or by an attack with an `appliesStatus` clause).
+
+```ts
+type StatusKind = 'burning' | 'disabled' | 'damage_boost'
+
+interface StatusEffectInstance {
+  kind: StatusKind
+  magnitude: number       // semantics depend on kind (damage per tick, +damage bonus, etc.)
+  durationRemaining: number    // counts down at end of affected unit's turn; 0 = expires
+  sourceUnitId: UnitId    // who applied this status — preserved for "always stack" semantics
+}
+```
+
+**Status kinds shipped in v0.8** (Q-V8-5):
+
+| Kind | Magnitude meaning | Effect |
+|---|---|---|
+| `burning` | damage per tick | At the **start** of the affected unit's turn, deals `magnitude` damage and emits a `status_tick_damage` event. |
+| `disabled` | (ignored, kept as 0) | The affected unit's gambit interpreter returns `idle` while any `disabled` status is active. The unit's turn still consumes a step (cooldowns tick, statuses tick). |
+| `damage_boost` | bonus damage per attack | Folds into `UnitInstance.bonusDamage`. Adds to outgoing damage on any attack action. Stacks additively across instances. |
+
+Damage reduction, shield, haste are **not** in v0.8 — see Q-V8-5 revisit conditions.
+
+**Stacking** (Q-V8-2): every application is its own instance in `statusEffects[]`. **No merge logic.** Two `burning` instances tick separately. Two `damage_boost` instances stack additively. Same source applying twice creates two independent entries.
+
+**Tick timing** (Q-V8-3), per affected unit, inside `resolveRound`:
+
+1. **Start of unit's turn:** for each status in `statusEffects[]`, apply its tick (DoT damage event, disable check happens at gambit time). If the unit is destroyed by tick damage, skip the rest of its turn.
+2. **Action:** gambit interpreter walks rules. If `isDisabled()`, returns `idle` immediately.
+3. **End of unit's turn:** decrement `durationRemaining` on every status; emit `status_expired` for each one that hits 0; remove expired entries.
+
+A status applied this round to a unit that has already acted ticks for the first time next round — by design.
+
+**Combat events added** (Q-V8-7, also `architecture.md` §3):
+
+- `{ kind: 'status_applied'; sourceId; targetId; statusKind; magnitude; duration }`
+- `{ kind: 'status_expired'; unitId; statusKind }`
+- `{ kind: 'status_tick_damage'; unitId; statusKind; amount }`
+
+Multi-target actions (AoE) emit one `damage_dealt` (and one `status_applied` where appropriate) **per resolved target**. `action_used.targets` was already `UnitId[]`.
 
 ### Heal target selectors
 

@@ -283,6 +283,76 @@ Decisions required before the relevant v0.2+ work begins.
 
 ---
 
+## v0.8 design questions
+
+> All eight resolved together on 2026-05-10 in T-8.1 (design kickoff). See `roadmap.md` v0.8 for the milestone plan and `gameplay.md` §6 "Status effects (v0.8)" for the runtime contract.
+
+### Q-V8-1 — StatusEffect runtime shape and storage
+- **Source:** `roadmap.md` T-8.1 / T-8.2, `gameplay.md` §6
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** A status effect is a runtime instance `{ kind: StatusKind, magnitude: number, durationRemaining: number, sourceUnitId: UnitId }`. Stored as `statusEffects: StatusEffectInstance[]` directly on `UnitInstance`. No external map, no board-level state.
+- **Stakes:** Determines where status state lives and how getters fold it. Mirrors the v0.7 decision that cooldowns live on `ActiveModuleInstance` rather than in an external `CooldownMap`.
+- **Revisit if:** A status needs cross-unit lookup or board-level zones (persistent ground effects, weather). Upgrade path: a separate `Battlefield.zones[]` collection — explicitly out of scope for v0.8.
+
+### Q-V8-2 — Stacking rules
+- **Source:** `roadmap.md` T-8.1 / T-8.2, `gameplay.md` §6
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** **Always stack as independent instances.** Every application of a status appends a fresh entry to `statusEffects[]` — no merge, refresh, or replace logic. Two `burning` instances tick separately; two `damage_boost` instances stack additively in the `bonusDamage` getter. Same source applying twice creates two independent entries.
+- **Stakes:** Simplest possible implementation (zero merge logic) and the most powerful in terms of combinatorial play. Risk: runaway compounding from spammable applications. Mitigated by per-module cooldowns and `initialCooldown`.
+- **Revisit if:** Balance pass (T-8.7) shows runaway stacking is unfun or impossible to tune. Upgrade path: an opt-in `stackingPolicy` field on the status-kind definition (`"independent"` / `"refresh-replace"` / `"additive-magnitude"`), set per-kind.
+
+### Q-V8-3 — Tick timing
+- **Source:** `roadmap.md` T-8.1 / T-8.2
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** **Per-unit, around each unit's turn.** Inside `resolveRound`, for each living unit in turn order:
+  1. Start of turn — apply each active status's tick (e.g., `burning` deals `magnitude` damage and emits `status_tick_damage`). If the unit dies from a tick, skip the remainder of its turn.
+  2. The unit's gambit interpreter chooses + performs its action (returns `idle` if `isDisabled()`).
+  3. End of turn — decrement `durationRemaining` on every status; emit `status_expired` and remove entries that hit 0.
+  - A status applied this round to a unit that already acted ticks for the first time **next** round. This is intentional.
+- **Stakes:** Determines DoT damage cadence, whether disable applied late skips the next turn (yes), and how long buffs last in practice.
+- **Revisit if:** Authoring "apply burning to acted units" turns out to be a footgun in T-8.7 or in playtesting. Alternative: strict end-of-round batch tick.
+
+### Q-V8-4 — Schema extension: composition over new actionKinds
+- **Source:** `roadmap.md` T-8.1 / T-8.3, `src/content/schema/module.ts`
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** Active modules grow two new `actionKind` values — `buff` and `debuff` — each with a properties block declaring `magnitude`, `duration`, `statusKind`, `targetSelector`, and the usual `cooldown` / `initialCooldown`. **Attacks gain an optional `appliesStatus: { kind, magnitude, duration }` clause** on `attackProperties` so an attack can inflict a status on hit. **There is no `dot` actionKind.** Damage-over-time is just a `burning` status, applied by either an attack's `appliesStatus` or a `debuff` module — one engine, every variety.
+- **Stakes:** Schema breadth and the type-machinery the resolver needs. Composition keeps the discriminated union small and reuses the existing attack pipeline for "attack + status" combos.
+- **Revisit if:** A future action concept can't be expressed as "apply status to units" (e.g., board-persistent zones, board-wide weather). Such effects get their own action kind.
+
+### Q-V8-5 — Status kinds shipped in v0.8
+- **Source:** `roadmap.md` T-8.1 / T-8.3 / T-8.6, `gameplay.md` §6
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** **Three kinds: `burning`, `disabled`, `damage_boost`.** Semantics in `gameplay.md` §6. Damage reduction, shielded, hastened, marked, regenerating are deferred. M6's catalog drops the modules that depended on the dropped kinds (`weakness_mark`, `bulwark`) and replaces them with variants on the three shipped kinds.
+- **Stakes:** Catalog scope and balance breadth. The three chosen kinds cover the four feature areas (AoE doesn't need its own status; DoT = burning; buffs = damage_boost; debuffs = disabled or burning-as-debuff).
+- **Revisit if:** The set proves expressively thin during T-8.7 or playtesting. The cheapest follow-up is `damage_reduction` — its plumbing mirrors `damage_boost` exactly.
+
+### Q-V8-6 — Stat derivation: getters fold active statuses
+- **Source:** `roadmap.md` T-8.1 / T-8.2 / T-8.3, `gameplay.md` §6
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** Existing computed getters on `UnitInstance` extend to fold active status effects. `bonusDamage` sums all `damage_boost` magnitudes on top of passive `bonus_damage` modules. **New method:** `isDisabled(): boolean` — true if any `disabled` status is active; the gambit interpreter checks this before evaluating rules and returns `idle` when true. No `shieldAmount` getter (shielded deferred per Q-V8-5).
+- **Stakes:** Preserves the v0.7 "no stored derived stats" principle. All deriveds stay live so module installs/removes and status applies/expires require no recomputation step.
+- **Revisit when:** Q-V8-5 expands; each new status kind adds at most one getter.
+
+### Q-V8-7 — Combat-event additions
+- **Source:** `roadmap.md` T-8.1 / T-8.2 / T-8.3, `architecture.md` §3
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** Three new event variants in `src/logic/combat/events.ts`:
+  - `{ kind: 'status_applied'; sourceId; targetId; statusKind; magnitude; duration }`
+  - `{ kind: 'status_expired'; unitId; statusKind }` (one per expired instance)
+  - `{ kind: 'status_tick_damage'; unitId; statusKind; amount }` (DoT damage; never folds into `damage_dealt` because tick damage has no per-action source — only the originating status)
+- AoE reuses existing `damage_dealt` and `unit_destroyed`, emitting one of each per resolved target with the shared source action. `action_used.targets: UnitId[]` already supports multi-target.
+- **Stakes:** Renderer must handle the new variants; golden tests assert against event shapes.
+- **Revisit if:** Hooks (e.g., on-death-cleanse, on-tick-shield) need their own events.
+
+### Q-V8-8 — Retrofit policy for existing modules
+- **Source:** `roadmap.md` T-8.1 / T-8.6
+- **Status:** `[Resolved]` 2026-05-10
+- **Decision:** **No retrofit in v0.8.** Existing v0.5–v0.7 modules (taser, clamp, suppression, sweep, overload, bite, siege_cannon, etc.) keep their current behavior. The new `appliesStatus` field is only used on modules introduced in v0.8.
+- **Stakes:** Keeps the T-8.7 balance scope bounded — we don't re-tune the entire v0.7 catalog while adding a new system. Tempting to "improve" taser with a brief disable, but that's a balance project of its own.
+- **Revisit per-module:** post-v0.8 once the new system has shipped and balance is settled. Good candidates: taser → brief disable; suppression → damage_reduction (once that kind exists); clamp → disabled.
+
+---
+
 ## Process / tooling questions
 
 ### Q-P1 — Storybook or debug-page harness

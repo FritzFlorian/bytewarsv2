@@ -23,7 +23,9 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 - Content layer (`src/content/`): `starter-presets.json`, `recruitment-presets.json`, `attacks.json`, chassis + module JSON files, Zod schemas for all.
 
 **What is not built yet (v0.8+):**
-- Meta-progression / unlocks
+- Status effects and the AoE / buff / debuff / DoT action variety scheduled for v0.8 (see `roadmap.md`).
+- Reach rules (front/middle/back row targeting), piercing, ally-status-aware vocabulary — v0.9+.
+- Meta-progression / unlocks.
 
 ---
 
@@ -108,7 +110,17 @@ type CombatEvent =
   | { kind: 'combat_ended'; winner: 'player' | 'enemy' }
 ```
 
-Future events (v0.3+, not yet implemented): `unit_repaired`, `status_applied`, `unit_moved`.
+Future events (v0.8, design settled in T-8.1 — see `open-questions.md` Q-V8-7):
+
+```ts
+| { kind: 'status_applied'; sourceId: UnitId; targetId: UnitId; statusKind: StatusKind; magnitude: number; duration: number }
+| { kind: 'status_expired'; unitId: UnitId; statusKind: StatusKind }
+| { kind: 'status_tick_damage'; unitId: UnitId; statusKind: StatusKind; amount: number }
+```
+
+Multi-target actions (AoE) reuse the existing `damage_dealt` and `unit_destroyed` events, emitting one per resolved target with the same source action. `action_used.targets` is already `UnitId[]` — no schema change required for AoE.
+
+Further future events (v0.9+): `unit_repaired`, `unit_moved`.
 
 The renderer plays the log back at the player's chosen speed, mapping each event to a visual change. Tests assert against this log — "given gambits G and seed S, the event log matches snapshot X."
 

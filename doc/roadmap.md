@@ -57,14 +57,134 @@ v0.7 replaced fixed chassis attacks with a chassis-agnostic **module system** an
 
 ---
 
-## v0.8 and beyond
+## v0.8 — Status Effects & Action Variety
 
-Likely themes: action variety expansion (AoE, debuffs, buffs, multi-target, piercing, DoT), vocabulary expansion (new conditions + target selectors + movement actions), reach rules (front/middle/back row targeting), status effects, flavor text between nodes, meta-progression / unlocks.
+v0.8 breaks out of single-target direct-damage and lands a **status-effect system** that unlocks four categories of action variety in one engine: **AoE**, **buffs**, **debuffs**, and **damage-over-time**. The bet: most variety reduces to *typed effects with duration on a `UnitInstance`* plus a small set of new `actionKind` values that apply, react to, or compose with them. Land the engine once in M1–M2; M3 onward becomes schema + content rather than new combat code per feature.
+
+Out of scope (deferred): reach rules (front/middle/back targeting), piercing, persistent ground zones, broad vocabulary pass. Reach in particular is its own version because it makes placement matter for the first time — orthogonal to the status engine.
+
+### M1 — Design kickoff: status-effect system + schema v2
+
+> Lands the design before any code, mirroring v0.7's T-7.1 kickoff. All decisions logged in `open-questions.md` and propagated to `gameplay.md` §6 in the same PR.
+
+#### T-8.1 — Lock the status-effect design (`status: done` · track: foundation)
+- **Depends on:** v0.7 ship.
+- **Inputs:** `gameplay.md` §6, `architecture.md` §3, existing module schema (`src/content/schema/module.ts`).
+- **Outputs:** Q-V8-1 … Q-V8-8 in `open-questions.md`; `gameplay.md` §6 "Status effects (v0.8)" subsection; `architecture.md` §3 v0.8 event variants block. (Landed 2026-05-10.)
+- **Decisions locked** (see `open-questions.md` for full rationale):
+  - **Q-V8-1 — Shape & storage:** `StatusEffectInstance { kind, magnitude, durationRemaining, sourceUnitId }` stored on `UnitInstance.statusEffects[]`. No external map.
+  - **Q-V8-2 — Stacking:** **Always stack as independent instances** — no merge logic. Two `burning` instances tick separately; two `damage_boost` stack additively.
+  - **Q-V8-3 — Tick timing:** **Per-unit, around its own turn.** Start-of-turn tick, end-of-turn decrement. A status applied to an already-acted unit ticks first next round.
+  - **Q-V8-4 — Schema extension:** Composition. New `actionKind` values `buff` / `debuff`; attacks gain optional `appliesStatus` on `attackProperties`. **No `dot` actionKind** — DoT is just `burning`.
+  - **Q-V8-5 — Status kinds shipped:** **`burning`, `disabled`, `damage_boost`** only. Damage reduction, shielded, hastened deferred. M6 catalog adjusted accordingly.
+  - **Q-V8-6 — Stat derivation:** Getters fold active statuses. `bonusDamage` includes `damage_boost`; new `isDisabled()` method drives the gambit interpreter early-out.
+  - **Q-V8-7 — Combat events:** `status_applied`, `status_expired`, `status_tick_damage`. AoE reuses existing `damage_dealt` / `unit_destroyed`, emitted per resolved target.
+  - **Q-V8-8 — Retrofit:** No retrofit of v0.5–v0.7 modules in v0.8. Revisit per-module post-v0.8.
+- **Acceptance:** decision-log entries written; `gameplay.md` §6 contains the StatusEffect contract; `architecture.md` §3 lists the new event variants; `pnpm check` passes (docs-only).
+
+### M2 — Status-effect plumbing in the logic layer
+
+#### T-8.2 — `UnitInstance.statusEffects` + tick step + new events (`status: todo` · track: logic)
+- **Depends on:** T-8.1.
+- **Inputs:** locked design from M1.
+- **Outputs:**
+  - `statusEffects: StatusEffectInstance[]` on `UnitInstance` with mutation methods (`applyStatus`, `tickStatuses`).
+  - Computed-getter folding: `bonusDamage`, `damageMultiplier`, `isDisabled`, `shieldAmount`.
+  - Tick step integrated into `resolveRound`: start-of-turn DoT damage → action resolution → end-of-turn duration decrement.
+  - New `CombatEvent` variants: `status_applied`, `status_expired`, `status_tick_damage`.
+  - Golden tests in `tests/logic/` that author statuses by hand and assert event-log shape across rounds.
+- **Acceptance:** logic-layer unit tests green; no UI/render changes yet; `pnpm test` passes.
+
+### M3 — Module schema v2 + new action kinds
+
+#### T-8.3 — Extend module schema and combat resolver (`status: todo` · track: logic + foundation)
+- **Depends on:** T-8.2.
+- **Inputs:** existing `src/content/schema/module.ts`; status engine from T-8.2.
+- **Outputs:**
+  - Two new active `actionKind` values: `buff` and `debuff`, each with a properties block (`magnitude`, `duration`, `cooldown`, `initialCooldown`, applied `statusKind`).
+  - Optional `appliesStatus: { kind, magnitude, duration }` field on `attackProperties` so attacks can inflict status on hit.
+  - New `TargetSelector` values for AoE: `all_enemies`, `all_enemies_in_row`, `all_allies`, `enemy_column`. Single-target selectors remain.
+  - Combat resolver iterates resolved targets and emits one `damage_dealt` / `status_applied` per target.
+  - Zod schemas updated; per-`actionKind` selector filtering rules documented (e.g., `buff` modules can't target enemies).
+- **Acceptance:** schema unit tests cover the new variants and reject invalid combinations (e.g., `actionKind: 'buff'` with `target: 'nearest_enemy'`); resolver tests cover multi-target damage events; `pnpm check` passes.
+
+### M4 — AoE wiring + render: status icons & area markers
+
+> Runs in parallel with M5 once M3 lands. (M4 ‖ M5)
+
+#### T-8.4 — Render layer: status icons + AoE flash (`status: todo` · track: render)
+- **Depends on:** T-8.3.
+- **Inputs:** new event-log variants; module catalog with AoE selectors.
+- **Outputs:**
+  - Status-effect badge component on `UnitInstance` cards in `CombatScene` (small icon + duration count, distinct per status kind).
+  - AoE marker: row/column/whole-side highlight flash when an action's `targets.length > 1`, timed to the action's playback step.
+  - `playback.ts` schedules new event variants; audio engine plays a status-applied stinger.
+- **Acceptance:** integration test renders a multi-target attack and asserts both AoE flash class and per-target HP changes; `pnpm e2e` passes.
+
+### M5 — Gambit vocabulary additions (status-aware)
+
+#### T-8.5 — `target_has_status` / `self_has_status` + editor surface (`status: todo` · track: logic + ui)
+- **Depends on:** T-8.3.
+- **Inputs:** locked condition vocabulary from M1.
+- **Outputs:**
+  - New conditions: `self_has_status { statusKind }` and `target_has_status { target, statusKind }`. Evaluator in `src/logic/gambits/interpreter.ts`.
+  - Gambit editor: condition picker offers the new variants; target picker is filtered by `actionKind` (buff modules show ally selectors, debuff modules show enemy selectors, AoE modules surface only the AoE selectors).
+  - Status-kind picker on the new conditions (dropdown of all known kinds).
+- **Acceptance:** ui tests cover the filtered selector surface and the new conditions; logic tests cover evaluator behavior across stack/refresh edge cases.
+
+### M6 — Content authoring: 10 new modules across categories
+
+#### T-8.6 — Hand-author the v0.8 module catalog (`status: todo` · track: content)
+- **Depends on:** T-8.3, T-8.4, T-8.5.
+- **Status-kind constraint** (Q-V8-5): only `burning`, `disabled`, `damage_boost` are available. Catalog uses these three across all four feature areas.
+- **Outputs:** roughly 8–10 new module JSONs in `src/content/modules/`:
+  - **2 AoE attacks** — `sweep_arc` (row-AoE, modest damage), `concussion` (all-enemies, low damage). No status applied.
+  - **2 attacks with `appliesStatus`** — `flamethrower` (single-target attack + burning, 2 rounds), `pulse_lash` (single-target attack + brief disable, 1 round). Dogfoods the composition path.
+  - **1 pure DoT debuff** — `corrosion` (`actionKind: debuff`, applies burning over 3 rounds; no direct hit). Dogfoods debuff modules.
+  - **2 buffs** — `damage_drive` (single ally, +damage_boost magnitude 4 for 2 rounds), `war_chant` (`target: all_allies`, +damage_boost magnitude 2 for 1 round). Dogfoods AoE buff selectors.
+  - **1 pure disable debuff** — `jam_signal` (single enemy, disabled 1 round).
+  - **1–2 enemy-only variants** — wire into existing enemy fixtures or new elite encounters (e.g., a Siege-style attack that applies burning, an Overseer buff for its own minions).
+  - Starter / recruitment presets updated where the new modules are appropriate.
+- **Acceptance:** Zod validation passes on all new module files; availability lint passes; each starter preset still ships ≥1 active module and ≥1 zero-cooldown attack.
+
+### M7 — Auto-pilot balance pass
+
+#### T-8.7 — Land back in the 30–80% win-rate band (`status: todo` · track: integration)
+- **Depends on:** T-8.6.
+- **Outputs:**
+  - `tests/logic/balanceSimulation.test.ts` updated to exercise the new module catalog.
+  - Enemy gambits rewritten where needed so debuffs/AoE are actually used by AI.
+  - Magnitudes / durations / cooldowns tuned until full-run auto-pilot lands in 30–80%.
+- **Acceptance:** balance test green at the chosen seed band; deltas documented in a v0.8 balance section in `gameplay.md` or a balance log file.
+
+### M8 — Full-run e2e + green `pnpm check`
+
+#### T-8.8 — Ship gate (`status: todo` · track: integration)
+- **Depends on:** T-8.7.
+- **Outputs:** `tests/e2e/full-run.spec.ts` extended to verify a run that uses at least one buff/debuff and one AoE action meaningfully (asserting on the rendered status badge and the AoE flash). README "Current State" section refreshed via the `refresh-readme` skill.
+- **Acceptance:** `pnpm check` green; visual check in the browser of a v0.8 run; no regressions.
+
+### Dependency summary
+
+```
+T-8.1 → T-8.2 → T-8.3 → (T-8.4 ‖ T-8.5) → T-8.6 → T-8.7 → T-8.8
+```
+
+### Risks called out in advance
+
+- **Enemy AI authoring difficulty.** The existing interpreter has no `ally.lacks_status` condition — authoring "buff the ally that doesn't already have it" gambits is awkward. If T-8.7 hits this wall, a follow-up vocabulary expansion (`ally.lacks_status`, `enemy.count`) becomes v0.8.5 / v0.9 scope rather than retrofitting it mid-balance.
+- **Schema fragility around AoE selectors.** Some selectors (`enemy_column`) only make sense once column membership is decided — defer until M3 if it bogs down the schema; whole-side and row AoE are sufficient to ship the system.
+- **Retrofitting existing modules.** Tempting to "improve" taser/clamp/etc. with `appliesStatus` while the iron is hot. Default to *not* doing this in v0.8 to keep balance scope bounded; revisit per-module post-v0.8.
+
+---
+
+## v0.9 and beyond
+
+Likely themes: reach rules (front/middle/back row targeting + melee/ranged module reach), piercing & column mechanics, broader vocabulary expansion (movement actions, ally-status-aware conditions), flavor text between nodes, meta-progression / unlocks.
 
 ### Rough idea bucket (unscheduled)
 
 Captured to not be lost; scope, version, and ordering TBD.
 
 - **Visual + audio fidelity pass.** Today's combat is readable but flat — synthesized sounds are minimal, animations are mostly translate/scale tweens, and units look identical regardless of loadout. Raise the bar: **more distinct per-attack sounds** (character and texture, not just tone differences), **richer attack animations** (clear wind-up, impact, follow-through per attack kind so the player instantly reads what happened), and **visually attached modules** — a rocket-launcher module literally appears mounted on the chassis, a shield module overlays a visible plate, etc. Leans on the compositional DOM+SVG unit trees already set up in `setting.md` §4 (modules as runtime child elements). The diegetic payoff: the fact that the loot you picked changed your robot's body is *visible* during combat, not hidden in a menu.
-- **Action variety expansion.** Today's actions are single-target direct damage only. Add meaningful mechanical variety: **AoE** (hit multiple slots by row/column/radius), **multi-target** (chain or split damage across several units), **piercing** (damage passes through front-row to back-row), **burning / lingering effects** (damage-over-time, persistent zones), **debuffs** (reduce damage, slow, disable, apply status), **buffs** (raise damage, shield, haste on allies), and **heals** (restore HP on allies, potentially with conditions). Requires extending the combat event log (`status_applied`, `unit_repaired`, area-effect events), the gambit vocabulary (new conditions like `self.has_status`, new targeting selectors like `all_enemies_in_row`), and the render layer (visual language for AoE markers, status icons, lingering zones). Lands alongside or after the module system — most new actions ship as attack-module entries in the catalog.
 - **Top-bar scene navigation with popover editors.** Replace the current screen-swap state machine with a persistent top bar containing **Map**, **Units** (gambit editor), and **Battle** icons. Clicking an icon opens that view as a popover layered on the current scene, usable at any time — including *during* combat. Opening the gambit editor or map during combat **auto-pauses** the playback; closing resumes it. The gambit editor and map are **read-only during a fight** (inspection only, no edits or path changes), but fully editable between fights. The Battle icon, when no fight is active, either stays disabled or enters a **review mode** showing the last fight's event log for replay/scrubbing — decide which when building. Goal: let the player cross-check "why did my unit idle in round 3?" against its gambit list without losing combat context.
