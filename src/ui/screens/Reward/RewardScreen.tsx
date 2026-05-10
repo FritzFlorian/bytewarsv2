@@ -1,13 +1,16 @@
-// RewardScreen — v0.6 post-combat reward selection (T-6.13).
+// RewardScreen — v0.7 M4 post-combat reward selection (T-7.13).
 //
 // Shows 3 reward offers as cards. Picking a card surfaces the offer's sub-
 // picker (if any), then a Confirm button commits the choice.
 //
 // Sub-pickers per reward kind:
-//   heal_one  → pick a unit (living, dead, or sitting-out — all valid, Q-R5)
-//   heal_all  → no sub-picker; auto-applies to every living unit
-//   rule_slot → pick a unit not already at the cap (capped units disabled)
-//   new_unit  → pick an empty grid slot (3 rows × 3 columns = 9 slots)
+//   heal_one      → pick a unit (living, dead, or sitting-out — all valid, Q-R5)
+//   heal_all      → no sub-picker; auto-applies to every living unit
+//   module_drop   → pick a unit with a free slot of the matching type
+//                   (if no unit has space, card is marked "no space" and unselectable)
+//   remove_module → pick a unit, then pick a module to remove
+//                   (cannot remove last active module)
+//   new_unit      → pick an empty grid slot (3 rows × 3 columns = 9 slots)
 //
 // The screen stays mounted until onCommit fires; App.tsx swaps phases after.
 
@@ -21,8 +24,17 @@ import type {
   Row,
   Column,
   StarterPreset,
+  ActiveModuleDef,
+  PassiveModuleDef,
 } from '../../../logic'
-import { getRecruitmentPreset, toUnitInstance, RULE_SLOT_CAP } from '../../../logic'
+import {
+  getRecruitmentPreset,
+  getModuleDef,
+  getActiveModuleDef,
+  getPassiveModuleDef,
+  getChassisDef,
+  toUnitInstance,
+} from '../../../logic'
 import styles from './RewardScreen.module.css'
 
 // ── Props ────────────────────────────────────────────────────────────
@@ -43,14 +55,48 @@ function chassisLabel(c: string): string {
   return c.charAt(0).toUpperCase() + c.slice(1).replace('_', '-').replace('-', ' ')
 }
 
+function moduleDescription(moduleDef: ActiveModuleDef | PassiveModuleDef): string {
+  if (moduleDef.type === 'active') {
+    if (moduleDef.actionKind === 'attack') {
+      const p = moduleDef.attackProperties
+      const parts = [`${p.damage} dmg`]
+      if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
+      return parts.join(', ')
+    }
+    const p = moduleDef.healProperties
+    const parts = [`${p.healAmount} heal`]
+    if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
+    return parts.join(', ')
+  }
+  // Passive
+  return moduleDef.effects
+    .map(e => {
+      switch (e.kind) {
+        case 'bonus_hp':
+          return `+${e.value} HP`
+        case 'bonus_damage':
+          return `+${e.value} damage`
+        case 'extra_active_slot':
+          return `+${e.value} active slot`
+        case 'extra_rule_slot':
+          return `+${e.value} rule slot`
+      }
+    })
+    .join(', ')
+}
+
 function offerTitle(r: Reward): string {
   switch (r.kind) {
     case 'heal_one':
       return 'Full Heal (one unit)'
     case 'heal_all':
       return 'Partial Heal (all units)'
-    case 'rule_slot':
-      return '+1 Rule Slot'
+    case 'module_drop': {
+      const def = getModuleDef(r.moduleId)
+      return def.name
+    }
+    case 'remove_module':
+      return 'Remove Module'
     case 'new_unit':
       return 'New Unit'
   }
@@ -62,11 +108,14 @@ function offerDescription(r: Reward): string {
       return 'Restore one unit to full HP. Revives a sitting-out unit.'
     case 'heal_all':
       return 'Heal every living unit by 50% of max HP.'
-    case 'rule_slot':
-      return `Add one rule slot to a unit (cap ${RULE_SLOT_CAP}).`
+    case 'module_drop': {
+      const def = getModuleDef(r.moduleId)
+      const typeLabel = def.type === 'active' ? 'Active' : 'Passive'
+      return `${typeLabel} module: ${moduleDescription(def)}`
+    }
+    case 'remove_module':
+      return 'Destroy one installed module to free up a slot.'
     case 'new_unit':
-      // getRecruitmentPreset throws on unknown id, but r.presetId is typed as a
-      // valid id so this is safe; still, guard for display.
       try {
         const p = getRecruitmentPreset(r.presetId)
         return `Add ${p.name} (${chassisLabel(p.chassis)}) to your squad.`
@@ -79,14 +128,29 @@ function offerDescription(r: Reward): string {
 function offerIcon(r: Reward): string {
   switch (r.kind) {
     case 'heal_one':
-      return '♥'
+      return '\u2665'
     case 'heal_all':
-      return '✚'
-    case 'rule_slot':
-      return '⚙'
+      return '\u271A'
+    case 'module_drop': {
+      const def = getModuleDef(r.moduleId)
+      return def.type === 'active' ? '\u2694' : '\u26E8'
+    }
+    case 'remove_module':
+      return '\u2716'
     case 'new_unit':
-      return '＋'
+      return '\uFF0B'
   }
+}
+
+/** Check if any player unit can accept a module of the given type. */
+function anyUnitCanInstall(units: Unit[], moduleId: string): boolean {
+  const def = getModuleDef(moduleId)
+  return units.some(u => (def.type === 'active' ? u.canInstallActive() : u.canInstallPassive()))
+}
+
+/** Check if any player unit has a removable module. */
+function anyUnitHasRemovableModule(units: Unit[]): boolean {
+  return units.some(u => u.activeModules.length > 1 || u.passiveModules.length > 0)
 }
 
 function slotKey(s: SlotRef): string {
@@ -98,9 +162,7 @@ function slotKey(s: SlotRef): string {
 interface UnitPickerProps {
   units: Unit[]
   runState: RunState
-  /** (unitId) → whether this unit is a valid target for the chosen reward. */
   isEligible: (unitId: string) => boolean
-  /** Optional label shown next to each unit (e.g. slot count). */
   extraLabel?: (unitId: string) => string
   selectedUnitId: string | null
   onSelect: (unitId: string) => void
@@ -151,6 +213,69 @@ function UnitPicker({
   )
 }
 
+// ── Sub-picker: pick a module to remove ─────────────────────────────
+
+interface ModulePickerProps {
+  unit: Unit
+  selectedIndex: number | null
+  selectedType: 'active' | 'passive' | null
+  onSelect: (index: number, type: 'active' | 'passive', defId: string) => void
+}
+
+function ModulePicker({ unit, selectedIndex, selectedType, onSelect }: ModulePickerProps) {
+  return (
+    <div className={styles.modulePickerList}>
+      {unit.activeModules.map((m, i) => {
+        const def = getActiveModuleDef(m.defId)
+        const isLast = unit.activeModules.length <= 1
+        const isSelected = selectedType === 'active' && selectedIndex === i
+        const cls = [
+          styles.modulePickerItem,
+          isLast ? styles.modulePickerItemDisabled : '',
+          isSelected ? styles.modulePickerItemSelected : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+        return (
+          <button
+            key={`active-${i}`}
+            type="button"
+            className={cls}
+            disabled={isLast}
+            onClick={() => onSelect(i, 'active', m.defId)}
+          >
+            <span className={styles.modulePickerLabel}>
+              <span className={styles.modulePickerType}>Active</span> {def.name}
+            </span>
+            <span className={styles.modulePickerStats}>{moduleDescription(def)}</span>
+            {isLast && <span className={styles.modulePickerTag}>last active — cannot remove</span>}
+          </button>
+        )
+      })}
+      {unit.passiveModules.map((m, i) => {
+        const def = getPassiveModuleDef(m.defId)
+        const isSelected = selectedType === 'passive' && selectedIndex === i
+        const cls = [styles.modulePickerItem, isSelected ? styles.modulePickerItemSelected : '']
+          .filter(Boolean)
+          .join(' ')
+        return (
+          <button
+            key={`passive-${i}`}
+            type="button"
+            className={cls}
+            onClick={() => onSelect(i, 'passive', m.defId)}
+          >
+            <span className={styles.modulePickerLabel}>
+              <span className={styles.modulePickerType}>Passive</span> {def.name}
+            </span>
+            <span className={styles.modulePickerStats}>{moduleDescription(def)}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── Sub-picker: pick a grid slot ─────────────────────────────────────
 
 interface SlotPickerProps {
@@ -192,7 +317,7 @@ function SlotPicker({ preset, occupied, selectedSlot, onSelect }: SlotPickerProp
                   onClick={() => onSelect(ref)}
                   aria-label={`slot ${row} ${column}`}
                 >
-                  {isOccupied ? '•' : '＋'}
+                  {isOccupied ? '\u2022' : '\uFF0B'}
                 </button>
               )
             })}
@@ -207,24 +332,61 @@ function SlotPicker({ preset, occupied, selectedSlot, onSelect }: SlotPickerProp
 
 export function RewardScreen({ offers, playerUnits, runState, onCommit }: RewardScreenProps) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+
+  // Sub-picker state
   const [heal1Target, setHeal1Target] = useState<string | null>(null)
-  const [ruleSlotTarget, setRuleSlotTarget] = useState<string | null>(null)
+  const [moduleDropTarget, setModuleDropTarget] = useState<string | null>(null)
+  const [removeModuleUnitId, setRemoveModuleUnitId] = useState<string | null>(null)
+  const [removeModuleIndex, setRemoveModuleIndex] = useState<number | null>(null)
+  const [removeModuleType, setRemoveModuleType] = useState<'active' | 'passive' | null>(null)
+  const [removeModuleDefId, setRemoveModuleDefId] = useState<string | null>(null)
   const [newUnitSlot, setNewUnitSlot] = useState<SlotRef | null>(null)
 
   const selectedOffer = selectedIndex !== null ? offers[selectedIndex] : null
 
-  // Pick a card → reset that card's own sub-selection so old picks don't
-  // bleed across if the player changes their mind.
   function handlePickCard(i: number) {
     setSelectedIndex(i)
     setHeal1Target(null)
-    setRuleSlotTarget(null)
+    setModuleDropTarget(null)
+    setRemoveModuleUnitId(null)
+    setRemoveModuleIndex(null)
+    setRemoveModuleType(null)
+    setRemoveModuleDefId(null)
     setNewUnitSlot(null)
   }
 
-  // Occupied grid slots across *all* player units (including sitting-out —
-  // they still own their slot; reviving them shouldn't clash).
+  function handleRemoveUnitSelect(unitId: string) {
+    setRemoveModuleUnitId(unitId)
+    setRemoveModuleIndex(null)
+    setRemoveModuleType(null)
+    setRemoveModuleDefId(null)
+  }
+
+  function handleRemoveModuleSelect(index: number, type: 'active' | 'passive', defId: string) {
+    setRemoveModuleIndex(index)
+    setRemoveModuleType(type)
+    setRemoveModuleDefId(defId)
+  }
+
+  // Occupied grid slots.
   const occupiedSlots = new Set(playerUnits.map(u => slotKey(u.slot)))
+
+  // Check if module_drop offers are selectable (any unit has a free slot).
+  function isModuleDropSelectable(offer: Reward): boolean {
+    if (offer.kind !== 'module_drop') return true
+    return anyUnitCanInstall(playerUnits, offer.moduleId)
+  }
+
+  // Check if remove_module offers are selectable.
+  function isRemoveModuleSelectable(): boolean {
+    return anyUnitHasRemovableModule(playerUnits)
+  }
+
+  function isOfferSelectable(offer: Reward): boolean {
+    if (offer.kind === 'module_drop') return isModuleDropSelectable(offer)
+    if (offer.kind === 'remove_module') return isRemoveModuleSelectable()
+    return true
+  }
 
   const selection: RewardSelection | null = (() => {
     if (!selectedOffer) return null
@@ -233,12 +395,23 @@ export function RewardScreen({ offers, playerUnits, runState, onCommit }: Reward
         return { kind: 'heal_all' }
       case 'heal_one':
         return heal1Target ? { kind: 'heal_one', targetUnitId: heal1Target } : null
-      case 'rule_slot':
-        return ruleSlotTarget ? { kind: 'rule_slot', targetUnitId: ruleSlotTarget } : null
+      case 'module_drop':
+        return moduleDropTarget ? { kind: 'module_drop', targetUnitId: moduleDropTarget } : null
+      case 'remove_module':
+        return removeModuleUnitId !== null &&
+          removeModuleIndex !== null &&
+          removeModuleType !== null &&
+          removeModuleDefId !== null
+          ? {
+              kind: 'remove_module',
+              targetUnitId: removeModuleUnitId,
+              moduleIndex: removeModuleIndex,
+              moduleType: removeModuleType,
+              moduleDefId: removeModuleDefId,
+            }
+          : null
       case 'new_unit': {
         if (!newUnitSlot) return null
-        // Generate a deterministic-ish new unit id: preset + slot so re-clicking
-        // the same slot in the same session wouldn't collide.
         const newId = `player-${selectedOffer.presetId}-${slotKey(newUnitSlot)}`
         return { kind: 'new_unit', newUnitId: newId, slot: newUnitSlot }
       }
@@ -256,6 +429,10 @@ export function RewardScreen({ offers, playerUnits, runState, onCommit }: Reward
     }
   }
 
+  const removeModuleUnit = removeModuleUnitId
+    ? (playerUnits.find(u => u.id === removeModuleUnitId) ?? null)
+    : null
+
   return (
     <div className={styles.screen}>
       <header className={styles.header}>
@@ -264,18 +441,23 @@ export function RewardScreen({ offers, playerUnits, runState, onCommit }: Reward
       </header>
 
       <div className={styles.offersRow}>
-        {offers.map((offer, i) => (
-          <button
-            key={i}
-            type="button"
-            className={`${styles.offerCard} ${selectedIndex === i ? styles.offerCardSelected : ''}`}
-            onClick={() => handlePickCard(i)}
-          >
-            <span className={styles.offerIcon}>{offerIcon(offer)}</span>
-            <span className={styles.offerTitle}>{offerTitle(offer)}</span>
-            <span className={styles.offerDescription}>{offerDescription(offer)}</span>
-          </button>
-        ))}
+        {offers.map((offer, i) => {
+          const selectable = isOfferSelectable(offer)
+          return (
+            <button
+              key={i}
+              type="button"
+              className={`${styles.offerCard} ${selectedIndex === i ? styles.offerCardSelected : ''} ${!selectable ? styles.offerCardDisabled : ''}`}
+              onClick={() => selectable && handlePickCard(i)}
+              disabled={!selectable}
+            >
+              <span className={styles.offerIcon}>{offerIcon(offer)}</span>
+              <span className={styles.offerTitle}>{offerTitle(offer)}</span>
+              <span className={styles.offerDescription}>{offerDescription(offer)}</span>
+              {!selectable && <span className={styles.offerNoSpace}>no space</span>}
+            </button>
+          )
+        })}
       </div>
 
       <section className={styles.subSection}>
@@ -302,21 +484,62 @@ export function RewardScreen({ offers, playerUnits, runState, onCommit }: Reward
           </>
         )}
 
-        {selectedOffer?.kind === 'rule_slot' && (
+        {selectedOffer?.kind === 'module_drop' && (
           <>
-            <p className={styles.subHeading}>Pick a unit to gain an extra rule slot:</p>
+            <p className={styles.subHeading}>
+              Pick a unit to install <strong>{getModuleDef(selectedOffer.moduleId).name}</strong>{' '}
+              on:
+            </p>
             <UnitPicker
               units={playerUnits}
               runState={runState}
-              isEligible={id => (runState.ruleSlotsMap[id] ?? 2) < RULE_SLOT_CAP}
-              extraLabel={id =>
-                `${runState.ruleSlotsMap[id] ?? 2} / ${RULE_SLOT_CAP} slots${
-                  (runState.ruleSlotsMap[id] ?? 2) >= RULE_SLOT_CAP ? ' (capped)' : ''
-                }`
-              }
-              selectedUnitId={ruleSlotTarget}
-              onSelect={setRuleSlotTarget}
+              isEligible={id => {
+                const unit = playerUnits.find(u => u.id === id)
+                if (!unit) return false
+                const def = getModuleDef(selectedOffer.moduleId)
+                return def.type === 'active' ? unit.canInstallActive() : unit.canInstallPassive()
+              }}
+              extraLabel={id => {
+                const unit = playerUnits.find(u => u.id === id)
+                if (!unit) return ''
+                const def = getModuleDef(selectedOffer.moduleId)
+                if (def.type === 'active') {
+                  return `${unit.activeModules.length}/${unit.effectiveActiveSlots} active`
+                }
+                const chassisDef = getChassisDef(unit.chassis)
+                return `${unit.passiveModules.length}/${chassisDef.passiveSlots} passive`
+              }}
+              selectedUnitId={moduleDropTarget}
+              onSelect={setModuleDropTarget}
             />
+          </>
+        )}
+
+        {selectedOffer?.kind === 'remove_module' && (
+          <>
+            <p className={styles.subHeading}>Pick a unit, then a module to remove:</p>
+            <UnitPicker
+              units={playerUnits}
+              runState={runState}
+              isEligible={id => {
+                const unit = playerUnits.find(u => u.id === id)
+                if (!unit) return false
+                return unit.activeModules.length > 1 || unit.passiveModules.length > 0
+              }}
+              selectedUnitId={removeModuleUnitId}
+              onSelect={handleRemoveUnitSelect}
+            />
+            {removeModuleUnit && (
+              <div className={styles.modulePickerSection}>
+                <p className={styles.subHeading}>Select module to destroy:</p>
+                <ModulePicker
+                  unit={removeModuleUnit}
+                  selectedIndex={removeModuleIndex}
+                  selectedType={removeModuleType}
+                  onSelect={handleRemoveModuleSelect}
+                />
+              </div>
+            )}
           </>
         )}
 

@@ -37,24 +37,28 @@ test('combat → reward → map cycle', async ({ page }) => {
 
   await page.screenshot({ path: `${OUT}/06-reward.png`, fullPage: true })
 
-  // Pick the first offer card.
-  const offerCards = page
-    .locator('button')
-    .filter({ hasText: /Full Heal|Partial Heal|Rule Slot|New Unit/ })
+  // Pick the first selectable offer card (skip disabled "no space" cards).
+  const offerCards = page.locator('[class*="offerCard"]:not([disabled])')
   const firstOffer = offerCards.first()
   const firstOfferText = (await firstOffer.textContent()) ?? ''
   await firstOffer.click()
 
   // If the offer needs a sub-pick, make one. Heal-all is the only no-sub-pick
-  // kind; otherwise click the first eligible target / slot.
+  // kind; otherwise click the first eligible target / slot / module.
   const needsSubPick = !firstOfferText.includes('Partial Heal')
   if (needsSubPick) {
     // Target buttons appear inside the sub-section. Click the first enabled
     // unit-picker button or slot-picker cell.
     const targetBtn = page
-      .locator('[class*="unitItem"]:not([disabled]), [class*="slotCellEmpty"]')
+      .locator('button[class*="unitItem"]:not([disabled]), button[class*="slotCellEmpty"]')
       .first()
     await targetBtn.click()
+
+    // Remove-module needs a second sub-pick (choose which module to remove).
+    if (firstOfferText.includes('Remove Module')) {
+      const moduleBtn = page.locator('[class*="modulePickerItem"]:not([disabled])').first()
+      await moduleBtn.click()
+    }
   }
 
   await expect(confirm).toBeEnabled()

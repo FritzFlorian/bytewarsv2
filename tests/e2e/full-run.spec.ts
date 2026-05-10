@@ -47,19 +47,23 @@ test('draft → map → fight → reward → map cycle', async ({ page }) => {
   if (gotReward) {
     await page.screenshot({ path: `${OUT}/full-run-02-reward.png`, fullPage: true })
 
-    // Pick the first offer (with sub-pick if needed) and confirm.
-    const offerCards = page
-      .locator('button')
-      .filter({ hasText: /Full Heal|Partial Heal|Rule Slot|New Unit/ })
+    // Pick the first selectable offer (with sub-pick if needed) and confirm.
+    const offerCards = page.locator('[class*="offerCard"]:not([disabled])')
     const firstOffer = offerCards.first()
     const firstOfferText = (await firstOffer.textContent()) ?? ''
     await firstOffer.click()
 
     if (!firstOfferText.includes('Partial Heal')) {
       const targetBtn = page
-        .locator('[class*="unitItem"]:not([disabled]), [class*="slotCellEmpty"]')
+        .locator('button[class*="unitItem"]:not([disabled]), button[class*="slotCellEmpty"]')
         .first()
       await targetBtn.click()
+
+      // Remove-module needs a second sub-pick (choose which module).
+      if (firstOfferText.includes('Remove Module')) {
+        const moduleBtn = page.locator('[class*="modulePickerItem"]:not([disabled])').first()
+        await moduleBtn.click()
+      }
     }
 
     await page.getByRole('button', { name: 'Confirm' }).click()

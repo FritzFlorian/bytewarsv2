@@ -1,7 +1,7 @@
-// Full-run simulator (T-6.16).
+// Full-run simulator (T-6.16, updated T-7.12).
 //
 // Plays a complete Bytewars run end-to-end at the logic layer with no UI:
-//   - Draws starter squad
+//   - Draws starter squad (draft flow: 3+3 options, auto-pick first of each)
 //   - Generates map
 //   - Walks node-by-node, picking the first reachable target each step
 //   - Resolves combat, applies rewards (auto-pick), and keeps going
@@ -30,7 +30,7 @@ import {
   clearPendingRewardOffers,
   createRng,
   getRecruitmentPreset,
-  RULE_SLOT_CAP,
+  getModuleDef,
 } from '../../src/logic'
 import type {
   Unit,
@@ -98,7 +98,6 @@ function resolveCombat(
       winner = e.winner
     }
   }
-  // BattleResult only carries player-unit survivingHp for progression purposes.
   const survivingHp: Record<string, number> = {}
   for (const u of playerUnits) survivingHp[u.id] = hps[u.id] ?? 0
   return { events, result: { winner, survivingHp } }
@@ -106,22 +105,17 @@ function resolveCombat(
 
 /** Pick first reachable node — deterministic for a given map. */
 function pickNextNode(run: RunState): MapNode {
-  // Slight bias: prefer elite + repair_bay nodes when reachable so the
-  // simulator exercises every node type. Falls back to first reachable.
   const reachable = run.graph.edges
     .filter(e => e.from === (run.currentNodeId ?? ''))
     .map(eid => run.graph.nodes.find(n => n.id === eid.to)!)
     .filter(Boolean)
 
-  // Special-case the very first move (no edges from null).
   if (run.currentNodeId === null) {
     const minCol = Math.min(...run.graph.nodes.map(n => n.column))
     const opts = run.graph.nodes.filter(n => n.column === minCol)
     return opts.find(n => n.type === 'combat') ?? opts[0]
   }
 
-  // Auto-pilot heuristic: prefer repair_bay (free heal), then combat (safer
-  // than elite), then elite, then boss only when no other option.
   return (
     reachable.find(n => n.type === 'repair_bay') ??
     reachable.find(n => n.type === 'combat') ??
@@ -136,12 +130,16 @@ function autoSelectReward(
   reward: Reward,
   run: RunState,
   units: Unit[],
-): { selection: RewardSelection; newUnit?: Unit } {
+): {
+  selection: RewardSelection
+  newUnit?: Unit
+  installModule?: { unitIndex: number; moduleId: string }
+  removeModule?: { unitIndex: number; moduleIndex: number; moduleType: 'active' | 'passive' }
+} {
   switch (reward.kind) {
     case 'heal_all':
       return { selection: { kind: 'heal_all' } }
     case 'heal_one': {
-      // Pick the lowest-HP living unit (or any if none qualify).
       const living = units.filter(u => (run.hpSnapshot[u.id] ?? 0) > 0)
       const target = living.length
         ? living.reduce((a, b) =>
@@ -150,12 +148,65 @@ function autoSelectReward(
         : units[0]
       return { selection: { kind: 'heal_one', targetUnitId: target.id } }
     }
-    case 'rule_slot': {
-      const target = units.find(u => (run.ruleSlotsMap[u.id] ?? 0) < RULE_SLOT_CAP) ?? units[0]
-      return { selection: { kind: 'rule_slot', targetUnitId: target.id } }
+    case 'module_drop': {
+      const moduleDef = getModuleDef(reward.moduleId)
+      const eligible = units.filter(u =>
+        moduleDef.type === 'active' ? u.canInstallActive() : u.canInstallPassive(),
+      )
+      if (eligible.length === 0) {
+        // No unit can take this module — pick first unit anyway (reward is
+        // effectively wasted, but we need a valid selection for the logic).
+        // In the real UI this card would be unselectable.
+        return { selection: { kind: 'module_drop', targetUnitId: units[0].id } }
+      }
+      const target = eligible[0]
+      return {
+        selection: { kind: 'module_drop', targetUnitId: target.id },
+        installModule: { unitIndex: units.indexOf(target), moduleId: reward.moduleId },
+      }
+    }
+    case 'remove_module': {
+      // Find a unit with a removable module (passive or non-last active).
+      const eligible = units.filter(u => u.activeModules.length > 1 || u.passiveModules.length > 0)
+      if (eligible.length === 0) {
+        // No removable modules — effectively wasted.
+        return {
+          selection: {
+            kind: 'remove_module',
+            targetUnitId: units[0].id,
+            moduleIndex: 0,
+            moduleType: 'active',
+            moduleDefId: units[0].activeModules[0].defId,
+          },
+        }
+      }
+      const target = eligible[0]
+      // Prefer removing a passive module; else remove a non-last active.
+      if (target.passiveModules.length > 0) {
+        return {
+          selection: {
+            kind: 'remove_module',
+            targetUnitId: target.id,
+            moduleIndex: 0,
+            moduleType: 'passive',
+            moduleDefId: target.passiveModules[0].defId,
+          },
+          removeModule: { unitIndex: units.indexOf(target), moduleIndex: 0, moduleType: 'passive' },
+        }
+      }
+      // Remove the second active module (first is kept as the >=1 guarantee).
+      return {
+        selection: {
+          kind: 'remove_module',
+          targetUnitId: target.id,
+          moduleIndex: 1,
+          moduleType: 'active',
+          moduleDefId: target.activeModules[1].defId,
+        },
+        removeModule: { unitIndex: units.indexOf(target), moduleIndex: 1, moduleType: 'active' },
+      }
     }
     case 'new_unit': {
-      // Find first empty slot in the 3×3 player grid.
       const occupied = new Set(units.map(u => `${u.slot.row}-${u.slot.column}`))
       const rows: ('front' | 'middle' | 'back')[] = ['front', 'middle', 'back']
       let chosen: { row: 'front' | 'middle' | 'back'; column: 0 | 1 | 2 } | null = null
@@ -168,9 +219,6 @@ function autoSelectReward(
         }
       }
       if (!chosen) {
-        // Grid full — selection is still required, pick the first slot. The
-        // reward will overwrite hp/ruleSlots in maps; the new Unit object is
-        // discarded by the caller (but we still need a valid selection).
         chosen = { row: 'front', column: 0 }
       }
       const preset = getRecruitmentPreset(reward.presetId)
@@ -194,9 +242,7 @@ function autoSelectReward(
 
 export interface RunOutcome {
   status: 'won' | 'lost'
-  /** Visited node types in order, ending with the final node. */
   path: { nodeId: string; type: 'combat' | 'elite' | 'boss' | 'repair_bay' }[]
-  /** Final HP map after the run ends. */
   finalHp: Record<string, number>
 }
 
@@ -217,7 +263,6 @@ export function simulateFullRun(seed: number): RunOutcome {
 
     if (next.type === 'repair_bay') {
       run = applyRepairBay(run)
-      // Sync unit hp from snapshot.
       units = units.map(u => {
         const clone = u.clone()
         clone.hp = run.hpSnapshot[u.id] ?? u.hp
@@ -226,7 +271,6 @@ export function simulateFullRun(seed: number): RunOutcome {
       continue
     }
 
-    // Combat / elite / boss: pick fixture, fight, apply result.
     let enemyUnits
     if (next.type === 'boss') enemyUnits = bossEncounterFixture().enemyUnits
     else if (next.type === 'elite') {
@@ -250,7 +294,6 @@ export function simulateFullRun(seed: number): RunOutcome {
       return clone
     })
 
-    // After non-boss wins, apply a reward.
     if (
       run.status === 'active' &&
       result.winner === 'player' &&
@@ -262,18 +305,48 @@ export function simulateFullRun(seed: number): RunOutcome {
         next.type === 'elite' ? 'elite' : 'combat',
       )
       run = setPendingRewardOffers(run, offers)
-      // Auto-pick: prefer heal_all > heal_one > new_unit > rule_slot.
-      const ranked = [...offers].sort((a, b) => priorityOf(a) - priorityOf(b))
+      // Auto-pick: prefer heal_all > heal_one > module_drop > new_unit > remove_module.
+      const ranked = [...offers].sort((a, b) => priorityOf(a, units) - priorityOf(b, units))
       const reward = ranked[0]
-      const { selection, newUnit } = autoSelectReward(reward, run, units)
+      const { selection, newUnit, installModule, removeModule } = autoSelectReward(
+        reward,
+        run,
+        units,
+      )
       run = applyReward(run, reward, selection)
       run = clearPendingRewardOffers(run)
+
+      // Apply module changes to units.
+      if (installModule) {
+        const target = units[installModule.unitIndex]
+        const clone = target.clone()
+        const moduleDef = getModuleDef(installModule.moduleId)
+        if (moduleDef.type === 'active') {
+          clone.installActive(installModule.moduleId)
+        } else {
+          clone.installPassive(installModule.moduleId)
+        }
+        units = units.map((u, i) => (i === installModule.unitIndex ? clone : u))
+      }
+
+      if (removeModule) {
+        const target = units[removeModule.unitIndex]
+        const clone = target.clone()
+        if (removeModule.moduleType === 'active') {
+          clone.removeActive(removeModule.moduleIndex)
+        } else {
+          clone.removePassive(removeModule.moduleIndex)
+        }
+        units = units.map((u, i) => (i === removeModule.unitIndex ? clone : u))
+      }
+
       if (reward.kind === 'new_unit' && newUnit) {
         const occupied = new Set(units.map(u => `${u.slot.row}-${u.slot.column}`))
         if (!occupied.has(`${newUnit.slot.row}-${newUnit.slot.column}`)) {
           units = [...units, newUnit]
         }
       }
+
       units = units.map(u => {
         const clone = u.clone()
         clone.hp = run.hpSnapshot[u.id] ?? u.hp
@@ -289,15 +362,25 @@ export function simulateFullRun(seed: number): RunOutcome {
   }
 }
 
-function priorityOf(r: Reward): number {
+function priorityOf(r: Reward, units: Unit[]): number {
   switch (r.kind) {
     case 'heal_all':
       return 0
     case 'heal_one':
       return 1
+    case 'module_drop': {
+      // Deprioritize if no unit can actually install this module.
+      const moduleDef = getModuleDef(r.moduleId)
+      const canInstall = units.some(u =>
+        moduleDef.type === 'active' ? u.canInstallActive() : u.canInstallPassive(),
+      )
+      return canInstall ? 2 : 10
+    }
     case 'new_unit':
-      return 2
-    case 'rule_slot':
       return 3
+    case 'remove_module': {
+      const canRemove = units.some(u => u.activeModules.length > 1 || u.passiveModules.length > 0)
+      return canRemove ? 4 : 10
+    }
   }
 }

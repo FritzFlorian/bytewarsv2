@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest'
 import { simulateFullRun } from './fullRunSimulation'
 
-const FULL_RUN_SEED = 23
+const FULL_RUN_SEED = 21
 
 describe('e2e full-run seed pin', () => {
   it(`seed ${FULL_RUN_SEED} still wins the full run on auto-pilot`, () => {

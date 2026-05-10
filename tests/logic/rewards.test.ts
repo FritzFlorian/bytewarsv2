@@ -1,4 +1,4 @@
-// Tests for the reward pool + apply logic (T-6.9).
+// Tests for the reward pool + apply logic (T-7.12, reworked from T-6.9).
 
 import { describe, it, expect } from 'vitest'
 import { createRng } from '../../src/logic/rng'
@@ -6,7 +6,6 @@ import { generateMap } from '../../src/logic/map/generate'
 import { createRunState } from '../../src/logic/map/navigation'
 import {
   applyReward,
-  RULE_SLOT_CAP,
   HEAL_ALL_PCT,
   setPendingRewardOffers,
   clearPendingRewardOffers,
@@ -15,6 +14,7 @@ import { drawRewardOffers, COMBAT_WEIGHTS, ELITE_WEIGHTS } from '../../src/logic
 import type { RunState } from '../../src/logic/map/types'
 import type { Reward, RewardKind } from '../../src/logic/rewards/types'
 import { getAllStarterPresets, toUnitInstance } from '../../src/logic/content/starterPresetLoader'
+import { getModulesForSide } from '../../src/logic/content/moduleLoader'
 import { UnitInstance } from '../../src/logic/state/UnitInstance'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -42,7 +42,6 @@ function makeRun(overrides?: Partial<RunState>): RunState {
     [],
   )
   const base = createRunState(map, [u1, u2])
-  // The createRunState helper sets hp from unit.hp; force u2 to its damaged value.
   return {
     ...base,
     hpSnapshot: { u1: 50, u2: 20 },
@@ -54,7 +53,8 @@ function distribution(samples: Reward[]): Record<RewardKind, number> {
   const out: Record<RewardKind, number> = {
     heal_one: 0,
     heal_all: 0,
-    rule_slot: 0,
+    module_drop: 0,
+    remove_module: 0,
     new_unit: 0,
   }
   for (const r of samples) out[r.kind]++
@@ -75,9 +75,22 @@ describe('drawRewardOffers', () => {
     expect(a).toEqual(b)
   })
 
-  it('new_unit offers carry a presetId from the starter pool', () => {
+  it('module_drop offers carry a moduleId from the player-available pool', () => {
+    const validIds = new Set(getModulesForSide('player').map(m => m.id))
+    let seenModuleDrop = false
+    for (let seed = 0; seed < 200; seed++) {
+      for (const offer of drawRewardOffers(createRng(seed), 'combat')) {
+        if (offer.kind === 'module_drop') {
+          expect(validIds.has(offer.moduleId)).toBe(true)
+          seenModuleDrop = true
+        }
+      }
+    }
+    expect(seenModuleDrop).toBe(true)
+  })
+
+  it('new_unit offers carry a presetId from the recruitment pool', () => {
     const validIds = new Set(getAllStarterPresets().map(p => p.id))
-    // Run many seeds to surface any new_unit draws.
     let seenNewUnit = false
     for (let seed = 0; seed < 200; seed++) {
       for (const offer of drawRewardOffers(createRng(seed), 'combat')) {
@@ -90,7 +103,7 @@ describe('drawRewardOffers', () => {
     expect(seenNewUnit).toBe(true)
   })
 
-  it('elite weighting shifts away from heals toward rule_slot/new_unit', () => {
+  it('elite weighting shifts toward module_drop and new_unit, away from heals', () => {
     const N = 4000
     const combat: Reward[] = []
     const elite: Reward[] = []
@@ -100,8 +113,8 @@ describe('drawRewardOffers', () => {
     }
     const c = distribution(combat)
     const e = distribution(elite)
-    // Both rule_slot and new_unit appear MORE often under elite weights.
-    expect(e.rule_slot).toBeGreaterThan(c.rule_slot)
+    // module_drop and new_unit appear MORE often under elite weights.
+    expect(e.module_drop).toBeGreaterThan(c.module_drop)
     expect(e.new_unit).toBeGreaterThan(c.new_unit)
     // Heals appear LESS often under elite weights.
     expect(e.heal_one).toBeLessThan(c.heal_one)
@@ -109,11 +122,29 @@ describe('drawRewardOffers', () => {
   })
 
   it('weight tables include every reward kind exactly once', () => {
-    const kinds: RewardKind[] = ['heal_one', 'heal_all', 'rule_slot', 'new_unit']
+    const kinds: RewardKind[] = ['heal_one', 'heal_all', 'module_drop', 'remove_module', 'new_unit']
     for (const k of kinds) {
       expect(COMBAT_WEIGHTS[k]).toBeGreaterThan(0)
       expect(ELITE_WEIGHTS[k]).toBeGreaterThan(0)
     }
+  })
+
+  it('module_drop rarity weighting favours common modules', () => {
+    // Over many draws, rarity-1 modules should appear much more often than rarity-4.
+    const modules = getModulesForSide('player').filter(m => m.rarity !== undefined)
+    const counts = new Map<number, number>()
+    for (const m of modules) counts.set(m.rarity!, 0)
+
+    for (let seed = 0; seed < 2000; seed++) {
+      for (const offer of drawRewardOffers(createRng(seed), 'combat')) {
+        if (offer.kind === 'module_drop') {
+          const def = modules.find(m => m.id === offer.moduleId)
+          if (def) counts.set(def.rarity!, (counts.get(def.rarity!) ?? 0) + 1)
+        }
+      }
+    }
+    // Rarity 1 should appear more than rarity 4.
+    expect(counts.get(1)!).toBeGreaterThan(counts.get(4)!)
   })
 })
 
@@ -123,7 +154,7 @@ describe('applyReward', () => {
   it('throws on reward/selection kind mismatch', () => {
     const run = makeRun()
     expect(() =>
-      applyReward(run, { kind: 'heal_all' }, { kind: 'rule_slot', targetUnitId: 'u1' }),
+      applyReward(run, { kind: 'heal_all' }, { kind: 'heal_one', targetUnitId: 'u1' }),
     ).toThrow()
   })
 
@@ -131,7 +162,6 @@ describe('applyReward', () => {
     it('restores the target unit to maxHp', () => {
       const run = makeRun()
       const next = applyReward(run, { kind: 'heal_one' }, { kind: 'heal_one', targetUnitId: 'u2' })
-      // maxHpMap for u2 was set from the unit's maxHp (butler chassis baseHp=70)
       expect(next.hpSnapshot.u2).toBe(70)
       expect(next.hpSnapshot.u1).toBe(50)
     })
@@ -158,9 +188,7 @@ describe('applyReward', () => {
     it('heals every living unit by HEAL_ALL_PCT of maxHp, capped at maxHp', () => {
       const run = makeRun()
       const next = applyReward(run, { kind: 'heal_all' }, { kind: 'heal_all' })
-      // u1 was at 50/70 → +35 (ceil(70 * 0.5)) = 70 (capped at maxHp=70).
       expect(next.hpSnapshot.u1).toBe(Math.min(70, 50 + Math.ceil(70 * HEAL_ALL_PCT)))
-      // u2 was at 20/70 → +35 (ceil(70 * 0.5)) = 55.
       expect(next.hpSnapshot.u2).toBe(20 + Math.ceil(70 * HEAL_ALL_PCT))
     })
 
@@ -174,38 +202,80 @@ describe('applyReward', () => {
     })
   })
 
-  describe('rule_slot', () => {
-    it('adds 1 slot to the chosen unit', () => {
+  describe('module_drop', () => {
+    it('active module drop does not change RunState snapshots', () => {
       const run = makeRun()
       const next = applyReward(
         run,
-        { kind: 'rule_slot' },
-        { kind: 'rule_slot', targetUnitId: 'u1' },
+        { kind: 'module_drop', moduleId: 'sweep' },
+        { kind: 'module_drop', targetUnitId: 'u1' },
       )
-      expect(next.ruleSlotsMap.u1).toBe(3)
-      expect(next.ruleSlotsMap.u2).toBe(2)
+      // Active modules don't affect RunState — only the unit object (handled by App.tsx).
+      expect(next.maxHpMap).toEqual(run.maxHpMap)
+      expect(next.ruleSlotsMap).toEqual(run.ruleSlotsMap)
     })
 
-    it('caps at RULE_SLOT_CAP — applying to a capped unit is a no-op', () => {
+    it('passive bonus_hp module updates maxHpMap and hpSnapshot', () => {
+      const run = makeRun()
+      const next = applyReward(
+        run,
+        { kind: 'module_drop', moduleId: 'reinforced_plating' },
+        { kind: 'module_drop', targetUnitId: 'u1' },
+      )
+      // reinforced_plating gives +15 bonus_hp.
+      expect(next.maxHpMap.u1).toBe(run.maxHpMap.u1 + 15)
+      expect(next.hpSnapshot.u1).toBe(run.hpSnapshot.u1 + 15)
+    })
+
+    it('passive extra_rule_slot module updates ruleSlotsMap', () => {
+      const run = makeRun()
+      const next = applyReward(
+        run,
+        { kind: 'module_drop', moduleId: 'logic_co_processor' },
+        { kind: 'module_drop', targetUnitId: 'u1' },
+      )
+      // logic_co_processor gives +1 extra_rule_slot.
+      expect(next.ruleSlotsMap.u1).toBe(run.ruleSlotsMap.u1 + 1)
+    })
+  })
+
+  describe('remove_module', () => {
+    it('passive bonus_hp module removal reduces maxHpMap and caps hpSnapshot', () => {
+      // Start with a unit that has reinforced_plating installed (via manual RunState setup).
       const run = makeRun({
-        ruleSlotsMap: { u1: RULE_SLOT_CAP, u2: 2 },
+        maxHpMap: { u1: 85, u2: 70 }, // u1 has +15 from reinforced_plating
+        hpSnapshot: { u1: 80, u2: 20 },
       })
       const next = applyReward(
         run,
-        { kind: 'rule_slot' },
-        { kind: 'rule_slot', targetUnitId: 'u1' },
+        { kind: 'remove_module' },
+        {
+          kind: 'remove_module',
+          targetUnitId: 'u1',
+          moduleIndex: 0,
+          moduleType: 'passive',
+          moduleDefId: 'reinforced_plating',
+        },
       )
-      expect(next.ruleSlotsMap.u1).toBe(RULE_SLOT_CAP)
+      expect(next.maxHpMap.u1).toBe(70) // 85 - 15
+      expect(next.hpSnapshot.u1).toBe(70) // capped at new max (was 80)
     })
 
-    it('is a no-op when the target id is unknown', () => {
+    it('active module removal does not change RunState snapshots', () => {
       const run = makeRun()
       const next = applyReward(
         run,
-        { kind: 'rule_slot' },
-        { kind: 'rule_slot', targetUnitId: 'ghost' },
+        { kind: 'remove_module' },
+        {
+          kind: 'remove_module',
+          targetUnitId: 'u1',
+          moduleIndex: 0,
+          moduleType: 'active',
+          moduleDefId: 'quick_jab',
+        },
       )
-      expect(next).toBe(run)
+      expect(next.maxHpMap).toEqual(run.maxHpMap)
+      expect(next.ruleSlotsMap).toEqual(run.ruleSlotsMap)
     })
   })
 
@@ -215,16 +285,11 @@ describe('applyReward', () => {
       const preset = getAllStarterPresets()[0]
       const run = makeRun()
       const slot = { side: 'player' as const, row: 'front' as const, column: 2 as const }
-      // Create a temporary UnitInstance to get the expected computed values
       const expectedUnit = toUnitInstance(preset, 'u3', 'player', slot)
       const next = applyReward(
         run,
         { kind: 'new_unit', presetId },
-        {
-          kind: 'new_unit',
-          newUnitId: 'u3',
-          slot,
-        },
+        { kind: 'new_unit', newUnitId: 'u3', slot },
       )
       expect(next.hpSnapshot.u3).toBe(expectedUnit.maxHp)
       expect(next.maxHpMap.u3).toBe(expectedUnit.maxHp)

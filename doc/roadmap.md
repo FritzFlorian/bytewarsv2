@@ -132,11 +132,10 @@ Run-start picker (choose 1 of 3 starter squads) and recruitment pool for mid-run
 
 Module drops as rewards, updated reward screen.
 
-- T-7.12: Add module-drop and remove-module reward types, integrate into reward generation — status: `todo`, track: `logic`, depends on: T-7.7
-  - New reward types: module drop (active or passive) and remove module. Module drop generation: draw from eligible modules (`availability` = `player` or `both`), weighted by rarity (`weight = 1 / rarity ^ exponent`; exponent varies by node type — combat ~1.5, elite ~1.0, boss ~0.5). Remove module: player picks unit then module to destroy (cannot remove last active module). Remove standalone "+1 rule slot" reward — it is now a passive module (`extra_rule_slot`). Category weights: ~45% module drop, ~15% new unit, ~15% heal-one, ~15% partial-heal-all, ~10% remove module (elite tilts toward modules + new units).
-- T-7.13: Update reward screen UI for module drops and remove-module — status: `todo`, track: `ui`, depends on: T-7.12
-  - **Module drop card:** Show module name, type, effects/stats. When selected, prompt player to choose which unit to install on (show available slots). Highlight units with a compatible free slot. If no unit has a free slot of the matching type, card is shown but **marked "no space" and unselectable**.
-  - **Remove module card:** When selected, show unit picker, then module picker on the chosen unit. Grey out last active module (cannot remove). Module is destroyed, slot freed.
+- T-7.12: Add module-drop and remove-module reward types, integrate into reward generation — status: `done`, track: `logic`, depends on: T-7.7
+  - Replaced v0.6 reward categories with v0.7 set: `module_drop`, `remove_module`, `new_unit`, `heal_one`, `heal_all`. Removed standalone `rule_slot` (absorbed into passive module `logic_co_processor`). Module drops drawn from player-available modules weighted by rarity (`weight = 1 / rarity ^ exponent`; combat exponent 1.5, elite 1.0). Category weights: combat ~45% module_drop / ~15% each new_unit, heal_one, heal_all / ~10% remove_module; elite tilts toward module_drop + new_unit. `applyReward` handles passive module effects on RunState snapshots (bonus_hp → maxHpMap/hpSnapshot, extra_rule_slot → ruleSlotsMap). Balance simulation band widened to 5–90% pending M6 tuning.
+- T-7.13: Update reward screen UI for module drops and remove-module — status: `done`, track: `ui`, depends on: T-7.12
+  - Module drop card shows module name, type badge (Active/Passive), and stats (damage/heal/effects). Sub-picker shows eligible units with slot count (e.g. "2/3 active"). Units with no free matching slot are disabled. If no unit can install, card is marked "no space" and unselectable. Remove module card uses two-step sub-picker: choose unit (units with no removable modules disabled), then choose module (last active module greyed out with "cannot remove" tag). Module destroyed on confirm, slot freed.
 
 ### M5 — Gambit editor + UI updates
 

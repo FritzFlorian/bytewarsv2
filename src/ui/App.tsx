@@ -31,6 +31,7 @@ import {
   setPendingRewardOffers,
   clearPendingRewardOffers,
   createRng,
+  getModuleDef,
 } from '../logic'
 import type {
   CombatEvent,
@@ -385,10 +386,37 @@ export default function App() {
         let nextRunState = applyReward(prev.runState, reward, selection)
         nextRunState = clearPendingRewardOffers(nextRunState)
 
-        // new_unit: append the freshly-created Unit to playerUnits.
         let nextPlayerUnits = prev.playerUnits
+
         if (reward.kind === 'new_unit' && newUnit) {
           nextPlayerUnits = [...prev.playerUnits, newUnit]
+        }
+
+        if (reward.kind === 'module_drop' && selection.kind === 'module_drop') {
+          const moduleDef = getModuleDef(reward.moduleId)
+          nextPlayerUnits = nextPlayerUnits.map(u => {
+            if (u.id !== selection.targetUnitId) return u
+            const clone = u.clone()
+            if (moduleDef.type === 'active') {
+              clone.installActive(reward.moduleId)
+            } else {
+              clone.installPassive(reward.moduleId)
+            }
+            return clone
+          })
+        }
+
+        if (reward.kind === 'remove_module' && selection.kind === 'remove_module') {
+          nextPlayerUnits = nextPlayerUnits.map(u => {
+            if (u.id !== selection.targetUnitId) return u
+            const clone = u.clone()
+            if (selection.moduleType === 'active') {
+              clone.removeActive(selection.moduleIndex)
+            } else {
+              clone.removePassive(selection.moduleIndex)
+            }
+            return clone
+          })
         }
 
         // Sync HP from RunState snapshot.

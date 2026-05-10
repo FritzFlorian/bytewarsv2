@@ -70,6 +70,25 @@
   box-shadow: 0 0 14px rgba(126, 184, 240, 0.35);
 }
 
+.offerCardDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.offerCardDisabled:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(200, 216, 240, 0.25);
+  transform: none;
+}
+
+.offerNoSpace {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #c07070;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .offerIcon {
   font-size: 2rem;
   line-height: 1;
@@ -279,4 +298,83 @@
 .confirmButton:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* ── Module picker (remove-module sub-picker) ────────────────────── */
+
+.modulePickerSection {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(200, 216, 240, 0.12);
+}
+
+.modulePickerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.modulePickerItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(200, 216, 240, 0.15);
+  border-radius: 4px;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.1s,
+    border-color 0.1s;
+}
+
+.modulePickerItem:hover {
+  background: rgba(160, 192, 240, 0.12);
+  border-color: rgba(200, 216, 240, 0.4);
+}
+
+.modulePickerItemDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.modulePickerItemDisabled:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(200, 216, 240, 0.15);
+}
+
+.modulePickerItemSelected {
+  background: rgba(126, 184, 240, 0.22);
+  border-color: #7eb8f0;
+}
+
+.modulePickerLabel {
+  font-weight: 600;
+  color: #e0e8ff;
+}
+
+.modulePickerType {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: #8890b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-right: 0.4rem;
+}
+
+.modulePickerStats {
+  font-size: 0.8rem;
+  color: #9aa4c8;
+}
+
+.modulePickerTag {
+  font-size: 0.7rem;
+  color: #c07070;
+  font-style: italic;
 }
