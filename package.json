@@ -15,7 +15,7 @@
     "format:check": "prettier --check .",
     "e2e": "playwright test",
     "refresh-readme-artifacts": "pnpm refresh-readme-artifacts:generate && pnpm refresh-readme-artifacts:copy",
-    "refresh-readme-artifacts:generate": "playwright test tests/e2e/readme-screenshots.spec.ts tests/e2e/chassis-preview.spec.ts",
+    "refresh-readme-artifacts:generate": "playwright test tests/e2e/readme-screenshots.spec.ts tests/e2e/chassis-preview.spec.ts && node scripts/generate-modules-overview.mjs",
     "refresh-readme-artifacts:copy": "node scripts/copy-readme-artifacts.mjs",
     "pages": "pnpm build && bash scripts/deploy.sh"
   },

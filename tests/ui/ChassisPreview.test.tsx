@@ -2,15 +2,15 @@
 //
 // ChassisPreview drift guard.
 //
-// These tests fail if the preview goes out of sync with real project data —
-// either because a new chassis was added to the Chassis union without a card,
-// or because attacks.json changed and the table no longer matches. The
+// Fails if the preview goes out of sync with real project data — either
+// because a new chassis was added to the Chassis union without a card, or
+// because chassis JSON stats changed and the card no longer matches. The
 // /refresh-readme skill uses these signals to detect drift.
 
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, within } from '@testing-library/react'
 import { ChassisPreview, CHASSIS_ENTRIES } from '../../src/ui/screens/ChassisPreview/ChassisPreview'
-import { getAllAttacks, getAttacksForChassis } from '../../src/logic'
+import { getChassisDef } from '../../src/logic'
 import type { Chassis } from '../../src/logic'
 
 afterEach(() => cleanup())
@@ -39,35 +39,29 @@ describe('ChassisPreview — drift guard', () => {
     }
   })
 
-  it('renders every attack from attacks.json in exactly one chassis table', () => {
+  it('each chassis card shows its base stats from the chassis JSON', () => {
     render(<ChassisPreview />)
-    const allAttacks = getAllAttacks()
-    for (const attack of allAttacks) {
-      const rows = screen.getAllByTestId(`attack-row-${attack.id}`)
-      expect(rows.length).toBeGreaterThan(0)
+    for (const entry of CHASSIS_ENTRIES) {
+      const def = getChassisDef(entry.chassis)
+      const table = screen.getByTestId(`chassis-stats-${entry.chassis}`)
+      const cellsByLabel: Record<string, string | null> = {}
+      for (const row of within(table).getAllByRole('row')) {
+        const cells = within(row).getAllByRole('cell')
+        cellsByLabel[cells[0].textContent ?? ''] = cells[1]?.textContent ?? null
+      }
+      expect(cellsByLabel['Base HP']).toBe(String(def.baseHp))
+      expect(cellsByLabel['Rule slots']).toBe(String(def.baseRuleSlots))
+      expect(cellsByLabel['Active slots']).toBe(String(def.activeSlots))
+      expect(cellsByLabel['Passive slots']).toBe(String(def.passiveSlots))
     }
   })
 
-  it('each chassis card lists exactly the attacks belonging to that chassis', () => {
+  it('each chassis card shows its availability', () => {
     render(<ChassisPreview />)
     for (const entry of CHASSIS_ENTRIES) {
-      const table = screen.getByTestId(`chassis-attacks-${entry.chassis}`)
-      const expected = getAttacksForChassis(entry.chassis)
-      const rendered = within(table).queryAllByRole('row').slice(1) // skip header
-      expect(rendered.length).toBe(expected.length)
-
-      for (const attack of expected) {
-        const row = within(table).getByTestId(`attack-row-${attack.id}`)
-        const cells = within(row)
-          .getAllByRole('cell')
-          .map(c => c.textContent)
-        expect(cells).toEqual([
-          attack.name,
-          String(attack.damage),
-          String(attack.cooldown),
-          String(attack.initialCooldown),
-        ])
-      }
+      const def = getChassisDef(entry.chassis)
+      const badge = screen.getByTestId(`chassis-availability-${entry.chassis}`)
+      expect(badge.textContent?.toLowerCase()).toBe(def.availability.toLowerCase())
     }
   })
 })

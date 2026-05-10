@@ -4,8 +4,8 @@
 //      one screenshot once the roster grows past a handful of chassis).
 //   2. Generate test-results/artifacts/chassis/chassis-overview.md — the block
 //      the README embeds between <!-- CHASSIS:START --> and <!-- CHASSIS:END -->.
-//      It references the per-chassis PNGs; the cards already render the attack
-//      stats, so no separate stats table is emitted.
+//      It references the per-chassis PNGs; the cards already render the base
+//      stats (HP / slots / availability), so no separate stats table is emitted.
 //
 // The /refresh-readme skill invokes this spec (via `pnpm refresh-readme-artifacts`)
 // to refresh the artifacts after the drift audit has approved the preview's scope.
@@ -61,7 +61,7 @@ function buildMarkdown(): string {
   return lines.join('\n') + '\n'
 }
 
-test('chassis preview renders all chassis with their attack stats', async ({ page }) => {
+test('chassis preview renders all chassis cards', async ({ page }) => {
   await page.goto('/?preview=chassis')
   await expect(page.getByTestId('chassis-preview')).toBeVisible()
   for (const { id } of CHASSIS_ORDER) {

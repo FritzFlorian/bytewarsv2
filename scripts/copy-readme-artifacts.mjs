@@ -22,6 +22,7 @@ function requireDir(path) {
 
 requireDir(`${SCRATCH}/readme`)
 requireDir(`${SCRATCH}/chassis`)
+requireDir(`${SCRATCH}/modules`)
 
 // Current State screenshots: overwrite the three fixed filenames.
 const README_OUT = `${DOC}/screenshots/readme`
@@ -43,9 +44,10 @@ for (const entry of readdirSync(`${SCRATCH}/chassis`)) {
   }
 }
 
-// Generated Markdown block consumed by the README.
+// Generated Markdown blocks consumed by the README.
 const GENERATED_OUT = `${DOC}/generated`
 mkdirSync(GENERATED_OUT, { recursive: true })
 cpSync(`${SCRATCH}/chassis/chassis-overview.md`, `${GENERATED_OUT}/chassis-overview.md`)
+cpSync(`${SCRATCH}/modules/modules-overview.md`, `${GENERATED_OUT}/modules-overview.md`)
 
 console.log('Copied README artifacts into doc/.')

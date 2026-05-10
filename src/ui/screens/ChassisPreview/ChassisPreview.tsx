@@ -1,9 +1,11 @@
-// Always-on chassis overview. Renders every chassis with its attack stats
-// sourced from attacks.json. Reachable at /?preview=chassis and consumed by
-// the /refresh-readme skill to regenerate README assets.
+// Always-on chassis overview. Renders every chassis with its base stats
+// (HP / rule slots / active slots / passive slots) and availability — modules
+// are chassis-agnostic since v0.7, so per-chassis attack rosters were dropped.
+// Reachable at /?preview=chassis and consumed by the /refresh-readme skill to
+// regenerate README assets.
 
 import type { Chassis } from '../../../logic'
-import { getAttacksForChassis } from '../../../logic'
+import { getChassisDef } from '../../../logic'
 import { Vacuum } from '../../../render/units/Vacuum'
 import { Butler } from '../../../render/units/Butler'
 import { QaRig } from '../../../render/units/QaRig'
@@ -35,8 +37,26 @@ export const CHASSIS_ENTRIES: ChassisEntry[] = [
 const STAGE_BG = 'linear-gradient(180deg, #3b3250 0%, #5a3a52 100%)'
 const SLOT_SIZE = 120
 
+const availabilityLabel: Record<'player' | 'enemy' | 'both', string> = {
+  player: 'Player',
+  enemy: 'Enemy',
+  both: 'Both',
+}
+
+const availabilityColor: Record<'player' | 'enemy' | 'both', string> = {
+  player: '#5fb6ff',
+  enemy: '#ff7a7a',
+  both: '#b888ff',
+}
+
 function ChassisCard({ entry }: { entry: ChassisEntry }) {
-  const attacks = getAttacksForChassis(entry.chassis)
+  const def = getChassisDef(entry.chassis)
+  const stats: Array<[string, number]> = [
+    ['Base HP', def.baseHp],
+    ['Rule slots', def.baseRuleSlots],
+    ['Active slots', def.activeSlots],
+    ['Passive slots', def.passiveSlots],
+  ]
   return (
     <div
       data-testid={`chassis-card-${entry.chassis}`}
@@ -73,14 +93,23 @@ function ChassisCard({ entry }: { entry: ChassisEntry }) {
           <span style={{ color: '#8a93a6', fontFamily: 'monospace', fontSize: 11 }}>
             {entry.chassis}
           </span>
-          <span style={{ color: '#6b7488', fontSize: 12, marginTop: 4 }}>
-            {attacks.length} attack{attacks.length === 1 ? '' : 's'}
+          <span
+            data-testid={`chassis-availability-${entry.chassis}`}
+            style={{
+              color: availabilityColor[def.availability],
+              fontFamily: 'monospace',
+              fontSize: 11,
+              marginTop: 4,
+              letterSpacing: '0.06em',
+            }}
+          >
+            {availabilityLabel[def.availability].toUpperCase()}
           </span>
         </div>
       </div>
 
       <table
-        data-testid={`chassis-attacks-${entry.chassis}`}
+        data-testid={`chassis-stats-${entry.chassis}`}
         style={{
           width: '100%',
           borderCollapse: 'collapse',
@@ -89,21 +118,14 @@ function ChassisCard({ entry }: { entry: ChassisEntry }) {
           color: '#c6cad4',
         }}
       >
-        <thead>
-          <tr style={{ color: '#8a93a6', textAlign: 'left' }}>
-            <th style={{ padding: '4px 8px 4px 0' }}>Attack</th>
-            <th style={{ padding: '4px 8px', textAlign: 'right' }}>DMG</th>
-            <th style={{ padding: '4px 8px', textAlign: 'right' }}>CD</th>
-            <th style={{ padding: '4px 0 4px 8px', textAlign: 'right' }}>Init</th>
-          </tr>
-        </thead>
         <tbody>
-          {attacks.map(a => (
-            <tr key={a.id} data-testid={`attack-row-${a.id}`}>
-              <td style={{ padding: '4px 8px 4px 0' }}>{a.name}</td>
-              <td style={{ padding: '4px 8px', textAlign: 'right' }}>{a.damage}</td>
-              <td style={{ padding: '4px 8px', textAlign: 'right' }}>{a.cooldown}</td>
-              <td style={{ padding: '4px 0 4px 8px', textAlign: 'right' }}>{a.initialCooldown}</td>
+          {stats.map(([label, value]) => (
+            <tr
+              key={label}
+              data-testid={`stat-row-${entry.chassis}-${label.toLowerCase().replace(/\s+/g, '-')}`}
+            >
+              <td style={{ padding: '4px 8px 4px 0', color: '#8a93a6' }}>{label}</td>
+              <td style={{ padding: '4px 0', textAlign: 'right' }}>{value}</td>
             </tr>
           ))}
         </tbody>
@@ -132,7 +154,8 @@ export function ChassisPreview() {
           CHASSIS OVERVIEW
         </h1>
         <p style={{ margin: 0, color: '#6b7488', fontSize: 12 }}>
-          DMG = damage per hit · CD = cooldown (rounds) · Init = initial cooldown at battle start
+          Modules are chassis-agnostic. A chassis defines silhouette, side availability, and slot
+          counts.
         </p>
       </div>
 
