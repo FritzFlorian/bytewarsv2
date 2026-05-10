@@ -10,8 +10,8 @@
 import type { Unit, Battlefield, CombatState, SlotMap, Side } from '../state/types'
 import { slotKey } from '../state/types'
 import type { CombatEvent } from './events'
-import { evaluateCondition, resolveTarget } from '../gambits/interpreter'
-import { isAttackAction, type Action } from '../gambits/types'
+import { chooseRule, resolveTarget } from '../gambits/interpreter'
+import { isAttackAction } from '../gambits/types'
 import { createRng } from '../rng'
 import { getActiveModuleDef } from '../content/moduleLoader'
 
@@ -95,24 +95,8 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
 
     events.push({ kind: 'turn_started', unitId: unit.id })
 
-    // Walk gambit list; skip action rules whose module is on cooldown.
-    let chosenRuleIndex = -1
-    let chosenAction: Action = { kind: 'idle' }
-
-    for (let i = 0; i < unit.gambits.length; i++) {
-      const rule = unit.gambits[i]
-      if (!evaluateCondition(rule.condition, unit, bf)) continue
-      if (isAttackAction(rule.action)) {
-        // Check if the module is on cooldown
-        const mod = unit.activeModules.find(m => m.defId === rule.action.kind)
-        if (!mod || mod.cooldownRemaining > 0) {
-          continue // module not installed or on cooldown — fall through
-        }
-      }
-      chosenRuleIndex = i
-      chosenAction = rule.action
-      break
-    }
+    // Delegate gambit walk to the interpreter (module-aware in v0.7).
+    const { ruleIndex: chosenRuleIndex, action: chosenAction } = chooseRule(unit, bf)
 
     events.push({ kind: 'rule_fired', unitId: unit.id, ruleIndex: chosenRuleIndex })
 

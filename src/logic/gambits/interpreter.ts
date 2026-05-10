@@ -1,8 +1,13 @@
-// Gambit interpreter for Bytewars.
+// Gambit interpreter for Bytewars v0.7.
 //
 // chooseAction walks a unit's gambit list top-to-bottom and returns the action
-// from the first rule whose condition is satisfied. Falls through to `idle` if
+// from the first rule whose condition is satisfied AND whose action can be
+// performed (module installed and off cooldown). Falls through to `idle` if
 // no rule matches.
+//
+// v0.7: the interpreter checks installed modules and cooldowns on the unit's
+// ActiveModuleInstance array. A rule is skipped silently if its action
+// references a module that is not installed or is on cooldown.
 //
 // `nearest_enemy` resolves deterministically: front row first, then middle,
 // then back; ties broken by column (0 < 1 < 2).
@@ -10,7 +15,7 @@
 
 import type { Unit, Battlefield } from '../state/types'
 import type { Rng } from '../rng'
-import type { Action, Condition, TargetSelector } from './types'
+import { isAttackAction, type Action, type Condition, type TargetSelector } from './types'
 
 /** Canonical row ordering — index 0 is closest to the opponent. */
 const ROW_ORDER = ['front', 'middle', 'back'] as const
@@ -85,13 +90,23 @@ export interface ChosenRule {
  * Walk the unit's gambit list top-to-bottom and return the matched rule index
  * and action. `ruleIndex` is -1 and action is `idle` when no rule matches.
  *
- * Pure function — no I/O, no globals, no side effects.
+ * v0.7: module-aware — skips rules whose action references a module that is
+ * not installed on the unit or is on cooldown (cooldownRemaining > 0).
  */
 export function chooseRule(unit: Unit, battlefield: Battlefield): ChosenRule {
   for (let i = 0; i < unit.gambits.length; i++) {
-    if (evaluateCondition(unit.gambits[i].condition, unit, battlefield)) {
-      return { ruleIndex: i, action: unit.gambits[i].action }
+    const rule = unit.gambits[i]
+    if (!evaluateCondition(rule.condition, unit, battlefield)) continue
+
+    // Non-idle actions reference a module by ID — check availability.
+    if (isAttackAction(rule.action)) {
+      const mod = unit.activeModules.find(m => m.defId === rule.action.kind)
+      if (!mod || mod.cooldownRemaining > 0) {
+        continue // module not installed or on cooldown — fall through
+      }
     }
+
+    return { ruleIndex: i, action: rule.action }
   }
   return { ruleIndex: -1, action: { kind: 'idle' } }
 }
