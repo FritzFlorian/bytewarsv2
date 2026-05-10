@@ -1,0 +1,19 @@
+{
+  "id": "flamethrower",
+  "name": "Flamethrower",
+  "type": "active",
+  "availability": "player",
+  "rarity": 3,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 5,
+    "cooldown": 1,
+    "initialCooldown": 0,
+    "appliesStatus": {
+      "kind": "burning",
+      "magnitude": 3,
+      "duration": 2
+    }
+  },
+  "sound": "suppression"
+}

@@ -7,6 +7,7 @@
 
 import { z } from 'zod'
 import { ChassisIdSchema } from './chassis'
+import { StatusKindSchema } from './status'
 
 const TargetSelectorSchema = z.enum([
   'self',
@@ -14,12 +15,21 @@ const TargetSelectorSchema = z.enum([
   'any_enemy',
   'any_ally',
   'weakest_ally',
+  'all_enemies',
+  'all_enemies_in_row',
+  'all_allies',
 ])
 
 const ConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('always') }),
   z.object({ kind: z.literal('self_hp_below'), pct: z.number().min(0).max(100) }),
   z.object({ kind: z.literal('target_exists'), target: TargetSelectorSchema }),
+  z.object({ kind: z.literal('self_has_status'), statusKind: StatusKindSchema }),
+  z.object({
+    kind: z.literal('target_has_status'),
+    target: TargetSelectorSchema,
+    statusKind: StatusKindSchema,
+  }),
 ])
 
 // Action kind is now a module ID string (not restricted to AttackIdSchema)

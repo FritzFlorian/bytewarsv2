@@ -57,7 +57,9 @@ v0.7 replaced fixed chassis attacks with a chassis-agnostic **module system** an
 
 ---
 
-## v0.8 — Status Effects & Action Variety
+## v0.8 — Status Effects & Action Variety (done)
+
+v0.8 landed the status-effect engine (typed effects on `UnitInstance.statusEffects[]` with always-stack semantics, per-unit start/end tick, three kinds: `burning`, `disabled`, `damage_boost`), three new `CombatEvent` variants (`status_applied`, `status_expired`, `status_tick_damage`), and two new `actionKind` values (`buff`, `debuff`) plus optional `appliesStatus` composition on attacks. Three AoE target selectors (`all_enemies`, `all_enemies_in_row`, `all_allies`) extend the existing single-target set; the resolver emits one `damage_dealt` / `status_applied` per resolved target. The gambit vocabulary gained `self_has_status` and `target_has_status`; the editor filters action targets by `actionKind` and offers a status-kind picker. Render layer ships per-status icon badges on every unit card, an AoE side-flash class, a new `status_applied` audio stinger, and combat-log entries for tick / apply / expire events. Ten new modules shipped (`sweep_arc`, `concussion`, `flamethrower`, `pulse_lash`, `corrosion`, `damage_drive`, `war_chant`, `jam_signal`, plus enemy-only `blaze_volley` and `rally_command`); two new starter presets dogfood the system (Pyromancer Vacuum with `target_has_status` + `flamethrower`, Saboteur Butler with `jam_signal`); the Overseer boss runs a `rally_command` commander gambit and the `heavy_line` elite uses `blaze_volley`. Auto-pilot win rate sits at 38% (within the 30-80% band, +4pp vs v0.7 baseline). All tasks done, `pnpm check` passes.
 
 v0.8 breaks out of single-target direct-damage and lands a **status-effect system** that unlocks four categories of action variety in one engine: **AoE**, **buffs**, **debuffs**, and **damage-over-time**. The bet: most variety reduces to *typed effects with duration on a `UnitInstance`* plus a small set of new `actionKind` values that apply, react to, or compose with them. Land the engine once in M1–M2; M3 onward becomes schema + content rather than new combat code per feature.
 
@@ -84,7 +86,7 @@ Out of scope (deferred): reach rules (front/middle/back targeting), piercing, pe
 
 ### M2 — Status-effect plumbing in the logic layer
 
-#### T-8.2 — `UnitInstance.statusEffects` + tick step + new events (`status: todo` · track: logic)
+#### T-8.2 — `UnitInstance.statusEffects` + tick step + new events (`status: done` · track: logic)
 - **Depends on:** T-8.1.
 - **Inputs:** locked design from M1.
 - **Outputs:**
@@ -97,7 +99,7 @@ Out of scope (deferred): reach rules (front/middle/back targeting), piercing, pe
 
 ### M3 — Module schema v2 + new action kinds
 
-#### T-8.3 — Extend module schema and combat resolver (`status: todo` · track: logic + foundation)
+#### T-8.3 — Extend module schema and combat resolver (`status: done` · track: logic + foundation)
 - **Depends on:** T-8.2.
 - **Inputs:** existing `src/content/schema/module.ts`; status engine from T-8.2.
 - **Outputs:**
@@ -112,7 +114,7 @@ Out of scope (deferred): reach rules (front/middle/back targeting), piercing, pe
 
 > Runs in parallel with M5 once M3 lands. (M4 ‖ M5)
 
-#### T-8.4 — Render layer: status icons + AoE flash (`status: todo` · track: render)
+#### T-8.4 — Render layer: status icons + AoE flash (`status: done` · track: render)
 - **Depends on:** T-8.3.
 - **Inputs:** new event-log variants; module catalog with AoE selectors.
 - **Outputs:**
@@ -123,7 +125,7 @@ Out of scope (deferred): reach rules (front/middle/back targeting), piercing, pe
 
 ### M5 — Gambit vocabulary additions (status-aware)
 
-#### T-8.5 — `target_has_status` / `self_has_status` + editor surface (`status: todo` · track: logic + ui)
+#### T-8.5 — `target_has_status` / `self_has_status` + editor surface (`status: done` · track: logic + ui)
 - **Depends on:** T-8.3.
 - **Inputs:** locked condition vocabulary from M1.
 - **Outputs:**
@@ -134,7 +136,7 @@ Out of scope (deferred): reach rules (front/middle/back targeting), piercing, pe
 
 ### M6 — Content authoring: 10 new modules across categories
 
-#### T-8.6 — Hand-author the v0.8 module catalog (`status: todo` · track: content)
+#### T-8.6 — Hand-author the v0.8 module catalog (`status: done` · track: content)
 - **Depends on:** T-8.3, T-8.4, T-8.5.
 - **Status-kind constraint** (Q-V8-5): only `burning`, `disabled`, `damage_boost` are available. Catalog uses these three across all four feature areas.
 - **Outputs:** roughly 8–10 new module JSONs in `src/content/modules/`:
@@ -149,7 +151,7 @@ Out of scope (deferred): reach rules (front/middle/back targeting), piercing, pe
 
 ### M7 — Auto-pilot balance pass
 
-#### T-8.7 — Land back in the 30–80% win-rate band (`status: todo` · track: integration)
+#### T-8.7 — Land back in the 30–80% win-rate band (`status: done` · track: integration)
 - **Depends on:** T-8.6.
 - **Outputs:**
   - `tests/logic/balanceSimulation.test.ts` updated to exercise the new module catalog.
@@ -159,7 +161,7 @@ Out of scope (deferred): reach rules (front/middle/back targeting), piercing, pe
 
 ### M8 — Full-run e2e + green `pnpm check`
 
-#### T-8.8 — Ship gate (`status: todo` · track: integration)
+#### T-8.8 — Ship gate (`status: done` · track: integration)
 - **Depends on:** T-8.7.
 - **Outputs:** `tests/e2e/full-run.spec.ts` extended to verify a run that uses at least one buff/debuff and one AoE action meaningfully (asserting on the rendered status badge and the AoE flash). README "Current State" section refreshed via the `refresh-readme` skill.
 - **Acceptance:** `pnpm check` green; visual check in the browser of a v0.8 run; no regressions.

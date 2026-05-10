@@ -1,0 +1,14 @@
+{
+  "id": "sweep_arc",
+  "name": "Sweep Arc",
+  "type": "active",
+  "availability": "player",
+  "rarity": 3,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 5,
+    "cooldown": 2,
+    "initialCooldown": 0
+  },
+  "sound": "sweep"
+}

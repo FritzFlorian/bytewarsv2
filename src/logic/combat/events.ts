@@ -10,6 +10,7 @@
 
 import type { UnitId } from '../state/types'
 import type { Action } from '../gambits/types'
+import type { StatusKind } from '../../content/schema/status'
 
 export type CombatEvent =
   | { kind: 'round_started'; round: number }
@@ -19,6 +20,16 @@ export type CombatEvent =
   | { kind: 'damage_dealt'; sourceId: UnitId; targetId: UnitId; amount: number }
   | { kind: 'unit_healed'; sourceId: UnitId; targetId: UnitId; amount: number }
   | { kind: 'unit_destroyed'; unitId: UnitId }
+  | {
+      kind: 'status_applied'
+      sourceId: UnitId
+      targetId: UnitId
+      statusKind: StatusKind
+      magnitude: number
+      duration: number
+    }
+  | { kind: 'status_expired'; unitId: UnitId; statusKind: StatusKind }
+  | { kind: 'status_tick_damage'; unitId: UnitId; statusKind: StatusKind; amount: number }
   | { kind: 'turn_ended'; unitId: UnitId }
   | { kind: 'round_ended'; round: number }
   | { kind: 'combat_ended'; winner: 'player' | 'enemy' }

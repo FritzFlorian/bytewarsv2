@@ -1,0 +1,14 @@
+{
+  "id": "blaze_volley",
+  "name": "Blaze Volley",
+  "type": "active",
+  "availability": "enemy",
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 6,
+    "cooldown": 2,
+    "initialCooldown": 0,
+    "appliesStatus": { "kind": "burning", "magnitude": 3, "duration": 2 }
+  },
+  "sound": "siege_cannon"
+}

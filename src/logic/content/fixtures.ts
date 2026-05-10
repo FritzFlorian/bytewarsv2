@@ -59,6 +59,20 @@ const overseerGambits: GambitList = [
   { condition: { kind: 'always' }, action: { kind: 'suppression', target: 'any_enemy' } },
 ]
 
+// v0.8: middle-column overseer rallies its allies before unleashing suppression.
+// rally_command applies damage_boost to all enemies (from its perspective, allies).
+const overseerCommanderGambits: GambitList = [
+  {
+    condition: { kind: 'self_has_status', statusKind: 'damage_boost' },
+    action: { kind: 'suppression', target: 'nearest_enemy' },
+  },
+  {
+    condition: { kind: 'target_exists', target: 'any_ally' },
+    action: { kind: 'rally_command', target: 'any_ally' },
+  },
+  { condition: { kind: 'always' }, action: { kind: 'suppression', target: 'nearest_enemy' } },
+]
+
 const swarmerGambits: GambitList = [
   {
     condition: { kind: 'target_exists', target: 'nearest_enemy' },
@@ -71,6 +85,15 @@ const siegeGambits: GambitList = [
   {
     condition: { kind: 'target_exists', target: 'any_enemy' },
     action: { kind: 'siege_cannon', target: 'any_enemy' },
+  },
+  { condition: { kind: 'always' }, action: { kind: 'idle' } },
+]
+
+// v0.8 — alternative siege gambit: incendiary volley applying burning.
+const siegeBlazeGambits: GambitList = [
+  {
+    condition: { kind: 'target_exists', target: 'any_enemy' },
+    action: { kind: 'blaze_volley', target: 'nearest_enemy' },
   },
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
@@ -178,9 +201,9 @@ export function bossEncounterFixture(): BossEncounterFixture {
       'enemy',
       { side: 'enemy', row: 'front', column: 1 },
       'overseer',
-      ['suppression'],
+      ['rally_command', 'suppression'],
       [],
-      overseerGambits,
+      overseerCommanderGambits,
       35,
     ),
     makeUnit(
@@ -244,6 +267,8 @@ function siegeBattery(): EliteEncounterFixture {
 }
 
 function heavyLine(): EliteEncounterFixture {
+  // v0.8: elite-siege-1 in this layout wields a blaze_volley instead of
+  // siege_cannon — applies burning + lower damage but faster cooldown.
   return {
     id: 'heavy-line',
     enemyUnits: [
@@ -252,9 +277,9 @@ function heavyLine(): EliteEncounterFixture {
         'enemy',
         { side: 'enemy', row: 'back', column: 1 },
         'siege',
-        ['siege_cannon'],
+        ['blaze_volley'],
         [],
-        siegeGambits,
+        siegeBlazeGambits,
         45,
       ),
       makeUnit(

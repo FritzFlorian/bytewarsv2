@@ -1,0 +1,14 @@
+{
+  "id": "jam_signal",
+  "name": "Jam Signal",
+  "type": "active",
+  "availability": "player",
+  "rarity": 3,
+  "actionKind": "debuff",
+  "debuffProperties": {
+    "status": { "kind": "disabled", "magnitude": 0, "duration": 1 },
+    "cooldown": 3,
+    "initialCooldown": 0
+  },
+  "sound": "taser"
+}

@@ -52,9 +52,9 @@ describe('chassis content', () => {
 })
 
 describe('module content', () => {
-  it('loads all 21 module definitions', () => {
+  it('loads all 31 module definitions', () => {
     const all = getAllModules()
-    expect(all).toHaveLength(21)
+    expect(all).toHaveLength(31)
   })
 
   it('each module has a unique id', () => {
@@ -62,13 +62,17 @@ describe('module content', () => {
     expect(new Set(ids).size).toBe(ids.length)
   })
 
-  it('has 15 active modules (12 attack + 3 heal)', () => {
+  it('has 25 active modules (17 attack + 3 heal + 3 buff + 2 debuff)', () => {
     const active = getAllActiveModules()
-    expect(active).toHaveLength(15)
+    expect(active).toHaveLength(25)
     const attacks = active.filter(m => m.actionKind === 'attack')
     const heals = active.filter(m => m.actionKind === 'heal')
-    expect(attacks).toHaveLength(12)
+    const buffs = active.filter(m => m.actionKind === 'buff')
+    const debuffs = active.filter(m => m.actionKind === 'debuff')
+    expect(attacks).toHaveLength(17)
     expect(heals).toHaveLength(3)
+    expect(buffs).toHaveLength(3)
+    expect(debuffs).toHaveLength(2)
   })
 
   it('has 6 passive modules', () => {

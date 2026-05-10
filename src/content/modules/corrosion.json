@@ -1,0 +1,14 @@
+{
+  "id": "corrosion",
+  "name": "Corrosion",
+  "type": "active",
+  "availability": "player",
+  "rarity": 3,
+  "actionKind": "debuff",
+  "debuffProperties": {
+    "status": { "kind": "burning", "magnitude": 4, "duration": 3 },
+    "cooldown": 2,
+    "initialCooldown": 0
+  },
+  "sound": "bite"
+}

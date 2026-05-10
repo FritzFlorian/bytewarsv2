@@ -10,7 +10,7 @@
 import type { Unit, Battlefield, CombatState, SlotMap, Side } from '../state/types'
 import { slotKey, ROW_ORDER } from '../state/types'
 import type { CombatEvent } from './events'
-import { chooseRule, resolveTarget } from '../gambits/interpreter'
+import { chooseRule, resolveTargets } from '../gambits/interpreter'
 import { isModuleAction } from '../gambits/types'
 import { createRng } from '../rng'
 import { getActiveModuleDef } from '../content/moduleLoader'
@@ -93,6 +93,32 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
 
     events.push({ kind: 'turn_started', unitId: unit.id })
 
+    // ── Start-of-turn status tick (v0.8) ───────────────────────────────
+    // Apply DoT (burning) damage; if the unit dies, skip its action + end tick.
+    let killedByDoT = false
+    for (const s of unit.statusEffects) {
+      if (s.kind === 'burning' && s.magnitude > 0) {
+        const amount = s.magnitude
+        events.push({
+          kind: 'status_tick_damage',
+          unitId: unit.id,
+          statusKind: 'burning',
+          amount,
+        })
+        unit.hp -= amount
+        if (unit.hp <= 0) {
+          slots.delete(slotKey(unit.slot))
+          events.push({ kind: 'unit_destroyed', unitId: unit.id })
+          killedByDoT = true
+          break
+        }
+      }
+    }
+    if (killedByDoT) {
+      events.push({ kind: 'turn_ended', unitId: unit.id })
+      continue
+    }
+
     // Delegate gambit walk to the interpreter (module-aware in v0.7).
     const { ruleIndex: chosenRuleIndex, action: chosenAction } = chooseRule(unit, bf)
 
@@ -100,8 +126,8 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
 
     if (isModuleAction(chosenAction)) {
       const modDef = getActiveModuleDef(chosenAction.kind)
-      const target = resolveTarget(chosenAction.target, unit, bf, rng)
-      const targetIds = target ? [target.id] : []
+      const targets = resolveTargets(chosenAction.target, unit, bf, rng)
+      const targetIds = targets.map(t => t.id)
       events.push({
         kind: 'action_used',
         unitId: unit.id,
@@ -109,34 +135,75 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
         targets: targetIds,
       })
 
-      if (target) {
+      if (targets.length > 0) {
         if (modDef.actionKind === 'attack') {
-          // Attack: deal damage to the target
           const damage = modDef.attackProperties.damage + unit.bonusDamage
-          events.push({
-            kind: 'damage_dealt',
-            sourceId: unit.id,
-            targetId: target.id,
-            amount: damage,
-          })
-          const newHp = target.hp - damage
-          if (newHp <= 0) {
-            slots.delete(slotKey(target.slot))
-            events.push({ kind: 'unit_destroyed', unitId: target.id })
-          } else {
-            target.hp = newHp
-          }
-        } else if (modDef.actionKind === 'heal') {
-          // Heal: restore HP to the target, capped at maxHp
-          const healAmount = modDef.healProperties.healAmount
-          const actualHeal = Math.min(healAmount, target.maxHp - target.hp)
-          if (actualHeal > 0) {
-            target.hp += actualHeal
+          const appliesStatus = modDef.attackProperties.appliesStatus
+          for (const target of targets) {
             events.push({
-              kind: 'unit_healed',
+              kind: 'damage_dealt',
               sourceId: unit.id,
               targetId: target.id,
-              amount: actualHeal,
+              amount: damage,
+            })
+            const newHp = target.hp - damage
+            if (newHp <= 0) {
+              slots.delete(slotKey(target.slot))
+              events.push({ kind: 'unit_destroyed', unitId: target.id })
+              continue
+            }
+            target.hp = newHp
+            // v0.8 — attack-with-status composition path
+            if (appliesStatus) {
+              target.applyStatus({
+                kind: appliesStatus.kind,
+                magnitude: appliesStatus.magnitude,
+                durationRemaining: appliesStatus.duration,
+                sourceUnitId: unit.id,
+              })
+              events.push({
+                kind: 'status_applied',
+                sourceId: unit.id,
+                targetId: target.id,
+                statusKind: appliesStatus.kind,
+                magnitude: appliesStatus.magnitude,
+                duration: appliesStatus.duration,
+              })
+            }
+          }
+        } else if (modDef.actionKind === 'heal') {
+          const healAmount = modDef.healProperties.healAmount
+          for (const target of targets) {
+            const actualHeal = Math.min(healAmount, target.maxHp - target.hp)
+            if (actualHeal > 0) {
+              target.hp += actualHeal
+              events.push({
+                kind: 'unit_healed',
+                sourceId: unit.id,
+                targetId: target.id,
+                amount: actualHeal,
+              })
+            }
+          }
+        } else if (modDef.actionKind === 'buff' || modDef.actionKind === 'debuff') {
+          const spec =
+            modDef.actionKind === 'buff'
+              ? modDef.buffProperties.status
+              : modDef.debuffProperties.status
+          for (const target of targets) {
+            target.applyStatus({
+              kind: spec.kind,
+              magnitude: spec.magnitude,
+              durationRemaining: spec.duration,
+              sourceUnitId: unit.id,
+            })
+            events.push({
+              kind: 'status_applied',
+              sourceId: unit.id,
+              targetId: target.id,
+              statusKind: spec.kind,
+              magnitude: spec.magnitude,
+              duration: spec.duration,
             })
           }
         }
@@ -146,6 +213,16 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
       }
     } else {
       events.push({ kind: 'action_used', unitId: unit.id, action: chosenAction, targets: [] })
+    }
+
+    // ── End-of-turn status tick (v0.8) ─────────────────────────────────
+    // Decrement durations and emit expiry events for any that hit 0.
+    if (unit.statusEffects.length > 0) {
+      unit.decrementStatusDurations()
+      const expired = unit.removeExpiredStatuses()
+      for (const s of expired) {
+        events.push({ kind: 'status_expired', unitId: unit.id, statusKind: s.kind })
+      }
     }
 
     events.push({ kind: 'turn_ended', unitId: unit.id })

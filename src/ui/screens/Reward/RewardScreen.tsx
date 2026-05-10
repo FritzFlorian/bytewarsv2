@@ -57,16 +57,33 @@ function chassisLabel(c: string): string {
 
 function moduleDescription(moduleDef: ActiveModuleDef | PassiveModuleDef): string {
   if (moduleDef.type === 'active') {
-    if (moduleDef.actionKind === 'attack') {
-      const p = moduleDef.attackProperties
-      const parts = [`${p.damage} dmg`]
-      if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
-      return parts.join(', ')
+    switch (moduleDef.actionKind) {
+      case 'attack': {
+        const p = moduleDef.attackProperties
+        const parts = [`${p.damage} dmg`]
+        if (p.appliesStatus) parts.push(`+${p.appliesStatus.kind}`)
+        if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
+        return parts.join(', ')
+      }
+      case 'heal': {
+        const p = moduleDef.healProperties
+        const parts = [`${p.healAmount} heal`]
+        if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
+        return parts.join(', ')
+      }
+      case 'buff': {
+        const p = moduleDef.buffProperties
+        const parts = [`buff ${p.status.kind} ${p.status.magnitude} (${p.status.duration}r)`]
+        if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
+        return parts.join(', ')
+      }
+      case 'debuff': {
+        const p = moduleDef.debuffProperties
+        const parts = [`debuff ${p.status.kind} ${p.status.magnitude} (${p.status.duration}r)`]
+        if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
+        return parts.join(', ')
+      }
     }
-    const p = moduleDef.healProperties
-    const parts = [`${p.healAmount} heal`]
-    if (p.cooldown > 0) parts.push(`CD ${p.cooldown}`)
-    return parts.join(', ')
   }
   // Passive
   return moduleDef.effects

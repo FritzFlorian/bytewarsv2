@@ -1,24 +1,34 @@
 ### Active modules
 
-Provide one-per-turn combat actions (attacks or heals). Slot into a chassis's active slots; chassis-agnostic. `CD` = cooldown rounds, `Init` = initial cooldown at battle start.
+Provide one-per-turn combat actions: attacks, heals, buffs (apply a positive status to allies), or debuffs (apply a negative status to enemies). Slot into a chassis's active slots; chassis-agnostic. `CD` = cooldown rounds, `Init` = initial cooldown at battle start. Status entries read `kind (magnitude / duration)`.
 
 | Name | ID | Kind | Side | Rarity | Effect | CD | Init |
 |---|---|---|---|---:|---|---:|---:|
 | Bash | `bash` | attack | Both | 2 | 22 dmg | 2 | 0 |
 | Bite | `bite` | attack | Enemy | — | 7 dmg | 0 | 0 |
+| Blaze Volley | `blaze_volley` | attack | Enemy | — | 6 dmg + burning (3 / 2r) | 2 | 0 |
 | Clamp | `clamp` | attack | Both | 2 | 10 dmg | 1 | 0 |
+| Concussion | `concussion` | attack | Player | 4 | 4 dmg | 3 | 1 |
+| Corrosion | `corrosion` | debuff | Player | 3 | burning (4 / 3r) | 2 | 0 |
+| Damage Drive | `damage_drive` | buff | Player | 2 | damage_boost (4 / 2r) | 2 | 0 |
 | Dart | `dart` | attack | Both | 1 | 9 dmg | 0 | 0 |
 | Emergency Repair | `emergency_repair` | heal | Player | 4 | +35 HP | 4 | 1 |
+| Flamethrower | `flamethrower` | attack | Player | 3 | 5 dmg + burning (3 / 2r) | 1 | 0 |
+| Jam Signal | `jam_signal` | debuff | Player | 3 | disabled (1r) | 3 | 0 |
 | Mow | `mow` | attack | Both | 1 | 10 dmg | 0 | 0 |
 | Overload | `overload` | attack | Both | 3 | 30 dmg | 3 | 1 |
 | Patch Kit | `patch_kit` | heal | Player | 2 | +15 HP | 2 | 0 |
+| Pulse Lash | `pulse_lash` | attack | Player | 3 | 4 dmg + disabled (1r) | 2 | 0 |
 | Pulse Shot | `pulse_shot` | attack | Both | 3 | 24 dmg | 2 | 1 |
 | Quick Jab | `quick_jab` | attack | Both | 1 | 8 dmg | 0 | 0 |
 | Quick Patch | `quick_patch` | heal | Both | 1 | +8 HP | 2 | 0 |
+| Rally Command | `rally_command` | buff | Enemy | — | damage_boost (3 / 2r) | 3 | 1 |
 | Siege Cannon | `siege_cannon` | attack | Enemy | — | 30 dmg | 3 | 1 |
 | Suppression | `suppression` | attack | Both | 2 | 12 dmg | 2 | 0 |
 | Sweep | `sweep` | attack | Both | 2 | 18 dmg | 2 | 0 |
+| Sweep Arc | `sweep_arc` | attack | Player | 3 | 5 dmg | 2 | 0 |
 | Taser | `taser` | attack | Both | 1 | 7 dmg | 0 | 0 |
+| War Chant | `war_chant` | buff | Player | 4 | damage_boost (2 / 1r) | 3 | 1 |
 
 ### Passive modules
 

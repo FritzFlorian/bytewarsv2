@@ -28,18 +28,37 @@ function chassisLabel(c: string): string {
 }
 
 function activeModuleStats(def: ActiveModuleDef): string {
-  if (def.actionKind === 'attack') {
-    const { damage, cooldown, initialCooldown } = def.attackProperties
-    let s = `${damage} dmg`
-    if (cooldown > 0) s += ` / CD ${cooldown}`
-    if (initialCooldown > 0) s += ` / init ${initialCooldown}`
-    return s
+  switch (def.actionKind) {
+    case 'attack': {
+      const { damage, cooldown, initialCooldown, appliesStatus } = def.attackProperties
+      let s = `${damage} dmg`
+      if (appliesStatus) s += ` +${appliesStatus.kind}`
+      if (cooldown > 0) s += ` / CD ${cooldown}`
+      if (initialCooldown > 0) s += ` / init ${initialCooldown}`
+      return s
+    }
+    case 'heal': {
+      const { healAmount, cooldown, initialCooldown } = def.healProperties
+      let s = `${healAmount} heal`
+      if (cooldown > 0) s += ` / CD ${cooldown}`
+      if (initialCooldown > 0) s += ` / init ${initialCooldown}`
+      return s
+    }
+    case 'buff': {
+      const { status, cooldown, initialCooldown } = def.buffProperties
+      let s = `buff ${status.kind} ${status.magnitude} (${status.duration}r)`
+      if (cooldown > 0) s += ` / CD ${cooldown}`
+      if (initialCooldown > 0) s += ` / init ${initialCooldown}`
+      return s
+    }
+    case 'debuff': {
+      const { status, cooldown, initialCooldown } = def.debuffProperties
+      let s = `debuff ${status.kind} ${status.magnitude} (${status.duration}r)`
+      if (cooldown > 0) s += ` / CD ${cooldown}`
+      if (initialCooldown > 0) s += ` / init ${initialCooldown}`
+      return s
+    }
   }
-  const { healAmount, cooldown, initialCooldown } = def.healProperties
-  let s = `${healAmount} heal`
-  if (cooldown > 0) s += ` / CD ${cooldown}`
-  if (initialCooldown > 0) s += ` / init ${initialCooldown}`
-  return s
 }
 
 function passiveEffectLabel(def: PassiveModuleDef): string {

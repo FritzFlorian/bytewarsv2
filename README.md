@@ -32,7 +32,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ## Current State
 
 <!-- CURRENT_STATE:START -->
-The full run loop is playable end-to-end: starter draft → seeded branching map → gambit editor → combat playback → reward pick, looping until you beat the boss or get wiped. Eight chassis ship today and the active/passive **module system** powers the loot economy.
+The full run loop is playable end-to-end: starter draft → seeded branching map → gambit editor → combat playback → reward pick, looping until you beat the boss or get wiped. Eight chassis ship today and the active/passive **module system** powers the loot economy. v0.8 adds a **status-effect engine** — typed effects with magnitude + duration on every unit — that powers AoE, buffs, debuffs, and damage-over-time in one place.
 
 A run begins with a **starter draft** — two sequential 1-of-3 picks from a pool of hand-authored starter presets. Each preset bundles a chassis, pre-installed modules, and opening gambits. After the draft, you land on the map.
 
@@ -40,11 +40,11 @@ A run begins with a **starter draft** — two sequential 1-of-3 picks from a poo
 
 ![Map screen](doc/screenshots/readme/map.png)
 
-**Gambit editor** — author priority rules for each unit before every fight. The action picker shows only the active modules currently *installed* on the selected unit (with damage, heal amount, and cooldown info); the target picker filters by action kind (enemy targets for attacks, ally targets for heals). A read-only module panel shows each unit's active/passive modules and computed stats (max HP, bonus damage, effective active slots). Rule slots beyond the unit's current cap render as locked placeholders, unlockable via the **+rule-slot** passive module (cap 6).
+**Gambit editor** — author priority rules for each unit before every fight. The condition picker now includes `self has status` and `target has status` for status-aware logic (e.g. "if the nearest enemy is burning, pile on with quick_jab"). The action picker shows only the active modules currently *installed* on the selected unit (with damage / heal / status info and cooldown); the target picker filters by action kind: attacks and debuffs offer enemy targets (single + AoE), heals and buffs offer ally targets (single + AoE). Rule slots beyond the unit's current cap render as locked placeholders, unlockable via the **+rule-slot** passive module (cap 6).
 
 ![Gambit editor](doc/screenshots/readme/editor.png)
 
-**Combat screen** — fights resolve automatically from your gambit lists. The two sides face each other across a centerline divider, front rows touching it. Each active module produces its own action with synthesized sound; the interpreter falls through silently when a rule's action is on cooldown. Active unit is highlighted, target projectiles animate between attacker and target, a scrolling log tracks every action. Play, pause, step, or fast-forward at 0.5×–10×.
+**Combat screen** — fights resolve automatically from your gambit lists. The two sides face each other across a centerline divider, front rows touching it. Each active module produces its own action with synthesized sound; the interpreter falls through silently when a rule's action is on cooldown. Active unit is highlighted, target projectiles animate between attacker and target, AoE attacks light up the entire affected side, **status badges** (🔥 burning, ⛔ disabled, ⚡ damage boost) hover above each affected unit and a scrolling log tracks apply / tick / expire events. Play, pause, step, or fast-forward at 0.5×–10×.
 
 ![Combat screen](doc/screenshots/readme/combat.png)
 
@@ -102,25 +102,35 @@ A run begins with a **starter draft** — two sequential 1-of-3 picks from a poo
 <!-- MODULES:START -->
 ### Active modules
 
-Provide one-per-turn combat actions (attacks or heals). Slot into a chassis's active slots; chassis-agnostic. `CD` = cooldown rounds, `Init` = initial cooldown at battle start.
+Provide one-per-turn combat actions: attacks, heals, buffs (apply a positive status to allies), or debuffs (apply a negative status to enemies). Slot into a chassis's active slots; chassis-agnostic. `CD` = cooldown rounds, `Init` = initial cooldown at battle start. Status entries read `kind (magnitude / duration)`.
 
 | Name | ID | Kind | Side | Rarity | Effect | CD | Init |
 |---|---|---|---|---:|---|---:|---:|
 | Bash | `bash` | attack | Both | 2 | 22 dmg | 2 | 0 |
 | Bite | `bite` | attack | Enemy | — | 7 dmg | 0 | 0 |
+| Blaze Volley | `blaze_volley` | attack | Enemy | — | 6 dmg + burning (3 / 2r) | 2 | 0 |
 | Clamp | `clamp` | attack | Both | 2 | 10 dmg | 1 | 0 |
+| Concussion | `concussion` | attack | Player | 4 | 4 dmg | 3 | 1 |
+| Corrosion | `corrosion` | debuff | Player | 3 | burning (4 / 3r) | 2 | 0 |
+| Damage Drive | `damage_drive` | buff | Player | 2 | damage_boost (4 / 2r) | 2 | 0 |
 | Dart | `dart` | attack | Both | 1 | 9 dmg | 0 | 0 |
 | Emergency Repair | `emergency_repair` | heal | Player | 4 | +35 HP | 4 | 1 |
+| Flamethrower | `flamethrower` | attack | Player | 3 | 5 dmg + burning (3 / 2r) | 1 | 0 |
+| Jam Signal | `jam_signal` | debuff | Player | 3 | disabled (1r) | 3 | 0 |
 | Mow | `mow` | attack | Both | 1 | 10 dmg | 0 | 0 |
 | Overload | `overload` | attack | Both | 3 | 30 dmg | 3 | 1 |
 | Patch Kit | `patch_kit` | heal | Player | 2 | +15 HP | 2 | 0 |
+| Pulse Lash | `pulse_lash` | attack | Player | 3 | 4 dmg + disabled (1r) | 2 | 0 |
 | Pulse Shot | `pulse_shot` | attack | Both | 3 | 24 dmg | 2 | 1 |
 | Quick Jab | `quick_jab` | attack | Both | 1 | 8 dmg | 0 | 0 |
 | Quick Patch | `quick_patch` | heal | Both | 1 | +8 HP | 2 | 0 |
+| Rally Command | `rally_command` | buff | Enemy | — | damage_boost (3 / 2r) | 3 | 1 |
 | Siege Cannon | `siege_cannon` | attack | Enemy | — | 30 dmg | 3 | 1 |
 | Suppression | `suppression` | attack | Both | 2 | 12 dmg | 2 | 0 |
 | Sweep | `sweep` | attack | Both | 2 | 18 dmg | 2 | 0 |
+| Sweep Arc | `sweep_arc` | attack | Player | 3 | 5 dmg | 2 | 0 |
 | Taser | `taser` | attack | Both | 1 | 7 dmg | 0 | 0 |
+| War Chant | `war_chant` | buff | Player | 4 | damage_boost (2 / 1r) | 3 | 1 |
 
 ### Passive modules
 
@@ -138,10 +148,11 @@ Always-on effects. Slot into a chassis's passive slots; chassis-agnostic. Duplic
 <sub>Auto-generated — run `/refresh-readme` to refresh.</sub>
 <!-- MODULES:END -->
 
-## What's Next (v0.8)
+## What's Next (v0.9)
 
-- **Status-effect system** — typed effects with magnitude + duration stored on each `UnitInstance`. The new primitive that powers all the v0.8 action variety
-- **Action variety** — AoE (row / column / all-enemies), buffs on allies (+damage), debuffs on enemies (disable), and damage-over-time (burning). Attacks can compose status applications via an optional `appliesStatus` clause
-- **New module catalog** — ~8–10 hand-authored modules exercising every new action kind, plus a balance pass to land auto-pilot win rate back in the 30–80% band
+- **Reach rules** — front/middle/back row targeting makes placement matter for the first time. Melee modules reach only the front row; ranged modules reach any row; front-row units optionally absorb hits intended for those behind them
+- **Piercing & column mechanics** — single-line piercing shots, persistent ground zones
+- **Vocabulary expansion** — `ally.lacks_status`, `enemy.count`, movement actions (`advance`, `retreat`, `swap_with`)
+- **Visual & audio fidelity pass** — richer per-attack animations, distinct sounds with more character, visibly attached modules on chassis silhouettes
 
-The v0.8 design kickoff (T-8.1) shipped on 2026-05-10 — see `doc/open-questions.md` Q-V8-1…Q-V8-8 and `doc/gameplay.md` §6 for the locked decisions. See `doc/roadmap.md` for the full v0.8 milestone breakdown.
+See `doc/roadmap.md` for the full v0.9+ plan.

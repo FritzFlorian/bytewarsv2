@@ -32,6 +32,7 @@ export const DEBUG_AUDIO_ORDER: SoundId[] = [
   'siege_cannon',
   'damage',
   'destroy',
+  'status_applied',
   'win',
   'lose',
   'beat',

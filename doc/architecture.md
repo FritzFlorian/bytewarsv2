@@ -15,16 +15,16 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 
 3. **Before touching anything**, run `pnpm check` to confirm you are starting from green. After finishing, run it again — per `CLAUDE.md`, every task must leave `pnpm check` passing.
 
-**What is currently built (v0.1–v0.7 M6):**
-- Logic layer: types (`Chassis` includes the 8 v0.6 chassis), RNG, gambit interpreter with cooldown fall-through, combat resolver with per-attack damage / cooldown tracking / heal actions, `UnitInstance` class with active/passive module instances and computed stats, walking-skeleton + boss + elite fixtures, starter-preset pool + seeded `drawStarterSquad`, recruitment pool (separate from starter pool, same format), chassis + module JSON catalogs (`src/content/chassis/`, `src/content/modules/`), attack content loader (`attacks.json`), map generation, navigation, battle-result progression, reward pool with rarity-weighted module drops + remove-module + heals + new-unit (v0.7 M4). Public API exported from `src/logic/index.ts`.
-- Render layer: eight chassis components, `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual / `onComplete` callback, `playback.ts`, scrolling combat log with named attack display.
-- UI layer: `App.tsx` with full run state machine (`starter-draft → map → gambit-editor → combat → reward → game-over/victory`), `StarterDraftScreen` (two sequential unit picks with chassis silhouette + module stats), `CombatScreen`, `GambitEditorScreen` (action picker from installed modules + read-only module panel with computed stats, v0.7 M5), `MapScreen`, `RewardScreen` (module drop install + remove-module two-step picker, v0.7 M4), `GameOverScreen`, `VictoryScreen`.
-- Audio layer (`src/audio/`): per-attack synthesized sounds, damage / destroy sounds, looping background beat, win/lose stingers.
-- Content layer (`src/content/`): `starter-presets.json`, `recruitment-presets.json`, `attacks.json`, chassis + module JSON files, Zod schemas for all.
+**What is currently built (v0.1–v0.8):**
+- Logic layer: types (`Chassis` includes the 8 v0.6 chassis), RNG, gambit interpreter with cooldown fall-through and `target_has_status` / `self_has_status` conditions (v0.8), combat resolver with per-attack damage / cooldown tracking / heal actions / multi-target AoE / buff + debuff status application / `appliesStatus` composition (v0.8), `UnitInstance` class with active/passive module instances, computed stats, and `statusEffects[]` + start/end-of-turn tick step (v0.8), walking-skeleton + boss + elite fixtures (with v0.8 `rally_command` Overseer commander and `blaze_volley` Siege variants), starter-preset pool + seeded `drawStarterSquad`, recruitment pool, chassis + module JSON catalogs (`src/content/chassis/`, `src/content/modules/`), attack content loader (`attacks.json`), map generation, navigation, battle-result progression, reward pool with rarity-weighted module drops + remove-module + heals + new-unit. Public API exported from `src/logic/index.ts`.
+- Render layer: eight chassis components, `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target projectile / idle visual / **per-status icon badges + AoE side-flash class** (v0.8) / `onComplete` callback, `playback.ts`, scrolling combat log including status-applied / tick / expire entries.
+- UI layer: `App.tsx` with full run state machine, `StarterDraftScreen`, `CombatScreen` (with `status_applied` audio stinger), `GambitEditorScreen` (action picker filtered by `actionKind`, status-aware condition picker + status-kind selector v0.8), `MapScreen`, `RewardScreen`, `GameOverScreen`, `VictoryScreen`.
+- Audio layer (`src/audio/`): per-attack synthesized sounds, damage / destroy / status-applied sounds, looping background beat, win/lose stingers.
+- Content layer (`src/content/`): `starter-presets.json`, `recruitment-presets.json`, `attacks.json`, chassis + module JSON files (25 active modules across attack / heal / buff / debuff, 6 passive modules), Zod schemas for all including v0.8 status schema.
 
-**What is not built yet (v0.8+):**
-- Status effects and the AoE / buff / debuff / DoT action variety scheduled for v0.8 (see `roadmap.md`).
-- Reach rules (front/middle/back row targeting), piercing, ally-status-aware vocabulary — v0.9+.
+**What is not built yet (v0.9+):**
+- Reach rules (front/middle/back row targeting), piercing, persistent ground zones — v0.9+.
+- Broader vocabulary expansion (`ally.lacks_status`, `enemy.count`, movement actions).
 - Meta-progression / unlocks.
 
 ---

@@ -41,8 +41,9 @@ function getAllies(unit: Unit, battlefield: Battlefield): Unit[] {
 }
 
 /**
- * Resolve a TargetSelector to a concrete unit, or `null` if none exists.
- * Exported so the combat resolver can apply damage to the resolved target.
+ * Resolve a single-target selector to one unit, or `null` if none exists.
+ * For AoE selectors, returns the first resolved target (or null). Use
+ * `resolveTargets` when you need the full multi-target list.
  *
  * Pass `rng` for `any_enemy` random selection. Without it, `any_enemy` falls
  * back to index 0 (deterministic — suitable for existence checks only).
@@ -53,29 +54,57 @@ export function resolveTarget(
   battlefield: Battlefield,
   rng?: Rng,
 ): Unit | null {
+  const targets = resolveTargets(selector, unit, battlefield, rng)
+  return targets[0] ?? null
+}
+
+/**
+ * Resolve a target selector to an ordered list of units.
+ * - Single-target selectors return a 0- or 1-element array.
+ * - AoE selectors return all matching units.
+ */
+export function resolveTargets(
+  selector: TargetSelector,
+  unit: Unit,
+  battlefield: Battlefield,
+  rng?: Rng,
+): Unit[] {
   switch (selector) {
     case 'self':
-      return unit
+      return [unit]
     case 'nearest_enemy': {
       const enemies = getEnemiesSorted(unit, battlefield)
-      return enemies[0] ?? null
+      return enemies.length > 0 ? [enemies[0]] : []
     }
     case 'any_enemy': {
       const enemies = getEnemiesSorted(unit, battlefield)
-      if (enemies.length === 0) return null
+      if (enemies.length === 0) return []
       const idx = rng ? rng.nextInt(enemies.length) : 0
-      return enemies[idx]
+      return [enemies[idx]]
     }
     case 'any_ally': {
       const allies = getAllies(unit, battlefield)
-      if (allies.length === 0) return null
+      if (allies.length === 0) return []
       const idx = rng ? rng.nextInt(allies.length) : 0
-      return allies[idx]
+      return [allies[idx]]
     }
     case 'weakest_ally': {
       const allies = getAllies(unit, battlefield)
-      if (allies.length === 0) return null
-      return allies.reduce((weakest, a) => (a.hp < weakest.hp ? a : weakest))
+      if (allies.length === 0) return []
+      return [allies.reduce((weakest, a) => (a.hp < weakest.hp ? a : weakest))]
+    }
+    case 'all_enemies':
+      return getEnemiesSorted(unit, battlefield)
+    case 'all_enemies_in_row': {
+      // Choose the row containing the nearest enemy, then return all enemies in that row.
+      const enemies = getEnemiesSorted(unit, battlefield)
+      if (enemies.length === 0) return []
+      const row = enemies[0].slot.row
+      return enemies.filter(e => e.slot.row === row)
+    }
+    case 'all_allies': {
+      // Include self for AoE buffs that should hit the caster too.
+      return [unit, ...getAllies(unit, battlefield)]
     }
   }
 }
@@ -92,7 +121,13 @@ export function evaluateCondition(
     case 'self_hp_below':
       return unit.getHpPercentage() < condition.pct
     case 'target_exists':
-      return resolveTarget(condition.target, unit, battlefield) !== null
+      return resolveTargets(condition.target, unit, battlefield).length > 0
+    case 'self_has_status':
+      return unit.statusEffects.some(s => s.kind === condition.statusKind)
+    case 'target_has_status': {
+      const targets = resolveTargets(condition.target, unit, battlefield)
+      return targets.some(t => t.statusEffects.some(s => s.kind === condition.statusKind))
+    }
   }
 }
 
@@ -110,6 +145,10 @@ export interface ChosenRule {
  * not installed on the unit or is on cooldown (cooldownRemaining > 0).
  */
 export function chooseRule(unit: Unit, battlefield: Battlefield): ChosenRule {
+  // v0.8: disabled units skip their gambit walk entirely and idle.
+  if (unit.isDisabled()) {
+    return { ruleIndex: -1, action: { kind: 'idle' } }
+  }
   for (let i = 0; i < unit.gambits.length; i++) {
     const rule = unit.gambits[i]
     if (!evaluateCondition(rule.condition, unit, battlefield)) continue

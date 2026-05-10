@@ -1,0 +1,13 @@
+{
+  "id": "rally_command",
+  "name": "Rally Command",
+  "type": "active",
+  "availability": "enemy",
+  "actionKind": "buff",
+  "buffProperties": {
+    "status": { "kind": "damage_boost", "magnitude": 3, "duration": 2 },
+    "cooldown": 3,
+    "initialCooldown": 1
+  },
+  "sound": "overload"
+}

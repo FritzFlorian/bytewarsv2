@@ -1,0 +1,14 @@
+{
+  "id": "damage_drive",
+  "name": "Damage Drive",
+  "type": "active",
+  "availability": "player",
+  "rarity": 2,
+  "actionKind": "buff",
+  "buffProperties": {
+    "status": { "kind": "damage_boost", "magnitude": 4, "duration": 2 },
+    "cooldown": 2,
+    "initialCooldown": 0
+  },
+  "sound": "taser"
+}

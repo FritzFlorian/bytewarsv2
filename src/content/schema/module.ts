@@ -10,6 +10,7 @@
 
 import { z } from 'zod'
 import { AvailabilitySchema } from './chassis'
+import { StatusEffectSpecSchema } from './status'
 
 // ── Active module schemas ─────────────────────────────────────────────────
 
@@ -17,10 +18,24 @@ const AttackPropertiesSchema = z.object({
   damage: z.number().int().positive(),
   cooldown: z.number().int().min(0),
   initialCooldown: z.number().int().min(0),
+  /** v0.8 — apply a status to each resolved target on hit. */
+  appliesStatus: StatusEffectSpecSchema.optional(),
 })
 
 const HealPropertiesSchema = z.object({
   healAmount: z.number().int().positive(),
+  cooldown: z.number().int().min(0),
+  initialCooldown: z.number().int().min(0),
+})
+
+const BuffPropertiesSchema = z.object({
+  status: StatusEffectSpecSchema,
+  cooldown: z.number().int().min(0),
+  initialCooldown: z.number().int().min(0),
+})
+
+const DebuffPropertiesSchema = z.object({
+  status: StatusEffectSpecSchema,
   cooldown: z.number().int().min(0),
   initialCooldown: z.number().int().min(0),
 })
@@ -47,9 +62,33 @@ const ActiveHealModuleDefSchema = z.object({
   sound: z.string().min(1),
 })
 
+const ActiveBuffModuleDefSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  type: z.literal('active'),
+  availability: AvailabilitySchema,
+  rarity: z.number().int().min(1).max(4).optional(),
+  actionKind: z.literal('buff'),
+  buffProperties: BuffPropertiesSchema,
+  sound: z.string().min(1),
+})
+
+const ActiveDebuffModuleDefSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  type: z.literal('active'),
+  availability: AvailabilitySchema,
+  rarity: z.number().int().min(1).max(4).optional(),
+  actionKind: z.literal('debuff'),
+  debuffProperties: DebuffPropertiesSchema,
+  sound: z.string().min(1),
+})
+
 export const ActiveModuleDefSchema = z.discriminatedUnion('actionKind', [
   ActiveAttackModuleDefSchema,
   ActiveHealModuleDefSchema,
+  ActiveBuffModuleDefSchema,
+  ActiveDebuffModuleDefSchema,
 ])
 
 export type ActiveModuleDef = z.infer<typeof ActiveModuleDefSchema>
@@ -88,6 +127,8 @@ export type PassiveModuleDef = z.infer<typeof PassiveModuleDefSchema>
 export const ModuleDefSchema = z.union([
   ActiveAttackModuleDefSchema,
   ActiveHealModuleDefSchema,
+  ActiveBuffModuleDefSchema,
+  ActiveDebuffModuleDefSchema,
   PassiveModuleDefSchema,
 ])
 

@@ -1,0 +1,14 @@
+{
+  "id": "war_chant",
+  "name": "War Chant",
+  "type": "active",
+  "availability": "player",
+  "rarity": 4,
+  "actionKind": "buff",
+  "buffProperties": {
+    "status": { "kind": "damage_boost", "magnitude": 2, "duration": 1 },
+    "cooldown": 3,
+    "initialCooldown": 1
+  },
+  "sound": "overload"
+}

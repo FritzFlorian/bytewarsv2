@@ -14,10 +14,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CombatEvent } from '../../../logic'
-import { isModuleAction } from '../../../logic'
+import { isModuleAction, getActiveModuleDef } from '../../../logic'
 import { buildSchedule } from '../../../render/playback'
 import type { PlaybackSpeed } from '../../../render/playback'
 import { playSound, startMusic } from '../../../audio/engine'
+import type { SoundId } from '../../../audio/sounds'
 import { CombatScene } from '../../../render/CombatScene'
 import type { UnitInfo } from '../../../render/CombatScene'
 import styles from './CombatScreen.module.css'
@@ -74,17 +75,20 @@ export function CombatScreen({
       const delayMs = Math.max(0, wallStart + se.startMs - now)
 
       if (ev.kind === 'action_used' && isModuleAction(ev.action)) {
-        const attackKind = ev.action.kind
-        timers.push(
-          setTimeout(
-            () => playSound(attackKind as import('../../../audio/sounds').SoundId),
-            delayMs,
-          ),
-        )
+        // v0.7+: each module declares its own `sound` field; v0.8 modules may
+        // reuse an existing sound (e.g. flamethrower → 'suppression'), so the
+        // module id is no longer guaranteed to be a valid SoundId.
+        const modDef = getActiveModuleDef(ev.action.kind)
+        const soundId = modDef.sound as SoundId
+        timers.push(setTimeout(() => playSound(soundId), delayMs))
       } else if (ev.kind === 'damage_dealt') {
         timers.push(setTimeout(() => playSound('damage'), delayMs))
       } else if (ev.kind === 'unit_destroyed') {
         timers.push(setTimeout(() => playSound('destroy'), delayMs))
+      } else if (ev.kind === 'status_applied') {
+        timers.push(setTimeout(() => playSound('status_applied'), delayMs))
+      } else if (ev.kind === 'status_tick_damage') {
+        timers.push(setTimeout(() => playSound('damage'), delayMs))
       } else if (ev.kind === 'combat_ended') {
         const winner = ev.winner
         timers.push(

@@ -21,6 +21,8 @@ export type {
   PassiveModuleInstance,
 } from './state/types'
 export { slotKey, UnitInstance } from './state/types'
+export type { StatusEffectInstance } from './state/UnitInstance'
+export type { StatusKind, StatusEffectSpec } from '../content/schema/status'
 
 export type { TargetSelector, Condition, Action, Rule, GambitList } from './gambits/types'
 export { isModuleAction } from './gambits/types'

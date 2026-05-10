@@ -4,16 +4,26 @@
 //   [N] [condition picker] [pct? | condition-target?] [→] [action picker] [action-target?]
 //
 // Conditional fields:
-//   condition=self_hp_below  → numeric pct input
-//   condition=target_exists  → condition target selector
-//   action=module            → action target selector (enemy targets for attacks, ally for heals)
+//   condition=self_hp_below      → numeric pct input
+//   condition=target_exists      → condition target selector
+//   condition=self_has_status    → status-kind picker
+//   condition=target_has_status  → condition target selector + status-kind picker
+//   action=module                → action target selector filtered by actionKind:
+//     attack/debuff → enemy targets (single + AoE)
+//     heal/buff     → ally targets (single + AoE)
 //
-// T-7.14: Action picker lists only installed active modules (not chassis-filtered).
-// Target selectors are context-sensitive: attack modules offer enemy targets,
-// heal modules offer ally targets.
+// T-7.14 + T-8.5: Action picker lists only installed active modules.
+// Target options are filtered by the module's actionKind.
 
 import { useState } from 'react'
-import type { Condition, Action, TargetSelector, Rule, ActiveModuleDef } from '../../../logic'
+import type {
+  Condition,
+  Action,
+  TargetSelector,
+  Rule,
+  ActiveModuleDef,
+  StatusKind,
+} from '../../../logic'
 import { isModuleAction } from '../../../logic'
 import styles from './GambitSlot.module.css'
 
@@ -25,6 +35,14 @@ const CONDITION_OPTIONS: { value: Condition['kind']; label: string }[] = [
   { value: 'always', label: 'always' },
   { value: 'self_hp_below', label: 'self HP below' },
   { value: 'target_exists', label: 'target exists' },
+  { value: 'self_has_status', label: 'self has status' },
+  { value: 'target_has_status', label: 'target has status' },
+]
+
+const STATUS_KIND_OPTIONS: { value: StatusKind; label: string }[] = [
+  { value: 'burning', label: 'burning' },
+  { value: 'disabled', label: 'disabled' },
+  { value: 'damage_boost', label: 'damage boost' },
 ]
 
 const ENEMY_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
@@ -32,10 +50,19 @@ const ENEMY_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
   { value: 'any_enemy', label: 'any enemy' },
 ]
 
+const ENEMY_AOE_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
+  { value: 'all_enemies', label: 'all enemies' },
+  { value: 'all_enemies_in_row', label: 'all enemies in row' },
+]
+
 const ALLY_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
   { value: 'any_ally', label: 'any ally' },
   { value: 'weakest_ally', label: 'weakest ally' },
   { value: 'self', label: 'self' },
+]
+
+const ALLY_AOE_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
+  { value: 'all_allies', label: 'all allies' },
 ]
 
 const ALL_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
@@ -46,28 +73,48 @@ const ALL_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
   { value: 'self', label: 'self' },
 ]
 
-function buildActionOptions(
-  activeModuleDefs: ActiveModuleDef[],
-): { value: Action['kind']; label: string }[] {
-  const moduleOptions = activeModuleDefs.map(m => {
-    if (m.actionKind === 'attack') {
+function moduleSummary(m: ActiveModuleDef): string {
+  switch (m.actionKind) {
+    case 'attack': {
       const cdLabel =
         m.attackProperties.cooldown > 0 ? `, ${m.attackProperties.cooldown}-round cd` : ''
       const initLabel = m.attackProperties.initialCooldown > 0 ? `, unavail. round 1` : ''
-      return {
-        value: m.id,
-        label: `${m.name} — ${m.attackProperties.damage} dmg${cdLabel}${initLabel}`,
-      }
+      const statusLabel = m.attackProperties.appliesStatus
+        ? `, +${m.attackProperties.appliesStatus.kind} ${m.attackProperties.appliesStatus.duration}r`
+        : ''
+      return `${m.name} — ${m.attackProperties.damage} dmg${statusLabel}${cdLabel}${initLabel}`
     }
-    // heal
-    const cdLabel = m.healProperties.cooldown > 0 ? `, ${m.healProperties.cooldown}-round cd` : ''
-    const initLabel = m.healProperties.initialCooldown > 0 ? `, unavail. round 1` : ''
-    return {
-      value: m.id,
-      label: `${m.name} — ${m.healProperties.healAmount} heal${cdLabel}${initLabel}`,
+    case 'heal': {
+      const cdLabel = m.healProperties.cooldown > 0 ? `, ${m.healProperties.cooldown}-round cd` : ''
+      const initLabel = m.healProperties.initialCooldown > 0 ? `, unavail. round 1` : ''
+      return `${m.name} — ${m.healProperties.healAmount} heal${cdLabel}${initLabel}`
     }
-  })
+    case 'buff': {
+      const s = m.buffProperties.status
+      const cdLabel = m.buffProperties.cooldown > 0 ? `, ${m.buffProperties.cooldown}-round cd` : ''
+      const initLabel = m.buffProperties.initialCooldown > 0 ? `, unavail. round 1` : ''
+      return `${m.name} — buff ${s.kind} ${s.magnitude} (${s.duration}r)${cdLabel}${initLabel}`
+    }
+    case 'debuff': {
+      const s = m.debuffProperties.status
+      const cdLabel =
+        m.debuffProperties.cooldown > 0 ? `, ${m.debuffProperties.cooldown}-round cd` : ''
+      const initLabel = m.debuffProperties.initialCooldown > 0 ? `, unavail. round 1` : ''
+      return `${m.name} — debuff ${s.kind} ${s.magnitude} (${s.duration}r)${cdLabel}${initLabel}`
+    }
+  }
+}
+
+function buildActionOptions(
+  activeModuleDefs: ActiveModuleDef[],
+): { value: Action['kind']; label: string }[] {
+  const moduleOptions = activeModuleDefs.map(m => ({ value: m.id, label: moduleSummary(m) }))
   return [...moduleOptions, { value: 'idle' as const, label: 'idle' }]
+}
+
+/** Module action targets allies (heal or buff). */
+function isAllyTargetedKind(kind: ActiveModuleDef['actionKind']): boolean {
+  return kind === 'heal' || kind === 'buff'
 }
 
 /** Get the target options appropriate for the selected action module. */
@@ -77,7 +124,22 @@ function getActionTargetOptions(
 ): { value: TargetSelector; label: string }[] {
   const mod = activeModuleDefs.find(m => m.id === actionKind)
   if (!mod) return ALL_TARGET_OPTIONS
-  return mod.actionKind === 'heal' ? ALLY_TARGET_OPTIONS : ENEMY_TARGET_OPTIONS
+  return isAllyTargetedKind(mod.actionKind)
+    ? [...ALLY_TARGET_OPTIONS, ...ALLY_AOE_TARGET_OPTIONS]
+    : [...ENEMY_TARGET_OPTIONS, ...ENEMY_AOE_TARGET_OPTIONS]
+}
+
+function getInitialCooldown(def: ActiveModuleDef): number {
+  switch (def.actionKind) {
+    case 'attack':
+      return def.attackProperties.initialCooldown
+    case 'heal':
+      return def.healProperties.initialCooldown
+    case 'buff':
+      return def.buffProperties.initialCooldown
+    case 'debuff':
+      return def.debuffProperties.initialCooldown
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -116,7 +178,6 @@ function SearchableSelect<T extends string>({
   }
 
   function handleBlur() {
-    // Delay so that onMouseDown on an option fires before the dropdown closes
     setTimeout(() => {
       setOpen(false)
       setQuery('')
@@ -164,11 +225,31 @@ function SearchableSelect<T extends string>({
 // ---------------------------------------------------------------------------
 
 function changeConditionKind(kind: Condition['kind'], current: Condition): Condition {
-  if (kind === 'always') return { kind: 'always' }
-  if (kind === 'self_hp_below') return { kind: 'self_hp_below', pct: 50 }
-  // target_exists
-  const target = current.kind === 'target_exists' ? current.target : 'nearest_enemy'
-  return { kind: 'target_exists', target }
+  switch (kind) {
+    case 'always':
+      return { kind: 'always' }
+    case 'self_hp_below':
+      return { kind: 'self_hp_below', pct: 50 }
+    case 'target_exists': {
+      const target = current.kind === 'target_exists' ? current.target : 'nearest_enemy'
+      return { kind: 'target_exists', target }
+    }
+    case 'self_has_status': {
+      const statusKind =
+        current.kind === 'self_has_status' || current.kind === 'target_has_status'
+          ? current.statusKind
+          : 'burning'
+      return { kind: 'self_has_status', statusKind }
+    }
+    case 'target_has_status': {
+      const target = current.kind === 'target_has_status' ? current.target : 'nearest_enemy'
+      const statusKind =
+        current.kind === 'self_has_status' || current.kind === 'target_has_status'
+          ? current.statusKind
+          : 'burning'
+      return { kind: 'target_has_status', target, statusKind }
+    }
+  }
 }
 
 function changeActionKind(
@@ -177,10 +258,13 @@ function changeActionKind(
   activeModuleDefs: ActiveModuleDef[],
 ): Action {
   if (kind === 'idle') return { kind: 'idle' }
-  // Pick a sensible default target based on module type.
   const mod = activeModuleDefs.find(m => m.id === kind)
   const defaultTarget: TargetSelector =
-    mod?.actionKind === 'heal' ? 'weakest_ally' : 'nearest_enemy'
+    mod && isAllyTargetedKind(mod.actionKind)
+      ? mod.actionKind === 'buff' && mod.buffProperties.status.kind === 'damage_boost'
+        ? 'self'
+        : 'weakest_ally'
+      : 'nearest_enemy'
   const target = isModuleAction(current) ? current.target : defaultTarget
   return { kind, target }
 }
@@ -206,6 +290,16 @@ export function GambitSlot({ index, rule, onChange, activeModuleDefs }: GambitSl
   function handleConditionTarget(target: TargetSelector) {
     if (condition.kind === 'target_exists') {
       onChange({ ...rule, condition: { kind: 'target_exists', target } })
+    } else if (condition.kind === 'target_has_status') {
+      onChange({ ...rule, condition: { ...condition, target } })
+    }
+  }
+
+  function handleConditionStatusKind(statusKind: StatusKind) {
+    if (condition.kind === 'self_has_status') {
+      onChange({ ...rule, condition: { kind: 'self_has_status', statusKind } })
+    } else if (condition.kind === 'target_has_status') {
+      onChange({ ...rule, condition: { ...condition, statusKind } })
     }
   }
 
@@ -261,6 +355,30 @@ export function GambitSlot({ index, rule, onChange, activeModuleDefs }: GambitSl
           ariaLabel={`Condition target ${index + 1}`}
         />
       )}
+      {condition.kind === 'target_has_status' && (
+        <>
+          <SearchableSelect
+            options={ALL_TARGET_OPTIONS}
+            value={condition.target}
+            onChange={handleConditionTarget}
+            ariaLabel={`Condition target ${index + 1}`}
+          />
+          <SearchableSelect
+            options={STATUS_KIND_OPTIONS}
+            value={condition.statusKind}
+            onChange={handleConditionStatusKind}
+            ariaLabel={`Condition status ${index + 1}`}
+          />
+        </>
+      )}
+      {condition.kind === 'self_has_status' && (
+        <SearchableSelect
+          options={STATUS_KIND_OPTIONS}
+          value={condition.statusKind}
+          onChange={handleConditionStatusKind}
+          ariaLabel={`Condition status ${index + 1}`}
+        />
+      )}
 
       <span className={styles.separator}>→</span>
 
@@ -284,10 +402,7 @@ export function GambitSlot({ index, rule, onChange, activeModuleDefs }: GambitSl
           {(() => {
             const mod = activeModuleDefs.find(m => m.id === action.kind)
             if (!mod) return null
-            const ic =
-              mod.actionKind === 'attack'
-                ? mod.attackProperties.initialCooldown
-                : mod.healProperties.initialCooldown
+            const ic = getInitialCooldown(mod)
             return ic > 0 ? (
               <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>⚠ not available round 1</span>
             ) : null

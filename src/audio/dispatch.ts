@@ -30,6 +30,7 @@ import { playBite } from './bite'
 import { playSiegeCannon } from './siegeCannon'
 import { playDamage } from './damage'
 import { playDestroy } from './destroy'
+import { playStatusApplied } from './statusApplied'
 import { playWin } from './win'
 import { playLose } from './lose'
 
@@ -96,6 +97,10 @@ export const SOUND_DISPATCH: Record<SoundId, SoundEntry> = {
   destroy: {
     play: playDestroy,
     description: 'heavy noise burst + sawtooth power-down (~500ms)',
+  },
+  status_applied: {
+    play: playStatusApplied,
+    description: 'rising triangle chirp + bell ping (~280ms)',
   },
   win: {
     play: playWin,

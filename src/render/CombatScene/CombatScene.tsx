@@ -18,6 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { CombatEvent } from '../../logic/combat/events'
 import type { Row, Column, Side } from '../../logic/state/types'
+import type { StatusKind } from '../../content/schema/status'
 import { isModuleAction } from '../../logic/gambits/types'
 import { getModuleDef } from '../../logic/content/moduleLoader'
 import { type UnitInfo, type PlaybackSpeed, buildSchedule } from '../playback'
@@ -47,7 +48,7 @@ interface ProjectilePos {
 }
 
 interface LogEntry {
-  kind: 'round' | 'attack' | 'idle' | 'destroyed' | 'result'
+  kind: 'round' | 'attack' | 'idle' | 'destroyed' | 'result' | 'status'
   text: string
 }
 
@@ -81,6 +82,54 @@ function deriveDestroyed(events: CombatEvent[], count: number): Set<string> {
     if (e.kind === 'unit_destroyed') s.add(e.unitId)
   }
   return s
+}
+
+/**
+ * Per-unit active status counts. Each kind→count entry means there is at
+ * least one active instance of that kind on the unit. The badge UI does
+ * not render duration; expiry events remove one instance at a time.
+ */
+function deriveStatuses(
+  events: CombatEvent[],
+  count: number,
+): Map<string, Map<StatusKind, number>> {
+  const m = new Map<string, Map<StatusKind, number>>()
+  for (let i = 0; i < count; i++) {
+    const e = events[i]
+    if (e.kind === 'status_applied') {
+      const sm = m.get(e.targetId) ?? new Map<StatusKind, number>()
+      sm.set(e.statusKind, (sm.get(e.statusKind) ?? 0) + 1)
+      m.set(e.targetId, sm)
+    } else if (e.kind === 'status_expired') {
+      const sm = m.get(e.unitId)
+      if (sm) {
+        const cur = sm.get(e.statusKind) ?? 0
+        if (cur <= 1) sm.delete(e.statusKind)
+        else sm.set(e.statusKind, cur - 1)
+      }
+    }
+  }
+  return m
+}
+
+/**
+ * In-flight AoE action. Active between action_used (with > 1 targets) and the
+ * next turn_ended. Used to apply a flash CSS class to the affected side.
+ */
+function deriveCurrentAoe(
+  events: CombatEvent[],
+  count: number,
+): { sourceId: string; targetIds: string[] } | null {
+  let pending: { sourceId: string; targetIds: string[] } | null = null
+  for (let i = 0; i < count; i++) {
+    const e = events[i]
+    if (e.kind === 'action_used' && e.targets.length > 1) {
+      pending = { sourceId: e.unitId, targetIds: e.targets }
+    } else if (e.kind === 'turn_ended') {
+      pending = null
+    }
+  }
+  return pending
 }
 
 function deriveWinner(events: CombatEvent[], count: number): 'player' | 'enemy' | null {
@@ -126,7 +175,8 @@ function deriveCurrentAttack(
   let pending: { attackerId: string; targetId: string } | null = null
   for (let i = 0; i < count; i++) {
     const e = events[i]
-    if (e.kind === 'action_used' && isModuleAction(e.action) && e.targets.length > 0) {
+    // v0.8: AoE actions (targets.length > 1) use the side-flash visual instead of a single projectile.
+    if (e.kind === 'action_used' && isModuleAction(e.action) && e.targets.length === 1) {
       pending = { attackerId: e.unitId, targetId: e.targets[0] }
     }
     if (e.kind === 'damage_dealt' || e.kind === 'turn_ended') pending = null
@@ -205,6 +255,18 @@ function buildLogEntries(
     } else if (e.kind === 'unit_destroyed') {
       const name = nameMap.get(e.unitId) ?? e.unitId
       entries.push({ kind: 'destroyed', text: `${name} destroyed` })
+    } else if (e.kind === 'status_applied') {
+      const tgtName = nameMap.get(e.targetId) ?? e.targetId
+      entries.push({
+        kind: 'status',
+        text: `${tgtName} ← ${e.statusKind} (${e.duration}r)`,
+      })
+    } else if (e.kind === 'status_tick_damage') {
+      const name = nameMap.get(e.unitId) ?? e.unitId
+      entries.push({ kind: 'status', text: `${name} ${e.statusKind} tick (-${e.amount} HP)` })
+    } else if (e.kind === 'status_expired') {
+      const name = nameMap.get(e.unitId) ?? e.unitId
+      entries.push({ kind: 'status', text: `${name} ${e.statusKind} expired` })
     } else if (e.kind === 'combat_ended') {
       entries.push({
         kind: 'result',
@@ -245,9 +307,37 @@ interface SlotProps {
   popups: Popup[]
   active: boolean
   idle: boolean
+  statuses?: Map<StatusKind, number>
 }
 
-function UnitSlot({ unit, hp, destroyed, popups, active, idle }: SlotProps) {
+const STATUS_ICON: Record<StatusKind, string> = {
+  burning: '🔥',
+  disabled: '⛔',
+  damage_boost: '⚡',
+}
+
+function StatusBadges({ statuses }: { statuses?: Map<StatusKind, number> }) {
+  if (!statuses || statuses.size === 0) return null
+  const entries: Array<{ kind: StatusKind; count: number }> = []
+  statuses.forEach((count, kind) => entries.push({ kind, count }))
+  return (
+    <div className={styles.statusBadges} data-testid="status-badges">
+      {entries.map(({ kind, count }) => (
+        <span
+          key={kind}
+          className={`${styles.statusBadge} ${styles[`status_${kind}` as const] ?? ''}`}
+          data-status-kind={kind}
+          title={`${kind}${count > 1 ? ` ×${count}` : ''}`}
+        >
+          {STATUS_ICON[kind]}
+          {count > 1 && <span className={styles.statusCount}>{count}</span>}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function UnitSlot({ unit, hp, destroyed, popups, active, idle, statuses }: SlotProps) {
   if (!unit) return <div className={styles.emptySlot} />
 
   const hpPct = unit.maxHp > 0 ? Math.round((hp / unit.maxHp) * 100) : 0
@@ -263,6 +353,7 @@ function UnitSlot({ unit, hp, destroyed, popups, active, idle }: SlotProps) {
   return (
     <div className={slotClass} data-unit-id={unit.id}>
       {idle && <span className={styles.idleBadge}>…</span>}
+      <StatusBadges statuses={statuses} />
       <div className={`${styles.unitWrapper}${destroyed ? ` ${styles.destroyed}` : ''}`}>
         <ChassisComponent chassis={unit.chassis} />
         {popups.map(p => (
@@ -298,6 +389,9 @@ interface SideGridProps {
   popups: Popup[]
   activeUnitId: string | null
   idleUnitId: string | null
+  statuses: Map<string, Map<StatusKind, number>>
+  /** When non-null, this side is the target of an in-flight AoE — apply flash. */
+  aoeFlash: boolean
 }
 
 function SideGrid({
@@ -308,10 +402,13 @@ function SideGrid({
   popups,
   activeUnitId,
   idleUnitId,
+  statuses,
+  aoeFlash,
 }: SideGridProps) {
   const rowOrder = side === 'player' ? ROWS_PLAYER : ROWS_ENEMY
+  const gridClass = [styles.grid, aoeFlash ? styles.aoeFlash : ''].filter(Boolean).join(' ')
   return (
-    <div className={styles.grid}>
+    <div className={gridClass} data-aoe-flash={aoeFlash ? 'true' : undefined}>
       {COLS.flatMap(col =>
         rowOrder.map(row => {
           const unit = units.find(u => u.slot.row === row && u.slot.column === col)
@@ -325,6 +422,7 @@ function SideGrid({
               popups={unitPopups}
               active={!!unit && unit.id === activeUnitId}
               idle={!!unit && unit.id === idleUnitId}
+              statuses={unit ? statuses.get(unit.id) : undefined}
             />
           )
         }),
@@ -495,6 +593,8 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
     () => deriveCurrentAttack(events, appliedCount),
     [events, appliedCount],
   )
+  const statuses = useMemo(() => deriveStatuses(events, appliedCount), [events, appliedCount])
+  const currentAoe = useMemo(() => deriveCurrentAoe(events, appliedCount), [events, appliedCount])
   const nameMap = useMemo(() => buildNameMap(units), [units])
   const logEntries = useMemo(
     () => buildLogEntries(nameMap, events, appliedCount),
@@ -504,6 +604,13 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
   const playerUnits = useMemo(() => units.filter(u => u.side === 'player'), [units])
   const enemyUnits = useMemo(() => units.filter(u => u.side === 'enemy'), [units])
   const isDone = appliedCount >= events.length
+
+  // Determine which side is the AoE target by looking up any one target's side.
+  const aoeTargetSide: Side | null = useMemo(() => {
+    if (!currentAoe || currentAoe.targetIds.length === 0) return null
+    const firstTarget = units.find(u => u.id === currentAoe.targetIds[0])
+    return firstTarget?.side ?? null
+  }, [currentAoe, units])
 
   // Compute projectile positions from DOM when an attack action fires.
   // The projectile is visible between action_used and damage_dealt.
@@ -545,6 +652,7 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
     idle: styles.logEntryIdle,
     destroyed: styles.logEntryDestroyed,
     result: styles.logEntryResult,
+    status: styles.logEntryStatus,
   }
 
   return (
@@ -561,6 +669,8 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
               popups={popups}
               activeUnitId={activeUnitId}
               idleUnitId={idleUnitId}
+              statuses={statuses}
+              aoeFlash={aoeTargetSide === 'player'}
             />
             <div className={styles.divider} />
             <SideGrid
@@ -571,6 +681,8 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
               popups={popups}
               activeUnitId={activeUnitId}
               idleUnitId={idleUnitId}
+              statuses={statuses}
+              aoeFlash={aoeTargetSide === 'enemy'}
             />
           </div>
           {projectilePos && currentAttack && (

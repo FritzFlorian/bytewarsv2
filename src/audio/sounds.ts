@@ -20,6 +20,7 @@ export type SoundId =
   | 'siege_cannon'
   | 'damage'
   | 'destroy'
+  | 'status_applied'
   | 'beat'
   | 'win'
   | 'lose'

@@ -1,0 +1,14 @@
+{
+  "id": "concussion",
+  "name": "Concussion",
+  "type": "active",
+  "availability": "player",
+  "rarity": 4,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 4,
+    "cooldown": 3,
+    "initialCooldown": 1
+  },
+  "sound": "overload"
+}

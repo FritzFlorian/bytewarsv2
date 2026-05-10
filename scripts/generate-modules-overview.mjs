@@ -36,14 +36,45 @@ function effectString(effect) {
   }
 }
 
+function statusRider(spec) {
+  // disabled has no meaningful magnitude — skip it.
+  const mag = spec.kind === 'disabled' ? '' : `${spec.magnitude} / `
+  return `${spec.kind} (${mag}${spec.duration}r)`
+}
+
+function activeProps(mod) {
+  switch (mod.actionKind) {
+    case 'attack':
+      return mod.attackProperties
+    case 'heal':
+      return mod.healProperties
+    case 'buff':
+      return mod.buffProperties
+    case 'debuff':
+      return mod.debuffProperties
+    default:
+      throw new Error(`Unknown active actionKind on ${mod.id}: ${mod.actionKind}`)
+  }
+}
+
 function effectColumn(mod) {
-  if (mod.actionKind === 'attack') {
-    return `${mod.attackProperties.damage} dmg`
+  switch (mod.actionKind) {
+    case 'attack': {
+      const base = `${mod.attackProperties.damage} dmg`
+      const rider = mod.attackProperties.appliesStatus
+        ? ` + ${statusRider(mod.attackProperties.appliesStatus)}`
+        : ''
+      return base + rider
+    }
+    case 'heal':
+      return `+${mod.healProperties.healAmount} HP`
+    case 'buff':
+      return statusRider(mod.buffProperties.status)
+    case 'debuff':
+      return statusRider(mod.debuffProperties.status)
+    default:
+      throw new Error(`Unknown active actionKind on ${mod.id}: ${mod.actionKind}`)
   }
-  if (mod.actionKind === 'heal') {
-    return `+${mod.healProperties.healAmount} HP`
-  }
-  throw new Error(`Unknown active actionKind on ${mod.id}: ${mod.actionKind}`)
 }
 
 function buildActiveTable(active) {
@@ -52,7 +83,7 @@ function buildActiveTable(active) {
   lines.push('| Name | ID | Kind | Side | Rarity | Effect | CD | Init |')
   lines.push('|---|---|---|---|---:|---|---:|---:|')
   for (const m of sorted) {
-    const props = m.actionKind === 'attack' ? m.attackProperties : m.healProperties
+    const props = activeProps(m)
     lines.push(
       `| ${m.name} | \`${m.id}\` | ${m.actionKind} | ${sideLabel[m.availability]} | ${rarityCell(m.rarity)} | ${effectColumn(m)} | ${props.cooldown} | ${props.initialCooldown} |`,
     )
@@ -82,7 +113,7 @@ function main() {
   const parts = [
     '### Active modules',
     '',
-    "Provide one-per-turn combat actions (attacks or heals). Slot into a chassis's active slots; chassis-agnostic. `CD` = cooldown rounds, `Init` = initial cooldown at battle start.",
+    "Provide one-per-turn combat actions: attacks, heals, buffs (apply a positive status to allies), or debuffs (apply a negative status to enemies). Slot into a chassis's active slots; chassis-agnostic. `CD` = cooldown rounds, `Init` = initial cooldown at battle start. Status entries read `kind (magnitude / duration)`.",
     '',
     buildActiveTable(active),
     '',

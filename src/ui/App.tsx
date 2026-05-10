@@ -243,9 +243,11 @@ export default function App() {
       }
 
       // Second pick done — build final squad and transition to the map.
+      // Suffix the slot index so two identical preset picks still produce
+      // unique unit IDs (otherwise React keys collide on the squad list).
       const picks = [draft.firstPick!, preset]
       const playerUnits: Unit[] = picks.map((p, i) =>
-        toUnitInstance(p, `player-${p.id}`, 'player', {
+        toUnitInstance(p, `player-${p.id}-${i}`, 'player', {
           side: 'player' as const,
           row: 'front' as const,
           column: STARTER_COLUMNS[i],

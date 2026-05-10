@@ -10,6 +10,7 @@ import type { ChassisId } from '../../content/schema/chassis'
 import { getChassisDef } from '../content/chassisLoader'
 import { getActiveModuleDef, getPassiveModuleDef } from '../content/moduleLoader'
 import type { ActiveModuleDef } from '../../content/schema/module'
+import type { StatusKind } from '../../content/schema/status'
 
 // ── Module instance types ─────────────────────────────────────────────────
 
@@ -22,6 +23,15 @@ export interface PassiveModuleInstance {
   defId: string
 }
 
+// ── Status-effect instance (v0.8) ─────────────────────────────────────────
+
+export interface StatusEffectInstance {
+  kind: StatusKind
+  magnitude: number
+  durationRemaining: number
+  sourceUnitId: UnitId
+}
+
 // ── UnitInstance class ────────────────────────────────────────────────────
 
 export class UnitInstance {
@@ -32,6 +42,7 @@ export class UnitInstance {
   hp: number
   activeModules: ActiveModuleInstance[]
   passiveModules: PassiveModuleInstance[]
+  statusEffects: StatusEffectInstance[]
   gambits: GambitList
 
   constructor(
@@ -43,6 +54,7 @@ export class UnitInstance {
     activeModules: ActiveModuleInstance[],
     passiveModules: PassiveModuleInstance[],
     gambits: GambitList,
+    statusEffects: StatusEffectInstance[] = [],
   ) {
     this.id = id
     this.side = side
@@ -51,6 +63,7 @@ export class UnitInstance {
     this.hp = hp
     this.activeModules = activeModules
     this.passiveModules = passiveModules
+    this.statusEffects = statusEffects
     this.gambits = gambits
   }
 
@@ -80,7 +93,16 @@ export class UnitInstance {
   }
 
   get bonusDamage(): number {
-    return this.sumPassiveEffect('bonus_damage')
+    let total = this.sumPassiveEffect('bonus_damage')
+    for (const s of this.statusEffects) {
+      if (s.kind === 'damage_boost') total += s.magnitude
+    }
+    return total
+  }
+
+  /** True if any `disabled` status is active. Drives gambit interpreter early-out (v0.8). */
+  isDisabled(): boolean {
+    return this.statusEffects.some(s => s.kind === 'disabled')
   }
 
   /** Current HP as a percentage of maxHp (0–100+). Single source of truth for HP% checks. */
@@ -136,11 +158,7 @@ export class UnitInstance {
   /** Set initial cooldowns at combat start (store N+1 so first tick leaves N). */
   applyInitialCooldowns(): void {
     for (const m of this.activeModules) {
-      const def = getActiveModuleDef(m.defId)
-      const ic =
-        def.actionKind === 'attack'
-          ? def.attackProperties.initialCooldown
-          : def.healProperties.initialCooldown
+      const ic = getModuleInitialCooldown(m.defId)
       if (ic > 0) {
         m.cooldownRemaining = ic + 1
       }
@@ -151,9 +169,7 @@ export class UnitInstance {
   setCooldownAfterUse(defId: string): void {
     const mod = this.activeModules.find(m => m.defId === defId)
     if (!mod) return
-    const def = getActiveModuleDef(defId)
-    const cd =
-      def.actionKind === 'attack' ? def.attackProperties.cooldown : def.healProperties.cooldown
+    const cd = getModuleCooldown(defId)
     if (cd > 0) {
       mod.cooldownRemaining = cd + 1
     }
@@ -166,7 +182,39 @@ export class UnitInstance {
     return getActiveModuleDef(defId)
   }
 
+  // --- Status effects (v0.8) ---
+
+  /**
+   * Append a status-effect instance. Always stacks — never merges with existing
+   * entries of the same kind (Q-V8-2).
+   */
+  applyStatus(s: StatusEffectInstance): void {
+    this.statusEffects.push({ ...s })
+  }
+
+  /** Decrement every status's durationRemaining by 1. Caller handles expiry/removal. */
+  decrementStatusDurations(): void {
+    for (const s of this.statusEffects) {
+      if (s.durationRemaining > 0) s.durationRemaining -= 1
+    }
+  }
+
+  /** Remove and return all statuses whose duration has hit 0. */
+  removeExpiredStatuses(): StatusEffectInstance[] {
+    const expired: StatusEffectInstance[] = []
+    this.statusEffects = this.statusEffects.filter(s => {
+      if (s.durationRemaining <= 0) {
+        expired.push(s)
+        return false
+      }
+      return true
+    })
+    return expired
+  }
+
   // --- Cloning ---
+
+  // (helpers `getModuleCooldown` / `getModuleInitialCooldown` defined below.)
 
   /** Deep clone for combat resolver (mutations on the clone don't affect original). */
   clone(): UnitInstance {
@@ -179,6 +227,39 @@ export class UnitInstance {
       this.activeModules.map(m => ({ ...m })),
       this.passiveModules.map(m => ({ ...m })),
       [...this.gambits],
+      this.statusEffects.map(s => ({ ...s })),
     )
+  }
+}
+
+// ── Module cooldown helpers (v0.8) ────────────────────────────────────────
+// Resolve cooldown / initial cooldown across all actionKinds (attack, heal,
+// buff, debuff). Each has its own properties block in the schema.
+
+function getModuleCooldown(defId: string): number {
+  const def = getActiveModuleDef(defId)
+  switch (def.actionKind) {
+    case 'attack':
+      return def.attackProperties.cooldown
+    case 'heal':
+      return def.healProperties.cooldown
+    case 'buff':
+      return def.buffProperties.cooldown
+    case 'debuff':
+      return def.debuffProperties.cooldown
+  }
+}
+
+function getModuleInitialCooldown(defId: string): number {
+  const def = getActiveModuleDef(defId)
+  switch (def.actionKind) {
+    case 'attack':
+      return def.attackProperties.initialCooldown
+    case 'heal':
+      return def.healProperties.initialCooldown
+    case 'buff':
+      return def.buffProperties.initialCooldown
+    case 'debuff':
+      return def.debuffProperties.initialCooldown
   }
 }

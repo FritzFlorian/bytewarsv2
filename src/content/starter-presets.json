@@ -110,5 +110,45 @@
       },
       { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
     ]
+  },
+  {
+    "id": "vacuum-pyromancer",
+    "name": "Pyromancer Vacuum",
+    "chassis": "vacuum",
+    "activeModules": ["flamethrower", "quick_jab"],
+    "passiveModules": [],
+    "gambits": [
+      {
+        "condition": {
+          "kind": "target_has_status",
+          "target": "nearest_enemy",
+          "statusKind": "burning"
+        },
+        "action": { "kind": "quick_jab", "target": "nearest_enemy" }
+      },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "flamethrower", "target": "nearest_enemy" }
+      },
+      { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
+    ]
+  },
+  {
+    "id": "butler-saboteur",
+    "name": "Saboteur Butler",
+    "chassis": "butler",
+    "activeModules": ["jam_signal", "taser"],
+    "passiveModules": [],
+    "gambits": [
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "jam_signal", "target": "nearest_enemy" }
+      },
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "taser", "target": "nearest_enemy" }
+      },
+      { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
+    ]
   }
 ]

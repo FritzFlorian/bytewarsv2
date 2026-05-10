@@ -33,6 +33,12 @@ function formatEvent(e: CombatEvent): string {
       return `  [${e.sourceId}] → [${e.targetId}]  +${e.amount} HP`
     case 'unit_destroyed':
       return `  [${e.unitId}] DESTROYED`
+    case 'status_applied':
+      return `  [${e.sourceId}] → [${e.targetId}] applied ${e.statusKind} (mag ${e.magnitude} / ${e.duration}r)`
+    case 'status_expired':
+      return `  [${e.unitId}] ${e.statusKind} expired`
+    case 'status_tick_damage':
+      return `  [${e.unitId}] ${e.statusKind} tick -${e.amount} HP`
     case 'combat_ended':
       return `\n=== Combat ended — winner: ${e.winner} ===`
   }
