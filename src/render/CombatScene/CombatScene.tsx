@@ -17,7 +17,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { CombatEvent } from '../../logic/combat/events'
-import type { Row, Column } from '../../logic/state/types'
+import type { Row, Column, Side } from '../../logic/state/types'
 import { isModuleAction } from '../../logic/gambits/types'
 import { getModuleDef } from '../../logic/content/moduleLoader'
 import { type UnitInfo, type PlaybackSpeed, buildSchedule } from '../playback'
@@ -278,10 +278,20 @@ function UnitSlot({ unit, hp, destroyed, popups, active, idle }: SlotProps) {
   )
 }
 
-const ROWS: Row[] = ['front', 'middle', 'back']
 const COLS: Column[] = [0, 1, 2]
 
+// Battlefield is laid out horizontally: player squad on the left, enemy on the
+// right, facing each other across a centerline divider. So a slot's `row`
+// (front / middle / back) maps to a *horizontal* position from the divider
+// outward, and a slot's `column` (0..2) maps to a *vertical* position within
+// each side's grid. The player side renders rows back → middle → front from
+// left to right so the front line touches the divider; the enemy side mirrors
+// that order so its front line also touches the divider.
+const ROWS_PLAYER: Row[] = ['back', 'middle', 'front']
+const ROWS_ENEMY: Row[] = ['front', 'middle', 'back']
+
 interface SideGridProps {
+  side: Side
   units: UnitInfo[]
   hps: Map<string, number>
   destroyed: Set<string>
@@ -290,11 +300,20 @@ interface SideGridProps {
   idleUnitId: string | null
 }
 
-function SideGrid({ units, hps, destroyed, popups, activeUnitId, idleUnitId }: SideGridProps) {
+function SideGrid({
+  side,
+  units,
+  hps,
+  destroyed,
+  popups,
+  activeUnitId,
+  idleUnitId,
+}: SideGridProps) {
+  const rowOrder = side === 'player' ? ROWS_PLAYER : ROWS_ENEMY
   return (
     <div className={styles.grid}>
-      {ROWS.flatMap(row =>
-        COLS.map(col => {
+      {COLS.flatMap(col =>
+        rowOrder.map(row => {
           const unit = units.find(u => u.slot.row === row && u.slot.column === col)
           const unitPopups = unit ? popups.filter(p => p.unitId === unit.id) : []
           return (
@@ -535,6 +554,7 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
         <div className={styles.battlefieldContainer} ref={battlefieldRef}>
           <div className={styles.battlefield}>
             <SideGrid
+              side="player"
               units={playerUnits}
               hps={hps}
               destroyed={destroyedUnits}
@@ -544,6 +564,7 @@ export function CombatScene({ units, events, speed, autoPlay, onComplete }: Comb
             />
             <div className={styles.divider} />
             <SideGrid
+              side="enemy"
               units={enemyUnits}
               hps={hps}
               destroyed={destroyedUnits}
