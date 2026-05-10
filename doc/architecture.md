@@ -15,15 +15,15 @@ This is the technical source of truth: stack, layering, folder layout, key inter
 
 3. **Before touching anything**, run `pnpm check` to confirm you are starting from green. After finishing, run it again — per `CLAUDE.md`, every task must leave `pnpm check` passing.
 
-**What is currently built (v0.1–v0.5):**
-- Logic layer: types (`Chassis` includes the 8 v0.6 chassis), RNG, gambit interpreter with cooldown fall-through, combat resolver with per-attack damage and cooldown tracking, walking-skeleton + boss fixtures, starter-preset pool + seeded `drawStarterSquad`, attack content loader (`attacks.json`), map generation, navigation, and battle-result progression. Public API exported from `src/logic/index.ts`.
-- Render layer: four chassis components (Vacuum, Butler, QaRig, Overseer), `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual / `onComplete` callback, `playback.ts`, scrolling combat log with named attack display.
-- UI layer: `App.tsx` with full run state machine (`map → gambit-editor → combat → game-over/victory`), `CombatScreen`, `GambitEditorScreen` with chassis-filtered attack picker, `MapScreen`, `GameOverScreen`, `VictoryScreen`.
-- Audio layer (`src/audio/`): per-attack synthesized sounds (`quick_jab`, `sweep`, `taser`, `overload`, `clamp`, `suppression`), damage / destroy sounds, looping background beat, win/lose stingers.
-- Content layer (`src/content/`): `starter-presets.json`, `attacks.json`, Zod schemas for both.
+**What is currently built (v0.1–v0.7 M3):**
+- Logic layer: types (`Chassis` includes the 8 v0.6 chassis), RNG, gambit interpreter with cooldown fall-through, combat resolver with per-attack damage / cooldown tracking / heal actions, `UnitInstance` class with active/passive module instances and computed stats, walking-skeleton + boss + elite fixtures, starter-preset pool + seeded `drawStarterSquad`, recruitment pool (separate from starter pool, same format), chassis + module JSON catalogs (`src/content/chassis/`, `src/content/modules/`), attack content loader (`attacks.json`), map generation, navigation, battle-result progression, reward pool drawing from recruitment presets. Public API exported from `src/logic/index.ts`.
+- Render layer: eight chassis components, `CombatScene` with HP bars / damage popups / destroyed-unit fade / active-unit highlight / target indicator / idle visual / `onComplete` callback, `playback.ts`, scrolling combat log with named attack display.
+- UI layer: `App.tsx` with full run state machine (`starter-draft → map → gambit-editor → combat → reward → game-over/victory`), `StarterDraftScreen` (two sequential unit picks with chassis silhouette + module stats), `CombatScreen`, `GambitEditorScreen`, `MapScreen`, `RewardScreen`, `GameOverScreen`, `VictoryScreen`.
+- Audio layer (`src/audio/`): per-attack synthesized sounds, damage / destroy sounds, looping background beat, win/lose stingers.
+- Content layer (`src/content/`): `starter-presets.json`, `recruitment-presets.json`, `attacks.json`, chassis + module JSON files, Zod schemas for all.
 
-**What is not built yet (v0.7+):**
-- Module system: `UnitInstance` class with active/passive module instances, chassis + module JSON catalogs (`src/content/chassis/`, `src/content/modules/`), computed stats, heal actions, starter draft, recruitment pool. Design settled in T-7.1; see `gameplay.md` §6 for full schema.
+**What is not built yet (v0.7 M4+):**
+- Reward pool rework (module drops, remove-module rewards), gambit editor updates (module panel, action picker from installed modules), balance pass + e2e updates.
 - Meta-progression / unlocks
 
 ---

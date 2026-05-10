@@ -65,6 +65,11 @@ export {
   drawStarterSquad,
   toUnitInstance,
 } from './content/starterPresetLoader'
+export {
+  getAllRecruitmentPresets,
+  getRecruitmentPreset,
+  drawRecruitmentPresets,
+} from './content/recruitmentPoolLoader'
 export type { StarterPreset, StarterPresetId } from '../content/schema/starterPreset'
 export { getAllAttacks, getAttackDef, getAttacksForChassis } from './content/attackLoader'
 export type { AttackDef } from '../content/schema/attack'

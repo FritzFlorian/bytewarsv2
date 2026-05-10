@@ -123,10 +123,10 @@ Implement the module data model, catalog, slot system, and wire into the logic l
 
 Run-start picker (choose 1 of 3 starter squads) and recruitment pool for mid-run unit rewards.
 
-- T-7.10: Implement starter-draft screen (two sequential unit picks) — status: `todo`, track: `ui`, depends on: T-7.6
-  - New screen before the map screen. Two sequential picks: each shows 3 random presets (seeded, no duplicates within each draw of 3), player picks one per round. Cards show chassis silhouette + name, HP, installed modules with stats. Wire into App.tsx state machine (new state before `map`). Second draw is independent (can repeat presets from first draw including the chosen one).
-- T-7.11: Implement recruitment pool (separate from starter pool) — status: `todo`, track: `logic`, depends on: T-7.6
-  - Recruitment pool data file + loader (same format as starter presets). For v0.7 content is identical to starter pool. "New unit" reward draws from this pool. Recruited units come with pre-installed modules (≥1 active).
+- T-7.10: Implement starter-draft screen (two sequential unit picks) — status: `done`, track: `ui`, depends on: T-7.6
+  - New `StarterDraftScreen` component (`src/ui/screens/StarterDraft/`). Two sequential picks: each shows 3 random presets (seeded, no duplicates within each draw of 3), player picks one per round. Cards show chassis silhouette + name, HP, installed modules with stats (damage/cooldown for attacks, heal amount for heals, effect descriptions for passives). Wired into App.tsx state machine as `'starter-draft'` phase before `'map'`. Both sets of 3 options pre-drawn in `startRun()` for deterministic RNG sequencing. Second draw is independent (can repeat presets from first draw).
+- T-7.11: Implement recruitment pool (separate from starter pool) — status: `done`, track: `logic`, depends on: T-7.6
+  - `src/content/recruitment-presets.json` + `src/logic/content/recruitmentPoolLoader.ts` (same format and Zod validation as starter presets). For v0.7 content is identical to starter pool. "New unit" reward draws now use `getAllRecruitmentPresets()` / `getRecruitmentPreset()` instead of the starter pool. Exported from `src/logic/index.ts`.
 
 ### M4 — Reward pool rework
 

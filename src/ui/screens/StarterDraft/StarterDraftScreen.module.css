@@ -1,0 +1,202 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #141a2e, #1f2440);
+  color: #d0d8f0;
+  font-family: 'Courier New', monospace;
+  padding: 1rem 1.5rem;
+  gap: 1.25rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #c8d8f0;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: #8890b8;
+  letter-spacing: 0.05em;
+}
+
+/* ── Preset cards ────────────────────────────────────────────────── */
+
+.cardsRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  flex: 1;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid rgba(200, 216, 240, 0.25);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
+}
+
+.card:hover {
+  background: rgba(160, 192, 240, 0.12);
+  border-color: rgba(200, 216, 240, 0.5);
+  transform: translateY(-2px);
+}
+
+.cardSelected {
+  background: rgba(126, 184, 240, 0.22);
+  border-color: #7eb8f0;
+  box-shadow: 0 0 14px rgba(126, 184, 240, 0.35);
+}
+
+/* ── Card header (silhouette + name) ─────────────────────────────── */
+
+.cardHeader {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.chassisSilhouette {
+  width: 72px;
+  height: 72px;
+  background: linear-gradient(180deg, #3b3250 0%, #5a3a52 100%);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: visible;
+  position: relative;
+}
+
+.cardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cardName {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #e0e8ff;
+}
+
+.cardChassis {
+  font-size: 0.75rem;
+  color: #8a93a6;
+}
+
+.cardHp {
+  font-size: 0.8rem;
+  color: #9aa4c8;
+  margin-top: 0.15rem;
+}
+
+/* ── Module lists ────────────────────────────────────────────────── */
+
+.moduleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.moduleSectionLabel {
+  font-size: 0.7rem;
+  color: #6a7290;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.moduleList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.moduleItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  font-size: 0.78rem;
+}
+
+.moduleName {
+  color: #c8d8f0;
+}
+
+.moduleStats {
+  color: #8890b8;
+  font-size: 0.72rem;
+}
+
+.noModules {
+  font-size: 0.75rem;
+  color: #4a5270;
+  font-style: italic;
+  padding: 0.2rem 0;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.confirmButton {
+  padding: 0.6rem 2rem;
+  background: #2a4a7a;
+  color: #e0e8ff;
+  border: 2px solid #7eb8f0;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.1s;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: #386299;
+  transform: translateY(-1px);
+}
+
+.confirmButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

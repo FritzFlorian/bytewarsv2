@@ -9,6 +9,7 @@
 import { test, expect } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { completeDraft } from './helpers'
 
 const OUT_DIR = 'test-results/artifacts/readme'
 
@@ -19,6 +20,7 @@ function ensureOutDir() {
 test('readme: map screen', async ({ page }) => {
   ensureOutDir()
   await page.goto('/')
+  await completeDraft(page)
   await expect(page.getByRole('heading', { name: 'Bytewars' })).toBeVisible()
   await expect(page.getByRole('button', { name: '⚔' }).first()).toBeVisible()
   await page.screenshot({ path: `${OUT_DIR}/map.png`, fullPage: true })
@@ -27,6 +29,7 @@ test('readme: map screen', async ({ page }) => {
 test('readme: gambit editor', async ({ page }) => {
   ensureOutDir()
   await page.goto('/')
+  await completeDraft(page)
   const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   await expect(page.getByRole('button', { name: 'Run' })).toBeVisible()
@@ -36,6 +39,7 @@ test('readme: gambit editor', async ({ page }) => {
 test('readme: combat playback mid-fight', async ({ page }) => {
   ensureOutDir()
   await page.goto('/')
+  await completeDraft(page)
   const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   await page.getByRole('button', { name: 'Run' }).click()

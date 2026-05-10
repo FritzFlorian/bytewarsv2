@@ -8,12 +8,13 @@
 //   - combat → uniform across the 4 reward kinds.
 //   - elite  → tilted toward `rule_slot` and `new_unit` (heal weights drop).
 //
-// For `new_unit` offers, the preset id is sub-drawn uniformly from the same
-// starter-preset pool the run-bootstrap uses (Q-R3). Same-preset duplicates
-// across the 3 offers are allowed — they're just two rolls of the same die.
+// For `new_unit` offers, the preset id is sub-drawn uniformly from the
+// recruitment pool (separate from the starter pool used at run start; for
+// v0.7 the content is identical). Same-preset duplicates across the 3
+// offers are allowed — they're just two rolls of the same die.
 
 import type { Rng } from '../rng'
-import { getAllStarterPresets } from '../content/starterPresetLoader'
+import { getAllRecruitmentPresets } from '../content/recruitmentPoolLoader'
 import type { Reward, RewardContext, RewardKind } from './types'
 
 export const COMBAT_WEIGHTS: Record<RewardKind, number> = {
@@ -47,7 +48,7 @@ function pickWeightedKind(rng: Rng, weights: Record<RewardKind, number>): Reward
 function drawSingle(rng: Rng, weights: Record<RewardKind, number>): Reward {
   const kind = pickWeightedKind(rng, weights)
   if (kind === 'new_unit') {
-    const pool = getAllStarterPresets()
+    const pool = getAllRecruitmentPresets()
     const idx = rng.nextInt(pool.length)
     return { kind: 'new_unit', presetId: pool[idx].id }
   }

@@ -17,7 +17,10 @@ const E2E_SEED = 1
 
 function simulate(seed: number): 'player' | 'enemy' {
   const rng = createRng(seed)
-  const presets = drawStarterSquad(rng, 2)
+  // Mirror draft flow: draw 3+3 options, auto-pick first of each.
+  const options1 = drawStarterSquad(rng, 3)
+  const options2 = drawStarterSquad(rng, 3)
+  const presets = [options1[0], options2[0]]
   const playerUnits: Unit[] = presets.map((p, i) =>
     toUnitInstance(p, `player-${p.id}`, 'player', {
       side: 'player',

@@ -49,12 +49,34 @@ describe('walking skeleton — logic', () => {
 // ---------------------------------------------------------------------------
 
 describe('walking skeleton — UI integration', () => {
-  it('map → gambit editor → Run → combat scene loads with events', async () => {
+  it('draft → map → gambit editor → Run → combat scene loads with events', async () => {
     await act(async () => {
       render(React.createElement(App))
     })
 
-    // Landing page is now the map screen — find a reachable combat node (icon ⚔).
+    // Landing page is now the starter-draft screen — pick first unit.
+    const draftCards1 = screen.getAllByRole('button').filter(b => b.textContent?.includes('HP'))
+    expect(draftCards1.length).toBeGreaterThanOrEqual(3)
+    await act(async () => {
+      fireEvent.click(draftCards1[0])
+    })
+    const confirmBtn1 = screen.getByRole('button', { name: 'Confirm' })
+    await act(async () => {
+      fireEvent.click(confirmBtn1)
+    })
+
+    // Pick second unit.
+    const draftCards2 = screen.getAllByRole('button').filter(b => b.textContent?.includes('HP'))
+    expect(draftCards2.length).toBeGreaterThanOrEqual(3)
+    await act(async () => {
+      fireEvent.click(draftCards2[0])
+    })
+    const confirmBtn2 = screen.getByRole('button', { name: 'Confirm' })
+    await act(async () => {
+      fireEvent.click(confirmBtn2)
+    })
+
+    // Now on the map screen — find a reachable combat node (icon ⚔).
     const nodeButtons = screen.getAllByRole('button', { name: '⚔' })
     const reachableNode = nodeButtons.find(btn => !(btn as HTMLButtonElement).disabled)
     expect(reachableNode).toBeDefined()

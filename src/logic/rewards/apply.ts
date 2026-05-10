@@ -19,7 +19,8 @@
 
 import type { RunState } from '../map/types'
 import type { Reward, RewardSelection } from './types'
-import { getStarterPreset, toUnitInstance } from '../content/starterPresetLoader'
+import { getRecruitmentPreset } from '../content/recruitmentPoolLoader'
+import { toUnitInstance } from '../content/starterPresetLoader'
 
 /** Q-R4: maximum rule-slot count per unit. */
 export const RULE_SLOT_CAP = 6
@@ -70,7 +71,7 @@ export function applyReward(state: RunState, reward: Reward, selection: RewardSe
     }
     case 'new_unit': {
       const sel = selection as Extract<RewardSelection, { kind: 'new_unit' }>
-      const preset = getStarterPreset(reward.presetId)
+      const preset = getRecruitmentPreset(reward.presetId)
       // Create a temporary UnitInstance to compute maxHp and ruleSlots from
       // chassis base + any passive modules defined on the preset.
       const tempUnit = toUnitInstance(preset, sel.newUnitId, 'player', sel.slot)

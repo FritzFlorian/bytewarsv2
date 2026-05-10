@@ -29,7 +29,7 @@ import {
   setPendingRewardOffers,
   clearPendingRewardOffers,
   createRng,
-  getStarterPreset,
+  getRecruitmentPreset,
   RULE_SLOT_CAP,
 } from '../../src/logic'
 import type {
@@ -54,7 +54,12 @@ function hashString(s: string): number {
 
 function bootstrapRun(seed: number): { run: RunState; units: Unit[] } {
   const rng = createRng(seed)
-  const presets = drawStarterSquad(rng, 2)
+
+  // Mirror App.tsx draft flow: draw 3+3 options, auto-pick first of each.
+  const options1 = drawStarterSquad(rng, 3)
+  const options2 = drawStarterSquad(rng, 3)
+  const presets = [options1[0], options2[0]]
+
   const units: Unit[] = presets.map((p, i) =>
     toUnitInstance(p, `player-${p.id}`, 'player', {
       side: 'player',
@@ -168,7 +173,7 @@ function autoSelectReward(
         // discarded by the caller (but we still need a valid selection).
         chosen = { row: 'front', column: 0 }
       }
-      const preset = getStarterPreset(reward.presetId)
+      const preset = getRecruitmentPreset(reward.presetId)
       const newUnitId = `player-${preset.id}-${chosen.row}-${chosen.column}`
       const newUnit = toUnitInstance(preset, newUnitId, 'player', {
         side: 'player',

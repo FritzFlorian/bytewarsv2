@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test'
+import { completeDraft } from './helpers'
 
 // Screenshots land in tests/e2e/.output/ (set via outputDir in playwright.config.ts).
 const OUT = 'tests/e2e/.output'
 
-test('map screen loads as landing page', async ({ page }) => {
+test('map screen loads after draft', async ({ page }) => {
   await page.goto('/')
+  await completeDraft(page)
   await expect(page.getByRole('heading', { name: 'Bytewars' })).toBeVisible()
   // The map shows node buttons — first column nodes are reachable (⚔)
   await expect(page.getByRole('button', { name: '⚔' }).first()).toBeVisible()
@@ -13,6 +15,7 @@ test('map screen loads as landing page', async ({ page }) => {
 
 test('clicking a map node opens the gambit editor', async ({ page }) => {
   await page.goto('/')
+  await completeDraft(page)
   // Click the first enabled (reachable) combat node
   const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
@@ -23,6 +26,7 @@ test('clicking a map node opens the gambit editor', async ({ page }) => {
 
 test('unit tabs switch correctly in gambit editor', async ({ page }) => {
   await page.goto('/')
+  await completeDraft(page)
   const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()
   // First unit tab is active by default — heading with the unit name visible
@@ -37,6 +41,7 @@ test('unit tabs switch correctly in gambit editor', async ({ page }) => {
 
 test('Run resolves combat and begins playback automatically', async ({ page }) => {
   await page.goto('/')
+  await completeDraft(page)
   // Navigate: map → gambit editor → combat
   const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
   await reachable.click()

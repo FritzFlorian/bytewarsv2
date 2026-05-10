@@ -1,11 +1,12 @@
 // App.tsx — v0.7 run-scoped state machine.
 //
 // Phases:
-//   map          → player views the branching map, selects a node
+//   starter-draft → player drafts 2 starting units (two sequential picks)
+//   map           → player views the branching map, selects a node
 //   gambit-editor → player programs unit AI before a fight
-//   combat       → pre-resolved fight plays back
-//   game-over    → squad was wiped
-//   victory      → boss defeated
+//   combat        → pre-resolved fight plays back
+//   game-over     → squad was wiped
+//   victory       → boss defeated
 //
 // Audio: initAudio() is called inside the first user-gesture handler so the
 // browser allows AudioContext creation without a suspended-context warning.
@@ -39,6 +40,7 @@ import type {
   BattleResult,
   Reward,
   RewardSelection,
+  StarterPreset,
 } from '../logic'
 import { GambitEditorScreen } from './screens/GambitEditor/GambitEditorScreen'
 import type { UnitEditorEntry } from './screens/GambitEditor/GambitEditorScreen'
@@ -48,6 +50,7 @@ import { MapScreen } from './screens/RunMap/MapScreen'
 import { GameOverScreen } from './screens/GameOver/GameOverScreen'
 import { VictoryScreen } from './screens/Victory/VictoryScreen'
 import { RewardScreen } from './screens/Reward/RewardScreen'
+import { StarterDraftScreen } from './screens/StarterDraft/StarterDraftScreen'
 import { DebugUnits } from './screens/Combat/_DebugUnits'
 import { ChassisPreview } from './screens/ChassisPreview/ChassisPreview'
 import { DebugScene } from '../render/CombatScene'
@@ -60,7 +63,21 @@ import type { PlaybackSpeed } from '../render/playback'
 // Types
 // ---------------------------------------------------------------------------
 
-type AppPhase = 'map' | 'gambit-editor' | 'combat' | 'reward' | 'game-over' | 'victory'
+type AppPhase =
+  | 'starter-draft'
+  | 'map'
+  | 'gambit-editor'
+  | 'combat'
+  | 'reward'
+  | 'game-over'
+  | 'victory'
+
+interface DraftState {
+  pick: 1 | 2
+  options1: StarterPreset[]
+  options2: StarterPreset[]
+  firstPick?: StarterPreset
+}
 
 interface RunContext {
   playerUnits: Unit[]
@@ -69,6 +86,8 @@ interface RunContext {
   combatProps: CombatScreenProps | null
   /** Seed used for this run (for display / replay). */
   seed: number
+  /** Draft state — only used during 'starter-draft' phase. */
+  draftState?: DraftState
 }
 
 // ---------------------------------------------------------------------------
@@ -111,22 +130,29 @@ function syncHp(unit: Unit, hpSnapshot: Record<string, number>): Unit {
   return clone
 }
 
-/** Build a fresh run by drawing 2 starter presets and seating them front-row. */
+/** Build a fresh run: pre-draw draft options, generate the map, and start at the draft screen. */
 function startRun(): RunContext {
   const seed = readSeedOverride() ?? Date.now()
   const rng = createRng(seed)
-  const presets = drawStarterSquad(rng, 2)
-  const playerUnits: Unit[] = presets.map((p, i) =>
-    toUnitInstance(p, `player-${p.id}`, 'player', {
-      side: 'player' as const,
-      row: 'front' as const,
-      column: STARTER_COLUMNS[i],
-    }),
-  )
-  const map = generateMap(rng)
-  const runState = createRunState(map, playerUnits)
 
-  return { playerUnits, runState, phase: 'map', combatProps: null, seed }
+  // Draw draft options upfront so the RNG sequence is deterministic regardless
+  // of which presets the player picks. Each draw is 3 without replacement from
+  // the full pool; the two draws are independent (second can repeat first).
+  const options1 = drawStarterSquad(rng, 3)
+  const options2 = drawStarterSquad(rng, 3)
+
+  const map = generateMap(rng)
+  // Empty player units for now — populated when the draft completes.
+  const runState = createRunState(map, [])
+
+  return {
+    playerUnits: [],
+    runState,
+    phase: 'starter-draft',
+    combatProps: null,
+    seed,
+    draftState: { pick: 1, options1, options2 },
+  }
 }
 
 /** Derive BattleResult by replaying damage and heal events. */
@@ -195,6 +221,45 @@ export default function App() {
     if (page === 'scene') return <DebugScene />
     if (page === 'audio') return <DebugAudio />
   }
+
+  // ── Starter draft ────────────────────────────────────────────────────────
+
+  const handleDraftPick = useCallback((preset: StarterPreset) => {
+    initAudio()
+    setCtx(prev => {
+      const draft = prev.draftState
+      if (!draft) return prev
+
+      if (draft.pick === 1) {
+        // First pick done — advance to pick 2 with the same options2.
+        return {
+          ...prev,
+          draftState: { ...draft, pick: 2 as const, firstPick: preset },
+        }
+      }
+
+      // Second pick done — build final squad and transition to the map.
+      const picks = [draft.firstPick!, preset]
+      const playerUnits: Unit[] = picks.map((p, i) =>
+        toUnitInstance(p, `player-${p.id}`, 'player', {
+          side: 'player' as const,
+          row: 'front' as const,
+          column: STARTER_COLUMNS[i],
+        }),
+      )
+
+      // Re-initialise run state snapshots with the chosen units.
+      const runState = createRunState(prev.runState.graph, playerUnits)
+
+      return {
+        ...prev,
+        playerUnits,
+        runState,
+        phase: 'map',
+        draftState: undefined,
+      }
+    })
+  }, [])
 
   // ── Map ─────────────────────────────────────────────────────────────────
 
@@ -356,6 +421,17 @@ export default function App() {
 
   if (phase === 'victory') {
     return <VictoryScreen onTryAgain={handleTryAgain} />
+  }
+
+  if (phase === 'starter-draft' && ctx.draftState) {
+    const { pick, options1, options2 } = ctx.draftState
+    return (
+      <StarterDraftScreen
+        pick={pick}
+        options={pick === 1 ? options1 : options2}
+        onPick={handleDraftPick}
+      />
+    )
   }
 
   if (phase === 'map') {

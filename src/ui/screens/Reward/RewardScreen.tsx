@@ -22,7 +22,7 @@ import type {
   Column,
   StarterPreset,
 } from '../../../logic'
-import { getStarterPreset, toUnitInstance, RULE_SLOT_CAP } from '../../../logic'
+import { getRecruitmentPreset, toUnitInstance, RULE_SLOT_CAP } from '../../../logic'
 import styles from './RewardScreen.module.css'
 
 // ── Props ────────────────────────────────────────────────────────────
@@ -65,10 +65,10 @@ function offerDescription(r: Reward): string {
     case 'rule_slot':
       return `Add one rule slot to a unit (cap ${RULE_SLOT_CAP}).`
     case 'new_unit':
-      // getStarterPreset throws on unknown id, but r.presetId is typed as a
+      // getRecruitmentPreset throws on unknown id, but r.presetId is typed as a
       // valid id so this is safe; still, guard for display.
       try {
-        const p = getStarterPreset(r.presetId)
+        const p = getRecruitmentPreset(r.presetId)
         return `Add ${p.name} (${chassisLabel(p.chassis)}) to your squad.`
       } catch {
         return `Add a new unit to your squad.`
@@ -248,7 +248,7 @@ export function RewardScreen({ offers, playerUnits, runState, onCommit }: Reward
   function handleConfirm() {
     if (!selectedOffer || !selection) return
     if (selectedOffer.kind === 'new_unit' && selection.kind === 'new_unit') {
-      const preset = getStarterPreset(selectedOffer.presetId)
+      const preset = getRecruitmentPreset(selectedOffer.presetId)
       const newUnit = toUnitInstance(preset, selection.newUnitId, 'player', selection.slot)
       onCommit(selectedOffer, selection, newUnit)
     } else {
@@ -322,7 +322,7 @@ export function RewardScreen({ offers, playerUnits, runState, onCommit }: Reward
 
         {selectedOffer?.kind === 'new_unit' && (
           <SlotPicker
-            preset={getStarterPreset(selectedOffer.presetId)}
+            preset={getRecruitmentPreset(selectedOffer.presetId)}
             occupied={occupiedSlots}
             selectedSlot={newUnitSlot}
             onSelect={setNewUnitSlot}

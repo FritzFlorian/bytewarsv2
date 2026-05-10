@@ -6,12 +6,14 @@
 // verifies the player lands back on the map.
 
 import { test, expect } from '@playwright/test'
+import { completeDraft } from './helpers'
 
 const OUT = 'tests/e2e/.output'
 const SEED = 1
 
 test('combat → reward → map cycle', async ({ page }) => {
   await page.goto(`/?seed=${SEED}`)
+  await completeDraft(page)
 
   // Click the first reachable combat node.
   const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()

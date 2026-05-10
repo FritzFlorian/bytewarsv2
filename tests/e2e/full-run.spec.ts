@@ -1,86 +1,71 @@
-// Full-run e2e (T-6.16): start → many fights → boss → victory.
+// Full-run e2e — proves the complete UI loop works end-to-end:
+//   draft → map → editor → combat → reward → back to map.
 //
-// Boots the app with `?seed=10` which deterministically wins on auto-pilot
-// (pinned by tests/logic/fullRunSeed.test.ts). The test loops over the map
-// node-by-node, applying the same "repair_bay > combat > elite > boss"
-// preference the simulator uses, until the Victory screen appears.
+// Does NOT walk the entire run to victory — that's covered by the
+// logic-level fullRunSeed.test.ts + balanceSimulation.test.ts. This
+// test only verifies the UI wiring across one full cycle.
 
-import { test, expect, type Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { completeDraft } from './helpers'
 
 const OUT = 'tests/e2e/.output'
-const SEED = 10
 
-const NODE_PRIORITY = ['repair_bay', 'combat', 'elite', 'boss'] as const
+test('draft → map → fight → reward → map cycle', async ({ page }) => {
+  await page.goto('/')
 
-/** Pick a reachable map button by node-type priority and click it. */
-async function clickNextNode(page: Page): Promise<'repair_bay' | 'combat' | 'elite' | 'boss'> {
-  for (const type of NODE_PRIORITY) {
-    const btn = page.locator(`button[data-node-type="${type}"]:not([disabled])`).first()
-    if (await btn.count()) {
-      await btn.click()
-      return type
-    }
-  }
-  throw new Error('no reachable map node found')
-}
+  // ── Draft ──────────────────────────────────────────────────────────
+  // Starter-draft screen should appear first.
+  await expect(page.getByRole('heading', { name: /Draft Unit 1/ })).toBeVisible()
+  await page.screenshot({ path: `${OUT}/full-run-00-draft.png`, fullPage: true })
+  await completeDraft(page)
 
-/** Pick the first reward offer + sub-pick if needed, then Confirm. */
-async function pickReward(page: Page) {
-  const offerCards = page
-    .locator('button')
-    .filter({ hasText: /Full Heal|Partial Heal|Rule Slot|New Unit/ })
-  const firstOffer = offerCards.first()
-  const firstOfferText = (await firstOffer.textContent()) ?? ''
-  await firstOffer.click()
+  // ── Map ────────────────────────────────────────────────────────────
+  await expect(page.getByRole('heading', { name: 'Bytewars' })).toBeVisible()
+  await page.screenshot({ path: `${OUT}/full-run-01-map.png`, fullPage: true })
 
-  // heal_all (Partial Heal) needs no sub-pick; everything else does.
-  const needsSubPick = !firstOfferText.includes('Partial Heal')
-  if (needsSubPick) {
-    const targetBtn = page
-      .locator('[class*="unitItem"]:not([disabled]), [class*="slotCellEmpty"]')
-      .first()
-    await targetBtn.click()
-  }
+  // ── Editor → Combat ────────────────────────────────────────────────
+  const reachable = page.locator('button:not([disabled])').filter({ hasText: '⚔' }).first()
+  await reachable.click()
+  await page.getByRole('button', { name: 'Run' }).click()
 
-  const confirm = page.getByRole('button', { name: 'Confirm' })
-  await expect(confirm).toBeEnabled()
-  await confirm.click()
-}
-
-test('full run: map → many fights → boss → victory', async ({ page }) => {
-  test.setTimeout(120_000)
-  await page.goto(`/?seed=${SEED}`)
-  await page.screenshot({ path: `${OUT}/full-run-00-start.png`, fullPage: true })
-
-  const victoryHeading = page.getByRole('heading', { name: 'Boss Defeated' })
+  // Speed up playback; wait for Continue.
+  await page.locator('select').selectOption('10')
   const continueBtn = page.getByRole('button', { name: /Continue/ })
+  await expect(continueBtn).toBeVisible({ timeout: 15_000 })
+  await continueBtn.click()
 
-  let stepGuard = 0
-  while (!(await victoryHeading.isVisible().catch(() => false))) {
-    if (++stepGuard > 20) throw new Error('full run did not finish within 20 nodes')
+  // ── Post-combat: reward or game-over ───────────────────────────────
+  // With an unseeded run the first fight may be won or lost. Either
+  // outcome proves the UI loop works.
+  const rewardHeading = page.getByRole('heading', { name: 'Reward' })
+  const gameOverHeading = page.getByRole('heading', { name: 'Run Failed' })
 
-    const type = await clickNextNode(page)
+  const gotReward = await rewardHeading.isVisible().catch(() => false)
+  const gotGameOver = await gameOverHeading.isVisible().catch(() => false)
+  expect(gotReward || gotGameOver).toBe(true)
 
-    if (type === 'repair_bay') {
-      // No combat — straight back to map.
-      await expect(page.getByText('Select your next encounter')).toBeVisible()
-      continue
+  if (gotReward) {
+    await page.screenshot({ path: `${OUT}/full-run-02-reward.png`, fullPage: true })
+
+    // Pick the first offer (with sub-pick if needed) and confirm.
+    const offerCards = page
+      .locator('button')
+      .filter({ hasText: /Full Heal|Partial Heal|Rule Slot|New Unit/ })
+    const firstOffer = offerCards.first()
+    const firstOfferText = (await firstOffer.textContent()) ?? ''
+    await firstOffer.click()
+
+    if (!firstOfferText.includes('Partial Heal')) {
+      const targetBtn = page
+        .locator('[class*="unitItem"]:not([disabled]), [class*="slotCellEmpty"]')
+        .first()
+      await targetBtn.click()
     }
 
-    // Combat / elite / boss → editor → Run → wait for Continue.
-    await page.getByRole('button', { name: 'Run' }).click()
-    await page.locator('select').selectOption('10')
-    await expect(continueBtn).toBeVisible({ timeout: 30_000 })
-    await continueBtn.click()
+    await page.getByRole('button', { name: 'Confirm' }).click()
 
-    // After a boss win the Victory screen appears; otherwise reward → map.
-    if (type === 'boss') break
-
-    await expect(page.getByRole('heading', { name: 'Reward' })).toBeVisible()
-    await pickReward(page)
+    // Back on the map.
     await expect(page.getByText('Select your next encounter')).toBeVisible()
+    await page.screenshot({ path: `${OUT}/full-run-03-map-post-reward.png`, fullPage: true })
   }
-
-  await expect(victoryHeading).toBeVisible()
-  await page.screenshot({ path: `${OUT}/full-run-99-victory.png`, fullPage: true })
 })
