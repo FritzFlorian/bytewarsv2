@@ -144,15 +144,15 @@ describe('resolveRound — single round', () => {
 //     butler  : taser=7, overload=30 (cd1 initial → avail round 2)
 //     qa-rig  : clamp=10 (cd1 → avail every other round)
 //
-//   Result: player wins after ~3 rounds, 58 events total. Both qa-rigs die;
+//   Result: player wins after ~3 rounds, 52 events total. Both qa-rigs die;
 //   player vacuum survives.
 // ---------------------------------------------------------------------------
 
 describe('golden test — walking-skeleton fixture, seed 42', () => {
   const events = runToCompletion(42)
 
-  it('produces exactly 58 events', () => {
-    expect(events).toHaveLength(58)
+  it('produces exactly 52 events', () => {
+    expect(events).toHaveLength(52)
   })
 
   it('ends with combat_ended winner=player', () => {
