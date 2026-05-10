@@ -1,20 +1,70 @@
 // @vitest-environment jsdom
 //
-// GambitSlot unit tests — T-1.2 acceptance criteria:
+// GambitSlot unit tests — updated for v0.7 module system (T-7.14):
 //   - condition=self_hp_below shows pct input
 //   - condition=target_exists shows condition target selector
 //   - condition=always shows neither
 //   - action=idle hides action target selector
-//   - action=named_attack shows action target selector
+//   - action=module shows action target selector
+//   - Attack modules show enemy target options; heal modules show ally targets
+//   - Action picker lists only installed active modules (not chassis-filtered)
 //   - Selecting a new condition via the dropdown fires onChange with the correct rule
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { useState } from 'react'
 import { GambitSlot } from '../../src/ui/screens/GambitEditor/GambitSlot'
-import type { Rule } from '../../src/logic'
+import type { Rule, ActiveModuleDef } from '../../src/logic'
 
 afterEach(() => cleanup())
+
+// Sample active module defs for testing
+const QUICK_JAB: ActiveModuleDef = {
+  id: 'quick_jab',
+  name: 'Quick Jab',
+  type: 'active',
+  availability: 'both',
+  rarity: 1,
+  actionKind: 'attack',
+  attackProperties: { damage: 8, cooldown: 0, initialCooldown: 0 },
+  sound: 'quick_jab',
+}
+
+const SWEEP: ActiveModuleDef = {
+  id: 'sweep',
+  name: 'Sweep',
+  type: 'active',
+  availability: 'both',
+  rarity: 2,
+  actionKind: 'attack',
+  attackProperties: { damage: 18, cooldown: 2, initialCooldown: 0 },
+  sound: 'sweep',
+}
+
+const PATCH_KIT: ActiveModuleDef = {
+  id: 'patch_kit',
+  name: 'Patch Kit',
+  type: 'active',
+  availability: 'player',
+  rarity: 2,
+  actionKind: 'heal',
+  healProperties: { healAmount: 15, cooldown: 2, initialCooldown: 0 },
+  sound: 'patch_kit',
+}
+
+const OVERLOAD: ActiveModuleDef = {
+  id: 'overload',
+  name: 'Overload',
+  type: 'active',
+  availability: 'both',
+  rarity: 3,
+  actionKind: 'attack',
+  attackProperties: { damage: 30, cooldown: 3, initialCooldown: 1 },
+  sound: 'overload',
+}
+
+const ATTACK_MODULES = [QUICK_JAB, SWEEP]
+const MIXED_MODULES = [QUICK_JAB, PATCH_KIT]
 
 // ---------------------------------------------------------------------------
 // Rendering based on rule prop — no interaction needed
@@ -23,7 +73,9 @@ afterEach(() => cleanup())
 describe('GambitSlot — conditional field visibility', () => {
   it('always + idle: no pct, no target selectors', () => {
     const rule: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
+    render(
+      <GambitSlot index={0} rule={rule} onChange={() => {}} activeModuleDefs={ATTACK_MODULES} />,
+    )
     expect(screen.queryByLabelText('HP threshold 1')).toBeNull()
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
@@ -31,7 +83,9 @@ describe('GambitSlot — conditional field visibility', () => {
 
   it('self_hp_below + idle: shows pct input, no target selectors', () => {
     const rule: Rule = { condition: { kind: 'self_hp_below', pct: 50 }, action: { kind: 'idle' } }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
+    render(
+      <GambitSlot index={0} rule={rule} onChange={() => {}} activeModuleDefs={ATTACK_MODULES} />,
+    )
     expect(screen.getByLabelText('HP threshold 1')).toBeTruthy()
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
@@ -42,7 +96,9 @@ describe('GambitSlot — conditional field visibility', () => {
       condition: { kind: 'target_exists', target: 'nearest_enemy' },
       action: { kind: 'idle' },
     }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
+    render(
+      <GambitSlot index={0} rule={rule} onChange={() => {}} activeModuleDefs={ATTACK_MODULES} />,
+    )
     expect(screen.queryByLabelText('HP threshold 1')).toBeNull()
     expect(screen.getByLabelText('Condition target 1')).toBeTruthy()
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
@@ -53,7 +109,9 @@ describe('GambitSlot — conditional field visibility', () => {
       condition: { kind: 'always' },
       action: { kind: 'quick_jab', target: 'nearest_enemy' },
     }
-    render(<GambitSlot index={0} rule={rule} onChange={() => {}} chassis="vacuum" />)
+    render(
+      <GambitSlot index={0} rule={rule} onChange={() => {}} activeModuleDefs={ATTACK_MODULES} />,
+    )
     expect(screen.queryByLabelText('HP threshold 1')).toBeNull()
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
     expect(screen.getByLabelText('Action target 1')).toBeTruthy()
@@ -66,13 +124,13 @@ describe('GambitSlot — conditional field visibility', () => {
 
 function SlotWrapper({
   initialRule,
-  chassis = 'vacuum' as const,
+  activeModuleDefs = ATTACK_MODULES,
 }: {
   initialRule: Rule
-  chassis?: 'vacuum' | 'butler' | 'qa-rig' | 'overseer'
+  activeModuleDefs?: ActiveModuleDef[]
 }) {
   const [rule, setRule] = useState(initialRule)
-  return <GambitSlot index={0} rule={rule} onChange={setRule} chassis={chassis} />
+  return <GambitSlot index={0} rule={rule} onChange={setRule} activeModuleDefs={activeModuleDefs} />
 }
 
 describe('GambitSlot — interaction', () => {
@@ -80,15 +138,12 @@ describe('GambitSlot — interaction', () => {
     const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
     render(<SlotWrapper initialRule={initial} />)
 
-    // Open the condition dropdown
     const conditionInput = screen.getByLabelText('Condition 1')
     fireEvent.focus(conditionInput)
 
-    // Click the "self HP below" option
     const option = screen.getByRole('option', { name: 'self HP below' })
     fireEvent.mouseDown(option)
 
-    // pct input should now be visible
     expect(screen.getByLabelText('HP threshold 1')).toBeTruthy()
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
   })
@@ -124,7 +179,7 @@ describe('GambitSlot — interaction', () => {
     expect(screen.queryByLabelText('Condition target 1')).toBeNull()
   })
 
-  it('selecting a named attack shows action target selector; switching to idle hides it', () => {
+  it('selecting an attack module shows action target selector; switching to idle hides it', () => {
     const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
     render(<SlotWrapper initialRule={initial} />)
 
@@ -132,7 +187,6 @@ describe('GambitSlot — interaction', () => {
 
     const actionInput = screen.getByLabelText('Action 1')
     fireEvent.focus(actionInput)
-    // Quick Jab is the first attack option for vacuum
     const option = screen.getAllByRole('option').find(o => o.textContent?.includes('Quick Jab'))
     expect(option).toBeTruthy()
     fireEvent.mouseDown(option!)
@@ -146,38 +200,83 @@ describe('GambitSlot — interaction', () => {
     expect(screen.queryByLabelText('Action target 1')).toBeNull()
   })
 
-  it('only shows chassis-appropriate attacks for vacuum', () => {
+  it('action picker shows only installed active modules', () => {
     const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
-    render(<SlotWrapper initialRule={initial} chassis="vacuum" />)
+    render(<SlotWrapper initialRule={initial} activeModuleDefs={[QUICK_JAB, OVERLOAD]} />)
 
     const actionInput = screen.getByLabelText('Action 1')
     fireEvent.focus(actionInput)
 
     const options = screen.getAllByRole('option').map(o => o.textContent ?? '')
     expect(options.some(o => o.includes('Quick Jab'))).toBe(true)
-    expect(options.some(o => o.includes('Sweep'))).toBe(true)
-    // Butler/QA-Rig attacks should NOT appear
-    expect(options.some(o => o.includes('Taser'))).toBe(false)
-    expect(options.some(o => o.includes('Clamp'))).toBe(false)
+    expect(options.some(o => o.includes('Overload'))).toBe(true)
+    expect(options.some(o => o.includes('Sweep'))).toBe(false)
+    expect(options.some(o => o.includes('idle'))).toBe(true)
   })
 
-  it('only shows chassis-appropriate attacks for butler', () => {
+  it('attack module shows damage and cooldown info in dropdown', () => {
     const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
-    render(<SlotWrapper initialRule={initial} chassis="butler" />)
+    render(<SlotWrapper initialRule={initial} activeModuleDefs={[SWEEP, OVERLOAD]} />)
 
     const actionInput = screen.getByLabelText('Action 1')
     fireEvent.focus(actionInput)
 
     const options = screen.getAllByRole('option').map(o => o.textContent ?? '')
-    expect(options.some(o => o.includes('Taser'))).toBe(true)
-    expect(options.some(o => o.includes('Overload'))).toBe(true)
-    expect(options.some(o => o.includes('Quick Jab'))).toBe(false)
+    expect(options.some(o => o.includes('18 dmg') && o.includes('2-round cd'))).toBe(true)
+    expect(options.some(o => o.includes('30 dmg') && o.includes('unavail. round 1'))).toBe(true)
+  })
+
+  it('heal module shows heal amount in dropdown', () => {
+    const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
+    render(<SlotWrapper initialRule={initial} activeModuleDefs={MIXED_MODULES} />)
+
+    const actionInput = screen.getByLabelText('Action 1')
+    fireEvent.focus(actionInput)
+
+    const options = screen.getAllByRole('option').map(o => o.textContent ?? '')
+    expect(options.some(o => o.includes('Patch Kit') && o.includes('15 heal'))).toBe(true)
+  })
+
+  it('attack modules show enemy target selectors', () => {
+    const initial: Rule = {
+      condition: { kind: 'always' },
+      action: { kind: 'quick_jab', target: 'nearest_enemy' },
+    }
+    render(<SlotWrapper initialRule={initial} activeModuleDefs={ATTACK_MODULES} />)
+
+    const targetInput = screen.getByLabelText('Action target 1')
+    fireEvent.focus(targetInput)
+
+    const options = screen.getAllByRole('option').map(o => o.textContent ?? '')
+    expect(options).toContain('nearest enemy')
+    expect(options).toContain('any enemy')
+    expect(options).not.toContain('any ally')
+    expect(options).not.toContain('weakest ally')
+  })
+
+  it('heal modules show ally target selectors', () => {
+    const initial: Rule = {
+      condition: { kind: 'always' },
+      action: { kind: 'patch_kit', target: 'any_ally' },
+    }
+    render(<SlotWrapper initialRule={initial} activeModuleDefs={MIXED_MODULES} />)
+
+    const targetInput = screen.getByLabelText('Action target 1')
+    fireEvent.focus(targetInput)
+
+    const options = screen.getAllByRole('option').map(o => o.textContent ?? '')
+    expect(options).toContain('any ally')
+    expect(options).toContain('weakest ally')
+    expect(options).toContain('self')
+    expect(options).not.toContain('nearest enemy')
   })
 
   it('onChange is called with the correct new rule value', () => {
     const onChange = vi.fn()
     const initial: Rule = { condition: { kind: 'always' }, action: { kind: 'idle' } }
-    render(<GambitSlot index={0} rule={initial} onChange={onChange} chassis="vacuum" />)
+    render(
+      <GambitSlot index={0} rule={initial} onChange={onChange} activeModuleDefs={ATTACK_MODULES} />,
+    )
 
     const conditionInput = screen.getByLabelText('Condition 1')
     fireEvent.focus(conditionInput)

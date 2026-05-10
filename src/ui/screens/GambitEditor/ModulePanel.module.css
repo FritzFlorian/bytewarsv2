@@ -1,0 +1,117 @@
+/* ModulePanel — read-only module inspector (T-7.15) */
+
+.panel {
+  background: #111520;
+  border: 1px solid #3a4260;
+  padding: 1rem;
+  min-width: 14rem;
+  max-width: 18rem;
+  flex-shrink: 0;
+}
+
+.heading {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  color: #7eb8f0;
+}
+
+.section {
+  margin-bottom: 0.75rem;
+}
+
+.sectionTitle {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: #8a94a8;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slotCount {
+  color: #5a6880;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.moduleList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.moduleItem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #1e2535;
+  font-size: 0.75rem;
+  align-items: baseline;
+}
+
+.moduleItem:last-child {
+  border-bottom: none;
+}
+
+.moduleName {
+  color: #c8d0e0;
+  font-weight: 600;
+}
+
+.moduleType {
+  color: #5a6880;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.moduleStats {
+  color: #8a94a8;
+  font-size: 0.7rem;
+  width: 100%;
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #3a4260;
+  font-style: italic;
+}
+
+/* Stats summary */
+
+.statsSection {
+  border-top: 1px solid #3a4260;
+  padding-top: 0.75rem;
+}
+
+.statsList {
+  margin: 0;
+  padding: 0;
+}
+
+.statRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  padding: 0.15rem 0;
+}
+
+.statRow dt {
+  color: #8a94a8;
+}
+
+.statRow dd {
+  margin: 0;
+  color: #c8d0e0;
+}
+
+.statBreakdown {
+  color: #5a6880;
+  font-size: 0.65rem;
+  margin-left: 0.3rem;
+}

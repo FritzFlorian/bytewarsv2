@@ -5,25 +5,29 @@
 //        Dragging a slot above another swaps their positions in the list.
 
 import { useRef } from 'react'
-import type { Rule } from '../../../logic'
-import type { Chassis } from '../../../logic'
+import type { Rule, ActiveModuleDef } from '../../../logic'
 import { GambitSlot } from './GambitSlot'
 import styles from './GambitList.module.css'
 
 export interface GambitListProps {
   rules: Rule[]
   onChange: (rules: Rule[]) => void
-  chassis: Chassis
-  /** Number of active rule slots for this unit (T-6.14). `rules.length` should
+  activeModuleDefs: ActiveModuleDef[]
+  /** Number of active rule slots for this unit. `rules.length` should
    *  equal this; locked rows beyond it are rendered up to `ruleSlotCap`. */
   ruleSlots: number
-  /** Absolute cap on rule slots (Q-R4 — 6). Rows between `ruleSlots` and
-   *  `ruleSlotCap` are shown as locked placeholders: visible so the player
-   *  can see the ceiling, inert so they can't edit them. */
+  /** Absolute cap on rule slots (6). Rows between `ruleSlots` and
+   *  `ruleSlotCap` are shown as locked placeholders. */
   ruleSlotCap: number
 }
 
-export function GambitList({ rules, onChange, chassis, ruleSlots, ruleSlotCap }: GambitListProps) {
+export function GambitList({
+  rules,
+  onChange,
+  activeModuleDefs,
+  ruleSlots,
+  ruleSlotCap,
+}: GambitListProps) {
   /** Index of the slot currently being dragged. */
   const dragIndex = useRef<number | null>(null)
 
@@ -72,7 +76,7 @@ export function GambitList({ rules, onChange, chassis, ruleSlots, ruleSlotCap }:
             index={i}
             rule={rule}
             onChange={updated => handleSlotChange(i, updated)}
-            chassis={chassis}
+            activeModuleDefs={activeModuleDefs}
           />
         </div>
       ))}
@@ -83,7 +87,9 @@ export function GambitList({ rules, onChange, chassis, ruleSlots, ruleSlotCap }:
           </span>
           <div className={styles.lockedSlot}>
             <span className={styles.lockedIndex}>{activeCount + i + 1}</span>
-            <span className={styles.lockedLabel}>🔒 locked — unlock with a +rule-slot reward</span>
+            <span className={styles.lockedLabel}>
+              🔒 locked — unlock with a Logic Co-processor module
+            </span>
           </div>
         </div>
       ))}

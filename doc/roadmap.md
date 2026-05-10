@@ -141,10 +141,10 @@ Module drops as rewards, updated reward screen.
 
 Editor shows installed modules; module management surfaces.
 
-- T-7.14: Gambit editor shows actions from installed active modules (replaces chassis-filtered list) — status: `todo`, track: `ui`, depends on: T-7.7
-  - Action picker dropdown lists only the unit's `activeModules` (by name, with damage/cooldown info). No more `getAttacksForChassis()` filtering. Show cooldown/initialCooldown info and round-1 warning where applicable.
-- T-7.15: Module management UI (view/install modules on units between fights) — status: `todo`, track: `ui`, depends on: T-7.14
-  - Unit detail view showing installed active + passive modules and their effects. Computed stats displayed (maxHp, bonusDamage, effectiveActiveSlots, ruleSlots). Passive effects summarized.
+- T-7.14: Gambit editor shows actions from installed active modules (replaces chassis-filtered list) — status: `done`, track: `ui`, depends on: T-7.7
+  - Action picker dropdown lists only the unit's installed `activeModules` (by name, with damage/heal amount and cooldown info). Replaced `getAttacksForChassis()` with module-based `buildActionOptions()`. Heal modules show heal amount instead of damage. Target selectors are context-sensitive: attack modules offer enemy targets (`nearest_enemy`, `any_enemy`), heal modules offer ally targets (`any_ally`, `weakest_ally`, `self`). Condition target selector (`target_exists`) shows all target types. Round-1 warning shown where `initialCooldown > 0`. Default gambit uses first installed module with appropriate target. `UnitEditorEntry` extended with `activeModuleDefs`, `passiveModuleDefs`, and computed stats. Locked gambit row label updated to reference "Logic Co-processor module".
+- T-7.15: Module management UI (view/install modules on units between fights) — status: `done`, track: `ui`, depends on: T-7.14
+  - New `ModulePanel` component alongside gambit list in side-by-side layout. Shows active modules with slot count (used/effective), type badge (Attack/Heal), and stats (damage/heal, cooldown, initialCooldown). Shows passive modules with slot count (used/fixed from chassis) and effect descriptions. Computed stats summary: maxHp with breakdown (base + passive bonuses), bonus damage, rule slots, active slots. Read-only between fights — all module changes happen through rewards.
 
 ### M6 — Balance + E2E
 

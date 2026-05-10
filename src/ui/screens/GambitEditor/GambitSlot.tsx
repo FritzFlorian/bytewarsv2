@@ -6,16 +6,15 @@
 // Conditional fields:
 //   condition=self_hp_below  → numeric pct input
 //   condition=target_exists  → condition target selector
-//   action=attack            → action target selector
+//   action=module            → action target selector (enemy targets for attacks, ally for heals)
 //
-// Each picker is a SearchableSelect: a text input that filters options
-// as the user types, then lets them pick from the narrowed list.
+// T-7.14: Action picker lists only installed active modules (not chassis-filtered).
+// Target selectors are context-sensitive: attack modules offer enemy targets,
+// heal modules offer ally targets.
 
 import { useState } from 'react'
-import type { Condition, Action, TargetSelector, Rule, AttackId } from '../../../logic'
+import type { Condition, Action, TargetSelector, Rule, ActiveModuleDef } from '../../../logic'
 import { isModuleAction } from '../../../logic'
-import { getAttacksForChassis } from '../../../logic'
-import type { Chassis } from '../../../logic'
 import styles from './GambitSlot.module.css'
 
 // ---------------------------------------------------------------------------
@@ -28,20 +27,57 @@ const CONDITION_OPTIONS: { value: Condition['kind']; label: string }[] = [
   { value: 'target_exists', label: 'target exists' },
 ]
 
-const TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
+const ENEMY_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
   { value: 'nearest_enemy', label: 'nearest enemy' },
   { value: 'any_enemy', label: 'any enemy' },
+]
+
+const ALLY_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
+  { value: 'any_ally', label: 'any ally' },
+  { value: 'weakest_ally', label: 'weakest ally' },
   { value: 'self', label: 'self' },
 ]
 
-function buildActionOptions(chassis: Chassis): { value: Action['kind']; label: string }[] {
-  const attacks = getAttacksForChassis(chassis)
-  const attackOptions = attacks.map(a => {
-    const cdLabel = a.cooldown > 0 ? `, ${a.cooldown}-round cd` : ''
-    const initLabel = a.initialCooldown > 0 ? `, unavail. round 1` : ''
-    return { value: a.id as AttackId, label: `${a.name} — ${a.damage} dmg${cdLabel}${initLabel}` }
+const ALL_TARGET_OPTIONS: { value: TargetSelector; label: string }[] = [
+  { value: 'nearest_enemy', label: 'nearest enemy' },
+  { value: 'any_enemy', label: 'any enemy' },
+  { value: 'any_ally', label: 'any ally' },
+  { value: 'weakest_ally', label: 'weakest ally' },
+  { value: 'self', label: 'self' },
+]
+
+function buildActionOptions(
+  activeModuleDefs: ActiveModuleDef[],
+): { value: Action['kind']; label: string }[] {
+  const moduleOptions = activeModuleDefs.map(m => {
+    if (m.actionKind === 'attack') {
+      const cdLabel =
+        m.attackProperties.cooldown > 0 ? `, ${m.attackProperties.cooldown}-round cd` : ''
+      const initLabel = m.attackProperties.initialCooldown > 0 ? `, unavail. round 1` : ''
+      return {
+        value: m.id,
+        label: `${m.name} — ${m.attackProperties.damage} dmg${cdLabel}${initLabel}`,
+      }
+    }
+    // heal
+    const cdLabel = m.healProperties.cooldown > 0 ? `, ${m.healProperties.cooldown}-round cd` : ''
+    const initLabel = m.healProperties.initialCooldown > 0 ? `, unavail. round 1` : ''
+    return {
+      value: m.id,
+      label: `${m.name} — ${m.healProperties.healAmount} heal${cdLabel}${initLabel}`,
+    }
   })
-  return [...attackOptions, { value: 'idle' as const, label: 'idle' }]
+  return [...moduleOptions, { value: 'idle' as const, label: 'idle' }]
+}
+
+/** Get the target options appropriate for the selected action module. */
+function getActionTargetOptions(
+  actionKind: string,
+  activeModuleDefs: ActiveModuleDef[],
+): { value: TargetSelector; label: string }[] {
+  const mod = activeModuleDefs.find(m => m.id === actionKind)
+  if (!mod) return ALL_TARGET_OPTIONS
+  return mod.actionKind === 'heal' ? ALLY_TARGET_OPTIONS : ENEMY_TARGET_OPTIONS
 }
 
 // ---------------------------------------------------------------------------
@@ -135,10 +171,18 @@ function changeConditionKind(kind: Condition['kind'], current: Condition): Condi
   return { kind: 'target_exists', target }
 }
 
-function changeActionKind(kind: Action['kind'], current: Action): Action {
+function changeActionKind(
+  kind: Action['kind'],
+  current: Action,
+  activeModuleDefs: ActiveModuleDef[],
+): Action {
   if (kind === 'idle') return { kind: 'idle' }
-  const target = isModuleAction(current) ? current.target : 'nearest_enemy'
-  return { kind: kind as AttackId, target }
+  // Pick a sensible default target based on module type.
+  const mod = activeModuleDefs.find(m => m.id === kind)
+  const defaultTarget: TargetSelector =
+    mod?.actionKind === 'heal' ? 'weakest_ally' : 'nearest_enemy'
+  const target = isModuleAction(current) ? current.target : defaultTarget
+  return { kind, target }
 }
 
 // ---------------------------------------------------------------------------
@@ -149,10 +193,10 @@ export interface GambitSlotProps {
   index: number
   rule: Rule
   onChange: (rule: Rule) => void
-  chassis: Chassis
+  activeModuleDefs: ActiveModuleDef[]
 }
 
-export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) {
+export function GambitSlot({ index, rule, onChange, activeModuleDefs }: GambitSlotProps) {
   const { condition, action } = rule
 
   function handleConditionKind(kind: Condition['kind']) {
@@ -173,7 +217,7 @@ export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) 
   }
 
   function handleActionKind(kind: Action['kind']) {
-    onChange({ ...rule, action: changeActionKind(kind, action) })
+    onChange({ ...rule, action: changeActionKind(kind, action, activeModuleDefs) })
   }
 
   function handleActionTarget(target: TargetSelector) {
@@ -211,7 +255,7 @@ export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) 
       )}
       {condition.kind === 'target_exists' && (
         <SearchableSelect
-          options={TARGET_OPTIONS}
+          options={ALL_TARGET_OPTIONS}
           value={condition.target}
           onChange={handleConditionTarget}
           ariaLabel={`Condition target ${index + 1}`}
@@ -222,7 +266,7 @@ export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) 
 
       {/* Action picker */}
       <SearchableSelect
-        options={buildActionOptions(chassis)}
+        options={buildActionOptions(activeModuleDefs)}
         value={action.kind}
         onChange={handleActionKind}
         ariaLabel={`Action ${index + 1}`}
@@ -232,15 +276,19 @@ export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) 
       {isModuleAction(action) && (
         <>
           <SearchableSelect
-            options={TARGET_OPTIONS}
+            options={getActionTargetOptions(action.kind, activeModuleDefs)}
             value={action.target}
             onChange={handleActionTarget}
             ariaLabel={`Action target ${index + 1}`}
           />
           {(() => {
-            const attacks = getAttacksForChassis(chassis)
-            const def = attacks.find(a => a.id === action.kind)
-            return def?.initialCooldown ? (
+            const mod = activeModuleDefs.find(m => m.id === action.kind)
+            if (!mod) return null
+            const ic =
+              mod.actionKind === 'attack'
+                ? mod.attackProperties.initialCooldown
+                : mod.healProperties.initialCooldown
+            return ic > 0 ? (
               <span style={{ fontSize: '0.65rem', opacity: 0.6 }}>⚠ not available round 1</span>
             ) : null
           })()}

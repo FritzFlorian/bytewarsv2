@@ -32,6 +32,9 @@ import {
   clearPendingRewardOffers,
   createRng,
   getModuleDef,
+  getActiveModuleDef,
+  getPassiveModuleDef,
+  getChassisDef,
 } from '../logic'
 import type {
   CombatEvent,
@@ -480,15 +483,24 @@ export default function App() {
   if (phase === 'gambit-editor') {
     const editorUnits: UnitEditorEntry[] = playerUnits
       .filter(u => !runState.sittingOut.has(u.id))
-      .map(u => ({
-        id: u.id,
-        name: u.chassis.charAt(0).toUpperCase() + u.chassis.slice(1).replace('-', ' '),
-        chassis: u.chassis,
-        currentHp: runState.hpSnapshot[u.id] ?? u.hp,
-        maxHp: u.maxHp,
-        gambits: u.gambits,
-        ruleSlots: runState.ruleSlotsMap[u.id] ?? u.ruleSlots,
-      }))
+      .map(u => {
+        const chassisDef = getChassisDef(u.chassis)
+        return {
+          id: u.id,
+          name: u.chassis.charAt(0).toUpperCase() + u.chassis.slice(1).replace('-', ' '),
+          chassis: u.chassis,
+          currentHp: runState.hpSnapshot[u.id] ?? u.hp,
+          maxHp: u.maxHp,
+          gambits: u.gambits,
+          ruleSlots: runState.ruleSlotsMap[u.id] ?? u.ruleSlots,
+          activeModuleDefs: u.activeModules.map(m => getActiveModuleDef(m.defId)),
+          passiveModuleDefs: u.passiveModules.map(m => getPassiveModuleDef(m.defId)),
+          effectiveActiveSlots: u.effectiveActiveSlots,
+          bonusDamage: u.bonusDamage,
+          passiveSlots: chassisDef.passiveSlots,
+          baseHp: chassisDef.baseHp,
+        }
+      })
 
     return <GambitEditorScreen units={editorUnits} onRun={handleRun} />
   }

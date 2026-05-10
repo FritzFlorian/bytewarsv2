@@ -73,6 +73,15 @@
   border-bottom-color: #111520;
 }
 
+/* Editor layout — gambit list + module panel side by side */
+
+.editorLayout {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+  align-items: flex-start;
+}
+
 /* Gambit list area */
 
 .gambitSection {
@@ -80,6 +89,7 @@
   border: 1px solid #3a4260;
   padding: 1.25rem;
   flex: 1;
+  min-width: 0;
 }
 
 .unitName {
