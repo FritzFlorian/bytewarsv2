@@ -101,6 +101,7 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
     events.push({ kind: 'rule_fired', unitId: unit.id, ruleIndex: chosenRuleIndex })
 
     if (isAttackAction(chosenAction)) {
+      const modDef = getActiveModuleDef(chosenAction.kind)
       const target = resolveTarget(chosenAction.target, unit, bf, rng)
       const targetIds = target ? [target.id] : []
       events.push({
@@ -111,23 +112,35 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
       })
 
       if (target) {
-        // Look up damage from the module definition on this unit
-        const modDef = getActiveModuleDef(chosenAction.kind)
-        const baseDamage = modDef.actionKind === 'attack' ? modDef.attackProperties.damage : 0
-        const damage = baseDamage + unit.bonusDamage
-
-        events.push({
-          kind: 'damage_dealt',
-          sourceId: unit.id,
-          targetId: target.id,
-          amount: damage,
-        })
-        const newHp = target.hp - damage
-        if (newHp <= 0) {
-          slots.delete(slotKey(target.slot))
-          events.push({ kind: 'unit_destroyed', unitId: target.id })
-        } else {
-          target.hp = newHp
+        if (modDef.actionKind === 'attack') {
+          // Attack: deal damage to the target
+          const damage = modDef.attackProperties.damage + unit.bonusDamage
+          events.push({
+            kind: 'damage_dealt',
+            sourceId: unit.id,
+            targetId: target.id,
+            amount: damage,
+          })
+          const newHp = target.hp - damage
+          if (newHp <= 0) {
+            slots.delete(slotKey(target.slot))
+            events.push({ kind: 'unit_destroyed', unitId: target.id })
+          } else {
+            target.hp = newHp
+          }
+        } else if (modDef.actionKind === 'heal') {
+          // Heal: restore HP to the target, capped at maxHp
+          const healAmount = modDef.healProperties.healAmount
+          const actualHeal = Math.min(healAmount, target.maxHp - target.hp)
+          if (actualHeal > 0) {
+            target.hp += actualHeal
+            events.push({
+              kind: 'unit_healed',
+              sourceId: unit.id,
+              targetId: target.id,
+              amount: actualHeal,
+            })
+          }
         }
 
         // Record cooldown on the module instance

@@ -1,7 +1,7 @@
-// CombatEvent discriminated union — v0.1 walking skeleton subset.
+// CombatEvent discriminated union — v0.7.
 //
-// Events NOT included yet (land in v0.2 with corresponding actions):
-//   - unit_repaired  (needs repair action)
+// v0.7: added `unit_healed` for heal module actions.
+// Remaining planned events (not yet implemented):
 //   - status_applied (needs status system)
 //   - unit_moved     (needs advance/retreat/swap actions)
 //
@@ -17,6 +17,7 @@ export type CombatEvent =
   | { kind: 'rule_fired'; unitId: UnitId; ruleIndex: number }
   | { kind: 'action_used'; unitId: UnitId; action: Action; targets: UnitId[] }
   | { kind: 'damage_dealt'; sourceId: UnitId; targetId: UnitId; amount: number }
+  | { kind: 'unit_healed'; sourceId: UnitId; targetId: UnitId; amount: number }
   | { kind: 'unit_destroyed'; unitId: UnitId }
   | { kind: 'turn_ended'; unitId: UnitId }
   | { kind: 'round_ended'; round: number }

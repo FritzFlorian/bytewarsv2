@@ -8,7 +8,13 @@
 import { z } from 'zod'
 import { ChassisIdSchema } from './chassis'
 
-const TargetSelectorSchema = z.enum(['self', 'nearest_enemy', 'any_enemy'])
+const TargetSelectorSchema = z.enum([
+  'self',
+  'nearest_enemy',
+  'any_enemy',
+  'any_ally',
+  'weakest_ally',
+])
 
 const ConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('always') }),

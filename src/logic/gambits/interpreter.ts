@@ -36,6 +36,13 @@ function getEnemiesSorted(unit: Unit, battlefield: Battlefield): Unit[] {
 }
 
 /**
+ * Return all living allies (same side), excluding the unit itself.
+ */
+function getAllies(unit: Unit, battlefield: Battlefield): Unit[] {
+  return [...battlefield.slots.values()].filter(u => u.side === unit.side && u.id !== unit.id)
+}
+
+/**
  * Resolve a TargetSelector to a concrete unit, or `null` if none exists.
  * Exported so the combat resolver can apply damage to the resolved target.
  *
@@ -60,6 +67,17 @@ export function resolveTarget(
       if (enemies.length === 0) return null
       const idx = rng ? rng.nextInt(enemies.length) : 0
       return enemies[idx]
+    }
+    case 'any_ally': {
+      const allies = getAllies(unit, battlefield)
+      if (allies.length === 0) return null
+      const idx = rng ? rng.nextInt(allies.length) : 0
+      return allies[idx]
+    }
+    case 'weakest_ally': {
+      const allies = getAllies(unit, battlefield)
+      if (allies.length === 0) return null
+      return allies.reduce((weakest, a) => (a.hp < weakest.hp ? a : weakest))
     }
   }
 }

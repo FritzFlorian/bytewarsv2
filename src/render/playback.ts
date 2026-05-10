@@ -45,6 +45,7 @@ const BASE_DURATION_MS: Record<CombatEvent['kind'], number> = {
   rule_fired: 0,
   action_used: 220,
   damage_dealt: 450,
+  unit_healed: 450,
   unit_destroyed: 600,
   turn_ended: 60,
   round_ended: 280,

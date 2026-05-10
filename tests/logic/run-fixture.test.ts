@@ -29,6 +29,8 @@ function formatEvent(e: CombatEvent): string {
       return `  [${e.unitId}] ${e.action.kind} → [${e.targets.join(', ')}]`
     case 'damage_dealt':
       return `  [${e.sourceId}] → [${e.targetId}]  -${e.amount} HP`
+    case 'unit_healed':
+      return `  [${e.sourceId}] → [${e.targetId}]  +${e.amount} HP`
     case 'unit_destroyed':
       return `  [${e.unitId}] DESTROYED`
     case 'combat_ended':

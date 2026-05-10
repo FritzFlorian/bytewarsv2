@@ -116,7 +116,7 @@ Implement the module data model, catalog, slot system, and wire into the logic l
   - Implement `UnitInstance` class with `ActiveModuleInstance[]`, `PassiveModuleInstance[]`, computed getters. Replace current `Unit` interface and `CooldownMap`. Update `createCombat` to instantiate `UnitInstance` from starter presets / fixtures.
 - T-7.8: Update gambit interpreter to resolve actions from installed active modules — status: `done`, track: `logic`, depends on: T-7.7
   - Interpreter resolves available actions from `unit.getAvailableActions()` (active modules with `cooldownRemaining === 0`). `Action` type references module IDs instead of `AttackId`. `tickCooldowns()` called per round on each unit instance.
-- T-7.9: Update combat resolver for heal actions — status: `todo`, track: `logic`, depends on: T-7.8
+- T-7.9: Update combat resolver for heal actions — status: `done`, track: `logic`, depends on: T-7.8
   - New `unit_healed` combat event. Heal resolves against target ally, restores HP up to `maxHp`. Add `any_ally` and `weakest_ally` target selectors.
 
 ### M3 — Starter draft + recruitment pool

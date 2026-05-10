@@ -4,7 +4,7 @@
 // This supports both attack and heal modules. The discriminated-union shape
 // is intentionally stable — adding new module types requires no type changes.
 
-export type TargetSelector = 'self' | 'nearest_enemy' | 'any_enemy'
+export type TargetSelector = 'self' | 'nearest_enemy' | 'any_enemy' | 'any_ally' | 'weakest_ally'
 
 export type Condition =
   | { kind: 'always' }

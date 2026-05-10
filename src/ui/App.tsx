@@ -129,7 +129,7 @@ function startRun(): RunContext {
   return { playerUnits, runState, phase: 'map', combatProps: null, seed }
 }
 
-/** Derive BattleResult by replaying damage events. */
+/** Derive BattleResult by replaying damage and heal events. */
 function extractBattleResult(startHp: Record<string, number>, events: CombatEvent[]): BattleResult {
   const hps: Record<string, number> = { ...startHp }
   let winner: 'player' | 'enemy' = 'enemy'
@@ -137,6 +137,8 @@ function extractBattleResult(startHp: Record<string, number>, events: CombatEven
   for (const e of events) {
     if (e.kind === 'damage_dealt') {
       hps[e.targetId] = Math.max(0, (hps[e.targetId] ?? 0) - e.amount)
+    } else if (e.kind === 'unit_healed') {
+      hps[e.targetId] = (hps[e.targetId] ?? 0) + e.amount
     } else if (e.kind === 'combat_ended') {
       winner = e.winner
     }
