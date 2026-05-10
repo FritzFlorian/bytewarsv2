@@ -250,7 +250,7 @@ interface SlotProps {
 function UnitSlot({ unit, hp, destroyed, popups, active, idle }: SlotProps) {
   if (!unit) return <div className={styles.emptySlot} />
 
-  const hpPct = unit.hp > 0 ? Math.round((hp / unit.hp) * 100) : 0
+  const hpPct = unit.maxHp > 0 ? Math.round((hp / unit.maxHp) * 100) : 0
   const hpFillClass = [
     styles.hpFill,
     hpPct <= 25 ? styles.hpCritical : hpPct <= 50 ? styles.hpLow : '',

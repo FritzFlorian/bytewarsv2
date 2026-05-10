@@ -90,7 +90,7 @@ export function evaluateCondition(
     case 'always':
       return true
     case 'self_hp_below':
-      return (unit.hp / unit.maxHp) * 100 < condition.pct
+      return unit.getHpPercentage() < condition.pct
     case 'target_exists':
       return resolveTarget(condition.target, unit, battlefield) !== null
   }

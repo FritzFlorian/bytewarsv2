@@ -83,6 +83,11 @@ export class UnitInstance {
     return this.sumPassiveEffect('bonus_damage')
   }
 
+  /** Current HP as a percentage of maxHp (0–100+). Single source of truth for HP% checks. */
+  getHpPercentage(): number {
+    return this.maxHp > 0 ? (this.hp / this.maxHp) * 100 : 0
+  }
+
   // --- Module management ---
 
   canInstallActive(): boolean {
