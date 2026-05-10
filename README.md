@@ -1,3 +1,5 @@
+> ❗ This is a fully vibe-coded project and not read by humans. ❗
+
 # Bytewars
 
 A roguelike auto-battler where you program robot squads with gambit-style priority rules, then watch the fights unfold. No manual control — write the plan, commit, watch it execute.
