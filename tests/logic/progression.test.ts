@@ -6,32 +6,34 @@ import { generateMap } from '../../src/logic/map/generate'
 import { createRunState, selectNode, getReachableNodes } from '../../src/logic/map/navigation'
 import { applyBattleResult } from '../../src/logic/map/progression'
 import type { RunState, BattleResult } from '../../src/logic/map/types'
+import { UnitInstance } from '../../src/logic/state/UnitInstance'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 /** Builds a minimal RunState with two player units (ids: 'u1', 'u2'). */
 function makeRun(overrides?: Partial<RunState>): RunState {
   const map = generateMap(createRng(42))
-  const base = createRunState(map, [
-    {
-      id: 'u1',
-      side: 'player',
-      slot: { side: 'player', row: 'front', column: 0 },
-      chassis: 'vacuum',
-      hp: 80,
-      maxHp: 80,
-      gambits: [],
-    },
-    {
-      id: 'u2',
-      side: 'player',
-      slot: { side: 'player', row: 'front', column: 1 },
-      chassis: 'butler',
-      hp: 60,
-      maxHp: 80,
-      gambits: [],
-    },
-  ])
+  const u1 = new UnitInstance(
+    'u1',
+    'player',
+    { side: 'player', row: 'front', column: 0 },
+    'vacuum',
+    80,
+    [{ defId: 'quick_jab', cooldownRemaining: 0 }],
+    [],
+    [],
+  )
+  const u2 = new UnitInstance(
+    'u2',
+    'player',
+    { side: 'player', row: 'front', column: 1 },
+    'butler',
+    60,
+    [{ defId: 'taser', cooldownRemaining: 0 }],
+    [],
+    [],
+  )
+  const base = createRunState(map, [u1, u2])
 
   // Advance to the first combat node.
   const col0 = getReachableNodes(base)
@@ -63,7 +65,7 @@ describe('applyBattleResult — HP carry-over', () => {
   })
 })
 
-// ── Dead-unit → sitting out ────────────────────────────────────────────────
+// ── Dead-unit -> sitting out ────────────────────────────────────────────────
 
 describe('applyBattleResult — sitting-out mechanics', () => {
   it('moves a unit that died (hp = 0) into sittingOut', () => {
@@ -98,19 +100,20 @@ describe('applyBattleResult — sitting-out mechanics', () => {
     const result2: BattleResult = { winner: 'player', survivingHp: { u1: 40 } }
     const runAfterN1 = applyBattleResult(runAfterN, result2)
 
-    // u2 should be revived at 42% of maxHp=80 → ceil(80 * 0.42) = 34
+    // u2 should be revived at 42% of maxHp (butler=70) -> ceil(70 * 0.42) = 30
     expect(runAfterN1.sittingOut.has('u2')).toBe(false)
-    expect(runAfterN1.hpSnapshot['u2']).toBe(Math.ceil(80 * 0.42))
+    expect(runAfterN1.hpSnapshot['u2']).toBe(Math.ceil(70 * 0.42))
   })
 
   it('revived unit HP is exactly ceil(maxHp * 0.42)', () => {
-    expect(Math.ceil(80 * 0.42)).toBe(34)
+    // butler chassis baseHp = 70, so ceil(70 * 0.42) = 30
+    expect(Math.ceil(70 * 0.42)).toBe(30)
     const run = makeRun()
     const result1: BattleResult = { winner: 'player', survivingHp: { u1: 50, u2: 0 } }
     const runAfterN = applyBattleResult(run, result1)
     const result2: BattleResult = { winner: 'player', survivingHp: { u1: 40 } }
     const runAfterN1 = applyBattleResult(runAfterN, result2)
-    expect(runAfterN1.hpSnapshot['u2']).toBe(34)
+    expect(runAfterN1.hpSnapshot['u2']).toBe(30)
   })
 })
 
@@ -127,17 +130,17 @@ describe('applyBattleResult — run status', () => {
   it('sets status to "won" when player beats the boss node', () => {
     // Build a run at the boss node.
     const map = generateMap(createRng(42))
-    const base = createRunState(map, [
-      {
-        id: 'u1',
-        side: 'player',
-        slot: { side: 'player', row: 'front', column: 0 },
-        chassis: 'vacuum',
-        hp: 80,
-        maxHp: 80,
-        gambits: [],
-      },
-    ])
+    const u1 = new UnitInstance(
+      'u1',
+      'player',
+      { side: 'player', row: 'front', column: 0 },
+      'vacuum',
+      80,
+      [{ defId: 'quick_jab', cooldownRemaining: 0 }],
+      [],
+      [],
+    )
+    const base = createRunState(map, [u1])
     const bossNode = map.nodes.find(n => n.type === 'boss')!
     const atBoss: RunState = { ...base, currentNodeId: bossNode.id }
 

@@ -15,6 +15,7 @@ import {
   resolveRound,
   isCombatOver,
   drawStarterSquad,
+  toUnitInstance,
   generateMap,
   createRunState,
   selectNode,
@@ -54,16 +55,13 @@ function hashString(s: string): number {
 function bootstrapRun(seed: number): { run: RunState; units: Unit[] } {
   const rng = createRng(seed)
   const presets = drawStarterSquad(rng, 2)
-  const units: Unit[] = presets.map((p, i) => ({
-    id: `player-${p.id}`,
-    side: 'player',
-    slot: { side: 'player', row: 'front', column: STARTER_COLUMNS[i] },
-    chassis: p.chassis,
-    hp: p.hp,
-    maxHp: p.hp,
-    gambits: p.gambits,
-    ruleSlots: p.ruleSlots,
-  }))
+  const units: Unit[] = presets.map((p, i) =>
+    toUnitInstance(p, `player-${p.id}`, 'player', {
+      side: 'player',
+      row: 'front',
+      column: STARTER_COLUMNS[i],
+    }),
+  )
   const map = generateMap(rng)
   return { run: createRunState(map, units), units }
 }
@@ -172,16 +170,11 @@ function autoSelectReward(
       }
       const preset = getStarterPreset(reward.presetId)
       const newUnitId = `player-${preset.id}-${chosen.row}-${chosen.column}`
-      const newUnit: Unit = {
-        id: newUnitId,
+      const newUnit = toUnitInstance(preset, newUnitId, 'player', {
         side: 'player',
-        slot: { side: 'player', row: chosen.row, column: chosen.column },
-        chassis: preset.chassis,
-        hp: preset.hp,
-        maxHp: preset.hp,
-        gambits: preset.gambits,
-        ruleSlots: preset.ruleSlots,
-      }
+        row: chosen.row,
+        column: chosen.column,
+      })
       return {
         selection: {
           kind: 'new_unit',
@@ -220,7 +213,11 @@ export function simulateFullRun(seed: number): RunOutcome {
     if (next.type === 'repair_bay') {
       run = applyRepairBay(run)
       // Sync unit hp from snapshot.
-      units = units.map(u => ({ ...u, hp: run.hpSnapshot[u.id] ?? u.hp }))
+      units = units.map(u => {
+        const clone = u.clone()
+        clone.hp = run.hpSnapshot[u.id] ?? u.hp
+        return clone
+      })
       continue
     }
 
@@ -234,11 +231,19 @@ export function simulateFullRun(seed: number): RunOutcome {
 
     const fighting = units
       .filter(u => !run.sittingOut.has(u.id))
-      .map(u => ({ ...u, hp: run.hpSnapshot[u.id] ?? u.hp }))
+      .map(u => {
+        const clone = u.clone()
+        clone.hp = run.hpSnapshot[u.id] ?? u.hp
+        return clone
+      })
 
     const { result } = resolveCombat(seed, fighting, enemyUnits)
     run = applyBattleResult(run, result)
-    units = units.map(u => ({ ...u, hp: run.hpSnapshot[u.id] ?? u.hp }))
+    units = units.map(u => {
+      const clone = u.clone()
+      clone.hp = run.hpSnapshot[u.id] ?? u.hp
+      return clone
+    })
 
     // After non-boss wins, apply a reward.
     if (
@@ -264,7 +269,11 @@ export function simulateFullRun(seed: number): RunOutcome {
           units = [...units, newUnit]
         }
       }
-      units = units.map(u => ({ ...u, hp: run.hpSnapshot[u.id] ?? u.hp }))
+      units = units.map(u => {
+        const clone = u.clone()
+        clone.hp = run.hpSnapshot[u.id] ?? u.hp
+        return clone
+      })
     }
   }
 

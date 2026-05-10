@@ -34,8 +34,8 @@ describe('T-6.1: Chassis registration', () => {
         id: `test-${c}`,
         name: 'Test',
         chassis: c,
-        hp: 50,
-        ruleSlots: 2,
+        activeModules: ['quick_jab'],
+        passiveModules: [],
         gambits: [{ condition: { kind: 'always' }, action: { kind: 'idle' } }],
       }
       const parsed = StarterPresetSchema.parse(preset)

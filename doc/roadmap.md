@@ -110,9 +110,9 @@ Interactive design phase: iterate on schemas, slot rules, module catalog, starte
 
 Implement the module data model, catalog, slot system, and wire into the logic layer. Replaces `attacks.json` chassis whitelist.
 
-- T-7.6: Implement module + chassis schemas (Zod), module catalog JSON — status: `todo`, track: `foundation`, depends on: M1
+- T-7.6: Implement module + chassis schemas (Zod), module catalog JSON — status: `done`, track: `foundation`, depends on: M1
   - Zod schemas for chassis JSON (including `availability`), active module JSON (union on `actionKind`, including `availability`), passive module JSON (including `availability`). Content loaders that scan `chassis/` and `modules/` directories. Validate all JSON at startup. **Availability validation test:** unit test that checks all fixtures and presets only reference modules and chassis whose `availability` matches the unit's side.
-- T-7.7: Rework unit state to carry installed modules instead of chassis-fixed attacks — status: `todo`, track: `logic`, depends on: T-7.6
+- T-7.7: Rework unit state to carry installed modules instead of chassis-fixed attacks — status: `done`, track: `logic`, depends on: T-7.6
   - Implement `UnitInstance` class with `ActiveModuleInstance[]`, `PassiveModuleInstance[]`, computed getters. Replace current `Unit` interface and `CooldownMap`. Update `createCombat` to instantiate `UnitInstance` from starter presets / fixtures.
 - T-7.8: Update gambit interpreter to resolve actions from installed active modules — status: `todo`, track: `logic`, depends on: T-7.7
   - Interpreter resolves available actions from `unit.getAvailableActions()` (active modules with `cooldownRemaining === 0`). `Action` type references module IDs instead of `AttackId`. `tickCooldowns()` called per round on each unit instance.

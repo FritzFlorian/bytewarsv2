@@ -37,9 +37,6 @@ export function selectNode(run: RunState, nodeId: string): RunState {
   return { ...run, currentNodeId: nodeId, visitedNodeIds: newVisited }
 }
 
-/** Default rule-slot count for a fresh starter unit (Q-R3 baseline). */
-const DEFAULT_RULE_SLOTS = 2
-
 /** Build the initial RunState for a new run. */
 export function createRunState(graph: MapGraph, playerUnits: Unit[]): RunState {
   const hpSnapshot: Record<string, number> = {}
@@ -49,9 +46,8 @@ export function createRunState(graph: MapGraph, playerUnits: Unit[]): RunState {
   for (const unit of playerUnits) {
     hpSnapshot[unit.id] = unit.hp
     maxHpMap[unit.id] = unit.maxHp
-    // T-6.12: Unit carries its own ruleSlots (seeded from the preset). Fall
-    // back to the Q-R3 baseline of 2 for older fixtures that pre-date the field.
-    ruleSlotsMap[unit.id] = unit.ruleSlots ?? DEFAULT_RULE_SLOTS
+    // v0.7: ruleSlots is a computed getter on UnitInstance.
+    ruleSlotsMap[unit.id] = unit.ruleSlots
   }
 
   return {

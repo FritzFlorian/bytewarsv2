@@ -1,4 +1,4 @@
-// App.tsx — v0.4 run-scoped state machine.
+// App.tsx — v0.7 run-scoped state machine.
 //
 // Phases:
 //   map          → player views the branching map, selects a node
@@ -16,6 +16,7 @@ import {
   resolveRound,
   isCombatOver,
   drawStarterSquad,
+  toUnitInstance,
   generateMap,
   createRunState,
   selectNode,
@@ -103,25 +104,25 @@ function readSeedOverride(): number | null {
   return Number.isFinite(n) ? Math.floor(n) : null
 }
 
+/** Clone a unit and set its HP from a snapshot. */
+function syncHp(unit: Unit, hpSnapshot: Record<string, number>): Unit {
+  const clone = unit.clone()
+  clone.hp = hpSnapshot[unit.id] ?? unit.hp
+  return clone
+}
+
 /** Build a fresh run by drawing 2 starter presets and seating them front-row. */
 function startRun(): RunContext {
   const seed = readSeedOverride() ?? Date.now()
   const rng = createRng(seed)
   const presets = drawStarterSquad(rng, 2)
-  const playerUnits: Unit[] = presets.map((p, i) => ({
-    id: `player-${p.id}`,
-    side: 'player' as const,
-    slot: {
+  const playerUnits: Unit[] = presets.map((p, i) =>
+    toUnitInstance(p, `player-${p.id}`, 'player', {
       side: 'player' as const,
       row: 'front' as const,
       column: STARTER_COLUMNS[i],
-    },
-    chassis: p.chassis,
-    hp: p.hp,
-    maxHp: p.hp,
-    gambits: p.gambits,
-    ruleSlots: p.ruleSlots,
-  }))
+    }),
+  )
   const map = generateMap(rng)
   const runState = createRunState(map, playerUnits)
 
@@ -204,10 +205,7 @@ export default function App() {
       // Repair Bay: apply the heal and stay on the map screen — no fight.
       if (targetNode?.type === 'repair_bay') {
         const healedRun = applyRepairBay(movedRun)
-        const newPlayerUnits: Unit[] = prev.playerUnits.map(u => ({
-          ...u,
-          hp: healedRun.hpSnapshot[u.id] ?? u.hp,
-        }))
+        const newPlayerUnits = prev.playerUnits.map(u => syncHp(u, healedRun.hpSnapshot))
         return {
           ...prev,
           runState: healedRun,
@@ -229,11 +227,12 @@ export default function App() {
   const handleRun = useCallback((gambits: Record<string, GambitList>) => {
     setCtx(prev => {
       // Apply updated gambits to playerUnits.
-      const updatedUnits: Unit[] = prev.playerUnits.map(u => ({
-        ...u,
-        gambits: gambits[u.id] ?? u.gambits,
-        hp: prev.runState.hpSnapshot[u.id] ?? u.hp,
-      }))
+      const updatedUnits: Unit[] = prev.playerUnits.map(u => {
+        const clone = u.clone()
+        clone.gambits = gambits[u.id] ?? u.gambits
+        clone.hp = prev.runState.hpSnapshot[u.id] ?? u.hp
+        return clone
+      })
 
       // Determine enemy lineup based on node type.
       const currentNode = prev.runState.graph.nodes.find(n => n.id === prev.runState.currentNodeId)
@@ -241,9 +240,6 @@ export default function App() {
       if (currentNode?.type === 'boss') {
         enemyUnits = bossEncounterFixture().enemyUnits
       } else if (currentNode?.type === 'elite') {
-        // Use the run seed mixed with the node id so each elite node draws
-        // deterministically and two elites in the same run can roll different
-        // fixtures (or the same — Q-R6 doesn't require de-duplication).
         const eliteSeed = prev.seed ^ hashString(currentNode.id)
         enemyUnits = drawEliteEncounter(createRng(eliteSeed)).enemyUnits
       } else {
@@ -285,10 +281,7 @@ export default function App() {
       const newRunState = applyBattleResult(prev.runState, result)
 
       // Sync player unit HP from the new snapshot.
-      const newPlayerUnits: Unit[] = prev.playerUnits.map(u => ({
-        ...u,
-        hp: newRunState.hpSnapshot[u.id] ?? u.hp,
-      }))
+      const newPlayerUnits = prev.playerUnits.map(u => syncHp(u, newRunState.hpSnapshot))
 
       if (newRunState.status === 'lost') {
         return { ...prev, playerUnits: newPlayerUnits, runState: newRunState, phase: 'game-over' }
@@ -297,9 +290,7 @@ export default function App() {
         return { ...prev, playerUnits: newPlayerUnits, runState: newRunState, phase: 'victory' }
       }
 
-      // Non-boss victory → draw reward offers deterministically from the run
-      // seed + the node id, stash them on RunState, and show the reward screen
-      // before returning to the map (T-6.13, Q-R8).
+      // Non-boss victory → draw reward offers deterministically
       const currentNode = newRunState.graph.nodes.find(n => n.id === newRunState.currentNodeId)
       if (currentNode?.type === 'combat' || currentNode?.type === 'elite') {
         const rewardSeed = prev.seed ^ hashString(`reward:${currentNode.id}`)
@@ -327,20 +318,14 @@ export default function App() {
         let nextRunState = applyReward(prev.runState, reward, selection)
         nextRunState = clearPendingRewardOffers(nextRunState)
 
-        // new_unit: append the freshly-created Unit to playerUnits so the
-        // gambit editor, map strip, and combat resolver see it next fight.
+        // new_unit: append the freshly-created Unit to playerUnits.
         let nextPlayerUnits = prev.playerUnits
         if (reward.kind === 'new_unit' && newUnit) {
           nextPlayerUnits = [...prev.playerUnits, newUnit]
         }
 
-        // Keep each Unit's hp field in sync with the RunState snapshot so the
-        // map strip and editor render the post-reward values (heal_one /
-        // heal_all mutate hpSnapshot, not the Unit objects).
-        nextPlayerUnits = nextPlayerUnits.map(u => ({
-          ...u,
-          hp: nextRunState.hpSnapshot[u.id] ?? u.hp,
-        }))
+        // Sync HP from RunState snapshot.
+        nextPlayerUnits = nextPlayerUnits.map(u => syncHp(u, nextRunState.hpSnapshot))
 
         return {
           ...prev,
@@ -372,10 +357,9 @@ export default function App() {
   }
 
   if (phase === 'map') {
-    // Build squad status entries for the map screen strip.
     const unitStatuses = playerUnits.map(u => ({
       id: u.id,
-      name: u.id, // will be overridden below
+      name: u.id,
       chassis: u.chassis,
       hp: runState.hpSnapshot[u.id] ?? u.hp,
       maxHp: u.maxHp,
@@ -397,7 +381,7 @@ export default function App() {
         currentHp: runState.hpSnapshot[u.id] ?? u.hp,
         maxHp: u.maxHp,
         gambits: u.gambits,
-        ruleSlots: runState.ruleSlotsMap[u.id] ?? u.ruleSlots ?? 2,
+        ruleSlots: runState.ruleSlotsMap[u.id] ?? u.ruleSlots,
       }))
 
     return <GambitEditorScreen units={editorUnits} onRun={handleRun} />

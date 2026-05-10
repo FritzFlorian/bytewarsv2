@@ -14,32 +14,34 @@ import {
 import { drawRewardOffers, COMBAT_WEIGHTS, ELITE_WEIGHTS } from '../../src/logic/rewards/pool'
 import type { RunState } from '../../src/logic/map/types'
 import type { Reward, RewardKind } from '../../src/logic/rewards/types'
-import { getAllStarterPresets } from '../../src/logic/content/starterPresetLoader'
+import { getAllStarterPresets, toUnitInstance } from '../../src/logic/content/starterPresetLoader'
+import { UnitInstance } from '../../src/logic/state/UnitInstance'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeRun(overrides?: Partial<RunState>): RunState {
   const map = generateMap(createRng(7))
-  const base = createRunState(map, [
-    {
-      id: 'u1',
-      side: 'player',
-      slot: { side: 'player', row: 'front', column: 0 },
-      chassis: 'vacuum',
-      hp: 50,
-      maxHp: 50,
-      gambits: [],
-    },
-    {
-      id: 'u2',
-      side: 'player',
-      slot: { side: 'player', row: 'front', column: 1 },
-      chassis: 'butler',
-      hp: 20,
-      maxHp: 50,
-      gambits: [],
-    },
-  ])
+  const u1 = new UnitInstance(
+    'u1',
+    'player',
+    { side: 'player', row: 'front', column: 0 },
+    'vacuum',
+    50,
+    [{ defId: 'quick_jab', cooldownRemaining: 0 }],
+    [],
+    [],
+  )
+  const u2 = new UnitInstance(
+    'u2',
+    'player',
+    { side: 'player', row: 'front', column: 1 },
+    'butler',
+    20,
+    [{ defId: 'taser', cooldownRemaining: 0 }],
+    [],
+    [],
+  )
+  const base = createRunState(map, [u1, u2])
   // The createRunState helper sets hp from unit.hp; force u2 to its damaged value.
   return {
     ...base,
@@ -129,14 +131,15 @@ describe('applyReward', () => {
     it('restores the target unit to maxHp', () => {
       const run = makeRun()
       const next = applyReward(run, { kind: 'heal_one' }, { kind: 'heal_one', targetUnitId: 'u2' })
-      expect(next.hpSnapshot.u2).toBe(50)
+      // maxHpMap for u2 was set from the unit's maxHp (butler chassis baseHp=70)
+      expect(next.hpSnapshot.u2).toBe(70)
       expect(next.hpSnapshot.u1).toBe(50)
     })
 
     it('also pulls a sitting-out unit back in', () => {
       const run = makeRun({ sittingOut: new Set(['u2']), hpSnapshot: { u1: 50, u2: 0 } })
       const next = applyReward(run, { kind: 'heal_one' }, { kind: 'heal_one', targetUnitId: 'u2' })
-      expect(next.hpSnapshot.u2).toBe(50)
+      expect(next.hpSnapshot.u2).toBe(70)
       expect(next.sittingOut.has('u2')).toBe(false)
     })
 
@@ -155,10 +158,10 @@ describe('applyReward', () => {
     it('heals every living unit by HEAL_ALL_PCT of maxHp, capped at maxHp', () => {
       const run = makeRun()
       const next = applyReward(run, { kind: 'heal_all' }, { kind: 'heal_all' })
-      // u1 was already at 50/50 → stays at 50.
-      expect(next.hpSnapshot.u1).toBe(50)
-      // u2 was at 20/50 → +25 (ceil(50 * 0.5)) = 45.
-      expect(next.hpSnapshot.u2).toBe(20 + Math.ceil(50 * HEAL_ALL_PCT))
+      // u1 was at 50/70 → +35 (ceil(70 * 0.5)) = 70 (capped at maxHp=70).
+      expect(next.hpSnapshot.u1).toBe(Math.min(70, 50 + Math.ceil(70 * HEAL_ALL_PCT)))
+      // u2 was at 20/70 → +35 (ceil(70 * 0.5)) = 55.
+      expect(next.hpSnapshot.u2).toBe(20 + Math.ceil(70 * HEAL_ALL_PCT))
     })
 
     it('skips dead units and sitting-out units', () => {
@@ -207,22 +210,25 @@ describe('applyReward', () => {
   })
 
   describe('new_unit', () => {
-    it('seeds hp/maxHp/ruleSlots from the named preset', () => {
+    it('seeds hp/maxHp/ruleSlots from the named preset via toUnitInstance', () => {
       const presetId = getAllStarterPresets()[0].id
       const preset = getAllStarterPresets()[0]
       const run = makeRun()
+      const slot = { side: 'player' as const, row: 'front' as const, column: 2 as const }
+      // Create a temporary UnitInstance to get the expected computed values
+      const expectedUnit = toUnitInstance(preset, 'u3', 'player', slot)
       const next = applyReward(
         run,
         { kind: 'new_unit', presetId },
         {
           kind: 'new_unit',
           newUnitId: 'u3',
-          slot: { side: 'player', row: 'front', column: 2 },
+          slot,
         },
       )
-      expect(next.hpSnapshot.u3).toBe(preset.hp)
-      expect(next.maxHpMap.u3).toBe(preset.hp)
-      expect(next.ruleSlotsMap.u3).toBe(preset.ruleSlots)
+      expect(next.hpSnapshot.u3).toBe(expectedUnit.maxHp)
+      expect(next.maxHpMap.u3).toBe(expectedUnit.maxHp)
+      expect(next.ruleSlotsMap.u3).toBe(expectedUnit.ruleSlots)
     })
 
     it('throws if the presetId is unknown', () => {

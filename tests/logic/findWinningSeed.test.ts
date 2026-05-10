@@ -7,7 +7,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { createRng } from '../../src/logic/rng'
-import { drawStarterSquad } from '../../src/logic/content/starterPresetLoader'
+import { drawStarterSquad, toUnitInstance } from '../../src/logic/content/starterPresetLoader'
 import { walkingSkeletonFixture } from '../../src/logic/content/fixtures'
 import { createCombat, resolveRound, isCombatOver } from '../../src/logic/combat/resolver'
 import type { Unit } from '../../src/logic/state/types'
@@ -18,16 +18,13 @@ const E2E_SEED = 1
 function simulate(seed: number): 'player' | 'enemy' {
   const rng = createRng(seed)
   const presets = drawStarterSquad(rng, 2)
-  const playerUnits: Unit[] = presets.map((p, i) => ({
-    id: `player-${p.id}`,
-    side: 'player',
-    slot: { side: 'player', row: 'front', column: STARTER_COLUMNS[i] },
-    chassis: p.chassis,
-    hp: p.hp,
-    maxHp: p.hp,
-    gambits: p.gambits,
-    ruleSlots: p.ruleSlots,
-  }))
+  const playerUnits: Unit[] = presets.map((p, i) =>
+    toUnitInstance(p, `player-${p.id}`, 'player', {
+      side: 'player',
+      row: 'front',
+      column: STARTER_COLUMNS[i],
+    }),
+  )
   const enemyUnits = walkingSkeletonFixture().enemyUnits
 
   let state = createCombat(seed, playerUnits, enemyUnits)

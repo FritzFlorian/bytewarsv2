@@ -75,7 +75,12 @@ export function CombatScreen({
 
       if (ev.kind === 'action_used' && isAttackAction(ev.action)) {
         const attackKind = ev.action.kind
-        timers.push(setTimeout(() => playSound(attackKind), delayMs))
+        timers.push(
+          setTimeout(
+            () => playSound(attackKind as import('../../../audio/sounds').SoundId),
+            delayMs,
+          ),
+        )
       } else if (ev.kind === 'damage_dealt') {
         timers.push(setTimeout(() => playSound('damage'), delayMs))
       } else if (ev.kind === 'unit_destroyed') {

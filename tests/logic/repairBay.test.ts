@@ -7,6 +7,7 @@ import { applyRepairBay } from '../../src/logic/map/progression'
 import { createRunState } from '../../src/logic/map/navigation'
 import { HEAL_ALL_PCT } from '../../src/logic/rewards/apply'
 import type { RunState } from '../../src/logic/map/types'
+import { UnitInstance } from '../../src/logic/state/UnitInstance'
 
 // ── Map placement ──────────────────────────────────────────────────────────
 
@@ -60,35 +61,37 @@ describe('generateMap: repair-bay placement', () => {
 
 function makeRun(overrides?: Partial<RunState>): RunState {
   const map = generateMap(createRng(7))
-  const base = createRunState(map, [
-    {
-      id: 'u1',
-      side: 'player',
-      slot: { side: 'player', row: 'front', column: 0 },
-      chassis: 'vacuum',
-      hp: 50,
-      maxHp: 50,
-      gambits: [],
-    },
-    {
-      id: 'u2',
-      side: 'player',
-      slot: { side: 'player', row: 'front', column: 1 },
-      chassis: 'butler',
-      hp: 20,
-      maxHp: 50,
-      gambits: [],
-    },
-    {
-      id: 'u3',
-      side: 'player',
-      slot: { side: 'player', row: 'front', column: 2 },
-      chassis: 'lawnbot',
-      hp: 0,
-      maxHp: 50,
-      gambits: [],
-    },
-  ])
+  const u1 = new UnitInstance(
+    'u1',
+    'player',
+    { side: 'player', row: 'front', column: 0 },
+    'vacuum',
+    50,
+    [{ defId: 'quick_jab', cooldownRemaining: 0 }],
+    [],
+    [],
+  )
+  const u2 = new UnitInstance(
+    'u2',
+    'player',
+    { side: 'player', row: 'front', column: 1 },
+    'butler',
+    20,
+    [{ defId: 'taser', cooldownRemaining: 0 }],
+    [],
+    [],
+  )
+  const u3 = new UnitInstance(
+    'u3',
+    'player',
+    { side: 'player', row: 'front', column: 2 },
+    'lawnbot',
+    0,
+    [{ defId: 'mow', cooldownRemaining: 0 }],
+    [],
+    [],
+  )
+  const base = createRunState(map, [u1, u2, u3])
   return {
     ...base,
     hpSnapshot: { u1: 50, u2: 20, u3: 0 },
@@ -100,10 +103,10 @@ describe('applyRepairBay', () => {
   it('heals every living unit by HEAL_ALL_PCT of maxHp, capped at maxHp', () => {
     const run = makeRun()
     const next = applyRepairBay(run)
-    // u1 already at full → stays.
-    expect(next.hpSnapshot.u1).toBe(50)
-    // u2 was 20/50 → +ceil(50 * 0.5) = +25 → 45.
-    expect(next.hpSnapshot.u2).toBe(20 + Math.ceil(50 * HEAL_ALL_PCT))
+    // u1 at 50, maxHp=70 (vacuum) → +ceil(70 * 0.5) = +35 → 70 (capped).
+    expect(next.hpSnapshot.u1).toBe(Math.min(70, 50 + Math.ceil(70 * HEAL_ALL_PCT)))
+    // u2 was 20, maxHp=70 (butler) → +ceil(70 * 0.5) = +35 → 55.
+    expect(next.hpSnapshot.u2).toBe(20 + Math.ceil(70 * HEAL_ALL_PCT))
   })
 
   it('does not heal dead units (HP 0)', () => {

@@ -1,18 +1,15 @@
-// Core domain types for Bytewars v0.1 walking skeleton.
+// Core domain types for Bytewars v0.7.
 //
-// Intentionally minimal — the following are NOT present yet and land in v0.2:
-//   - Module attachments on units
-//   - Status effects
-//   - Cooldown tracking
-//   - Class info beyond what's needed for the fixture
-//   - Anything beyond the 3×3 slot grid combat layout
-//
-// Extend by adding fields here and updating the consumers; the discriminated-
-// union shapes in gambits/types.ts and combat/events.ts should not need to change.
+// v0.7 changes:
+//   - Unit is now a type alias for UnitInstance (class with installed modules)
+//   - CooldownMap removed — cooldowns live on ActiveModuleInstance
+//   - CombatState no longer carries a cooldowns field
 
-import type { GambitList } from '../gambits/types'
-import type { AttackId } from '../../content/schema/attack'
 import type { ChassisId } from '../../content/schema/chassis'
+import { UnitInstance } from './UnitInstance'
+
+export type { ActiveModuleInstance, PassiveModuleInstance } from './UnitInstance'
+export { UnitInstance } from './UnitInstance'
 
 export type UnitId = string
 
@@ -33,23 +30,11 @@ export interface SlotRef {
   column: Column
 }
 
-export interface Unit {
-  id: UnitId
-  side: Side
-  slot: SlotRef
-  chassis: Chassis
-  hp: number
-  maxHp: number
-  gambits: GambitList
-  /**
-   * Per-unit rule-slot count (T-6.12). Baseline 2, capped at 6 (Q-R4). Only
-   * meaningful for owned (player) units — enemy fixtures may omit it. The
-   * RunState's `ruleSlotsMap` is the runtime source of truth (so rule-slot
-   * rewards can mutate it without rebuilding Unit objects); this field exists
-   * so starter presets and reward-spawned units can seed that map.
-   */
-  ruleSlots?: number
-}
+/**
+ * Unit is now a UnitInstance (v0.7). Carries installed modules, computed
+ * stats, and cooldown state. See UnitInstance.ts for the class definition.
+ */
+export type Unit = UnitInstance
 
 /** All slots on the battlefield, keyed by a stable string `${side}-${row}-${column}`. */
 export type SlotMap = Map<string, Unit>
@@ -60,15 +45,10 @@ export interface Battlefield {
   round: number
 }
 
-/** Cooldown counters: rounds remaining before each attack is available (0 = available). */
-export type CooldownMap = Map<UnitId, Map<AttackId, number>>
-
 export interface CombatState {
   battlefield: Battlefield
   seed: number
   finished: false | 'player' | 'enemy'
-  /** Per-unit, per-attack cooldown counters. */
-  cooldowns: CooldownMap
 }
 
 /** Convenience: produce the canonical slot-map key from a SlotRef. */

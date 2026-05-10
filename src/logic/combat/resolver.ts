@@ -1,19 +1,19 @@
-// Combat resolver for Bytewars v0.5.
+// Combat resolver for Bytewars v0.7.
 //
-// v0.5 changes:
-//   - Damage is per-attack (from attackDef.damage); ATTACK_DAMAGE constant removed.
-//   - Cooldowns tracked in CombatState.cooldowns; initialCooldown applied at combat start.
-//   - Gambit interpreter: if the chosen attack is on cooldown, fall through to next rule.
-//   - Row/column reach rules are still NOT enforced (deferred to v0.6+).
+// v0.7 changes:
+//   - Damage comes from active module definitions on the unit (+ bonusDamage
+//     from passive modules), not from a global attacks.json lookup.
+//   - Cooldowns live on ActiveModuleInstance, not a separate CooldownMap.
+//   - Units are cloned at round start so mutations are local to this round.
+//   - CombatState no longer carries a cooldowns field.
 
-import type { Unit, Battlefield, CombatState, SlotMap, Side, CooldownMap } from '../state/types'
+import type { Unit, Battlefield, CombatState, SlotMap, Side } from '../state/types'
 import { slotKey } from '../state/types'
 import type { CombatEvent } from './events'
 import { evaluateCondition, resolveTarget } from '../gambits/interpreter'
 import { isAttackAction, type Action } from '../gambits/types'
 import { createRng } from '../rng'
-import { getAttackDef, getAttacksForChassis } from '../content/attackLoader'
-import type { AttackId } from '../../content/schema/attack'
+import { getActiveModuleDef } from '../content/moduleLoader'
 
 const ROW_ORDER = ['front', 'middle', 'back'] as const
 
@@ -47,35 +47,6 @@ function checkWinner(slots: SlotMap): 'player' | 'enemy' | null {
   return null
 }
 
-/**
- * Build initial cooldown map.
- *
- * Stored value semantics: the counter is decremented at the start of each
- * round; an attack is blocked when cd > 0 AFTER decrementing.
- *
- * To make "initialCooldown=N" mean "unavailable for N rounds at battle start"
- * we store N+1 so that the round-1 decrement leaves the counter at N (still > 0).
- * After N more decrements (N rounds) the counter reaches 0 and the attack is
- * available. The same logic applies to cooldown after use: we store cooldown+1.
- */
-function buildInitialCooldowns(units: Unit[]): CooldownMap {
-  const map: CooldownMap = new Map()
-  for (const unit of units) {
-    const unitMap = new Map<AttackId, number>()
-    for (const atk of getAttacksForChassis(unit.chassis)) {
-      if (atk.initialCooldown > 0) {
-        unitMap.set(atk.id, atk.initialCooldown + 1)
-      }
-    }
-    map.set(unit.id, unitMap)
-  }
-  return map
-}
-
-function getCooldown(cooldowns: CooldownMap, unitId: string, attackId: AttackId): number {
-  return cooldowns.get(unitId)?.get(attackId) ?? 0
-}
-
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -84,10 +55,12 @@ export function createCombat(seed: number, playerUnits: Unit[], enemyUnits: Unit
   const allUnits = [...playerUnits, ...enemyUnits]
   const slots: SlotMap = new Map()
   for (const unit of allUnits) {
-    slots.set(slotKey(unit.slot), unit)
+    // Clone each unit so combat mutations don't affect the caller's objects.
+    const clone = unit.clone()
+    clone.applyInitialCooldowns()
+    slots.set(slotKey(clone.slot), clone)
   }
-  const cooldowns = buildInitialCooldowns(allUnits)
-  return { battlefield: { slots, round: 1 }, seed, finished: false, cooldowns }
+  return { battlefield: { slots, round: 1 }, seed, finished: false }
 }
 
 export function isCombatOver(state: CombatState): false | 'player' | 'enemy' {
@@ -98,22 +71,18 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
   const events: CombatEvent[] = []
   const rng = createRng(state.seed)
 
-  const slots: SlotMap = new Map(state.battlefield.slots)
-  const round = state.battlefield.round
-
-  // Deep-copy cooldowns so mutations this round don't affect the original state.
-  const cooldowns: CooldownMap = new Map()
-  for (const [uid, atkMap] of state.cooldowns) {
-    cooldowns.set(uid, new Map(atkMap))
+  // Deep-clone all units so mutations this round don't affect the original state.
+  const slots: SlotMap = new Map()
+  for (const [key, unit] of state.battlefield.slots) {
+    slots.set(key, unit.clone())
   }
+  const round = state.battlefield.round
 
   events.push({ kind: 'round_started', round })
 
-  // Decrement all non-zero cooldowns at the start of each round.
-  for (const atkMap of cooldowns.values()) {
-    for (const [atkId, cd] of atkMap) {
-      if (cd > 0) atkMap.set(atkId, cd - 1)
-    }
+  // Tick cooldowns on all units at the start of each round.
+  for (const unit of slots.values()) {
+    unit.tickCooldowns()
   }
 
   const turnOrder = buildTurnOrder(slots)
@@ -126,15 +95,19 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
 
     events.push({ kind: 'turn_started', unitId: unit.id })
 
-    // Walk gambit list; skip attack rules whose attack is on cooldown.
+    // Walk gambit list; skip action rules whose module is on cooldown.
     let chosenRuleIndex = -1
     let chosenAction: Action = { kind: 'idle' }
 
     for (let i = 0; i < unit.gambits.length; i++) {
       const rule = unit.gambits[i]
       if (!evaluateCondition(rule.condition, unit, bf)) continue
-      if (isAttackAction(rule.action) && getCooldown(cooldowns, unit.id, rule.action.kind) > 0) {
-        continue // on cooldown — fall through to next rule
+      if (isAttackAction(rule.action)) {
+        // Check if the module is on cooldown
+        const mod = unit.activeModules.find(m => m.defId === rule.action.kind)
+        if (!mod || mod.cooldownRemaining > 0) {
+          continue // module not installed or on cooldown — fall through
+        }
       }
       chosenRuleIndex = i
       chosenAction = rule.action
@@ -154,27 +127,27 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
       })
 
       if (target) {
-        const atkDef = getAttackDef(chosenAction.kind)
+        // Look up damage from the module definition on this unit
+        const modDef = getActiveModuleDef(chosenAction.kind)
+        const baseDamage = modDef.actionKind === 'attack' ? modDef.attackProperties.damage : 0
+        const damage = baseDamage + unit.bonusDamage
+
         events.push({
           kind: 'damage_dealt',
           sourceId: unit.id,
           targetId: target.id,
-          amount: atkDef.damage,
+          amount: damage,
         })
-        const newHp = target.hp - atkDef.damage
+        const newHp = target.hp - damage
         if (newHp <= 0) {
           slots.delete(slotKey(target.slot))
           events.push({ kind: 'unit_destroyed', unitId: target.id })
         } else {
-          slots.set(slotKey(target.slot), { ...target, hp: newHp })
+          target.hp = newHp
         }
 
-        // Record cooldown for used attack (store cooldown+1; see buildInitialCooldowns comment).
-        if (atkDef.cooldown > 0) {
-          const unitCds = cooldowns.get(unit.id) ?? new Map<AttackId, number>()
-          unitCds.set(chosenAction.kind, atkDef.cooldown + 1)
-          cooldowns.set(unit.id, unitCds)
-        }
+        // Record cooldown on the module instance
+        unit.setCooldownAfterUse(chosenAction.kind)
       }
     } else {
       events.push({ kind: 'action_used', unitId: unit.id, action: chosenAction, targets: [] })
@@ -194,7 +167,6 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
     battlefield: { slots, round: round + 1 },
     seed: rng.nextInt(0x100000000) + 1,
     finished: winner ?? false,
-    cooldowns,
   }
 
   return { state: newState, events }

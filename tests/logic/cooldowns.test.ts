@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { createCombat, resolveRound } from '../../src/logic/combat/resolver'
 import type { Unit } from '../../src/logic/state/types'
+import { UnitInstance } from '../../src/logic/state/UnitInstance'
 import type { GambitList } from '../../src/logic/gambits/types'
 import { getAttackDef } from '../../src/logic/content/attackLoader'
 
@@ -14,16 +15,26 @@ function makeUnit(
   chassis: Unit['chassis'],
   gambits: GambitList,
   hp = 200,
+  activeModuleIds: string[] = [],
 ): Unit {
-  return {
+  // Infer active modules from gambit actions that aren't 'idle'
+  const moduleIds =
+    activeModuleIds.length > 0
+      ? activeModuleIds
+      : [...new Set(gambits.map(g => g.action.kind).filter(k => k !== 'idle'))]
+  // Fallback to quick_jab if no non-idle actions found
+  const finalModuleIds = moduleIds.length > 0 ? moduleIds : ['quick_jab']
+  const activeModules = finalModuleIds.map(defId => ({ defId, cooldownRemaining: 0 }))
+  return new UnitInstance(
     id,
     side,
-    slot: { side, row: 'front', column: 0 },
+    { side, row: 'front', column: 0 },
     chassis,
     hp,
-    maxHp: hp,
+    activeModules,
+    [],
     gambits,
-  }
+  )
 }
 
 // ---------------------------------------------------------------------------

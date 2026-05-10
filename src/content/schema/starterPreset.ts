@@ -1,11 +1,11 @@
 // Zod schema for src/content/starter-presets.json — the pool of deliberately
 // weak unit presets a new run draws its starting squad from, and also the
-// pool the "new unit" reward pulls from (per open-questions.md Q-R3).
+// pool the "new unit" reward pulls from.
 //
-// Replaces the v0.4 player-squad.json + PlayerSquadSchema in v0.6 (roadmap T-6.3).
+// v0.7: hp and ruleSlots removed (derived from chassis definition). Added
+// activeModules and passiveModules (arrays of module IDs).
 
 import { z } from 'zod'
-import { AttackIdSchema } from './attack'
 import { ChassisIdSchema } from './chassis'
 
 const TargetSelectorSchema = z.enum(['self', 'nearest_enemy', 'any_enemy'])
@@ -16,8 +16,9 @@ const ConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('target_exists'), target: TargetSelectorSchema }),
 ])
 
+// Action kind is now a module ID string (not restricted to AttackIdSchema)
 const ActionSchema = z.union([
-  z.object({ kind: AttackIdSchema, target: TargetSelectorSchema }),
+  z.object({ kind: z.string().min(1), target: TargetSelectorSchema }),
   z.object({ kind: z.literal('idle') }),
 ])
 
@@ -32,9 +33,9 @@ export const ChassisSchema = ChassisIdSchema
 export const StarterPresetSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  chassis: ChassisSchema,
-  hp: z.number().int().positive(),
-  ruleSlots: z.number().int().min(1).max(6),
+  chassis: ChassisIdSchema,
+  activeModules: z.array(z.string().min(1)).min(1),
+  passiveModules: z.array(z.string().min(1)),
   gambits: z.array(RuleSchema).min(1),
 })
 

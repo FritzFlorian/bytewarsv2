@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { getAllStarterPresets, drawStarterSquad } from '../../src/logic/content/starterPresetLoader'
+import {
+  getAllStarterPresets,
+  drawStarterSquad,
+  toUnitInstance,
+} from '../../src/logic/content/starterPresetLoader'
 import { createRng } from '../../src/logic/rng'
-import { getAttacksForChassis } from '../../src/logic/content/attackLoader'
 import { isAttackAction } from '../../src/logic/gambits/types'
 
 describe('T-6.3: starter preset pool', () => {
@@ -18,16 +21,20 @@ describe('T-6.3: starter preset pool', () => {
     expect(chassisSet.has('security_drone')).toBe(true)
   })
 
-  it('every preset ships at baseline 70 HP / 2 rule slots (post-T-6.16 balance)', () => {
+  it('every preset produces a unit with baseline 2 rule slots', () => {
     for (const p of getAllStarterPresets()) {
-      expect(p.hp).toBe(70)
-      expect(p.ruleSlots).toBe(2)
+      const unit = toUnitInstance(p, `test-${p.id}`, 'player', {
+        side: 'player',
+        row: 'front',
+        column: 0,
+      })
+      expect(unit.ruleSlots).toBe(2)
     }
   })
 
-  it("every preset's gambits reference only attacks valid for its chassis", () => {
+  it("every preset's gambits reference only active modules installed on it", () => {
     for (const p of getAllStarterPresets()) {
-      const validIds = new Set(getAttacksForChassis(p.chassis).map(a => a.id))
+      const validIds = new Set(p.activeModules)
       for (const rule of p.gambits) {
         if (isAttackAction(rule.action)) {
           expect(validIds.has(rule.action.kind)).toBe(true)

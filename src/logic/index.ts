@@ -17,9 +17,10 @@ export type {
   SlotMap,
   Battlefield,
   CombatState,
-  CooldownMap,
+  ActiveModuleInstance,
+  PassiveModuleInstance,
 } from './state/types'
-export { slotKey } from './state/types'
+export { slotKey, UnitInstance } from './state/types'
 
 export type { TargetSelector, Condition, Action, Rule, GambitList } from './gambits/types'
 export { isAttackAction } from './gambits/types'
@@ -62,6 +63,7 @@ export {
   getAllStarterPresets,
   getStarterPreset,
   drawStarterSquad,
+  toUnitInstance,
 } from './content/starterPresetLoader'
 export type { StarterPreset, StarterPresetId } from '../content/schema/starterPreset'
 export { getAllAttacks, getAttackDef, getAttacksForChassis } from './content/attackLoader'

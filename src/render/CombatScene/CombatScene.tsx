@@ -19,7 +19,7 @@ import type { CSSProperties } from 'react'
 import type { CombatEvent } from '../../logic/combat/events'
 import type { Row, Column } from '../../logic/state/types'
 import { isAttackAction } from '../../logic/gambits/types'
-import { getAttackDef } from '../../logic/content/attackLoader'
+import { getModuleDef } from '../../logic/content/moduleLoader'
 import { type UnitInfo, type PlaybackSpeed, buildSchedule } from '../playback'
 import { Vacuum } from '../units/Vacuum'
 import { Butler } from '../units/Butler'
@@ -194,7 +194,7 @@ function buildLogEntries(
           }
           if (ne.kind === 'turn_ended') break
         }
-        const attackName = getAttackDef(e.action.kind).name
+        const attackName = getModuleDef(e.action.kind).name
         entries.push({
           kind: 'attack',
           text: `${attackerName} → ${attackName} → ${targetName}${dmgText}`,

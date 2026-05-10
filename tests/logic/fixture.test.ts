@@ -15,17 +15,19 @@ describe('walkingSkeletonFixture', () => {
     expect(enemyUnits).toHaveLength(2)
   })
 
-  it('player units have 80 HP (per Q-V0.1-2)', () => {
+  it('player units have 80 HP (fixture override)', () => {
     for (const unit of playerUnits) {
       expect(unit.hp).toBe(80)
-      expect(unit.maxHp).toBe(80)
+      // maxHp is now computed from chassis base; vacuum=70, butler=70
+      expect(unit.maxHp).toBe(70)
     }
   })
 
-  it('enemy units have 40 HP (T-6.16 balance pass)', () => {
+  it('enemy units have 40 HP (T-6.16 balance pass), maxHp from chassis', () => {
     for (const unit of enemyUnits) {
       expect(unit.hp).toBe(40)
-      expect(unit.maxHp).toBe(40)
+      // qa-rig chassis baseHp = 45
+      expect(unit.maxHp).toBe(45)
     }
   })
 

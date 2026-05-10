@@ -1,10 +1,8 @@
-// Gambit and action types for Bytewars v0.5.
+// Gambit and action types for Bytewars v0.7.
 //
-// Actions now use named attack IDs instead of a generic 'attack' kind.
-// The discriminated-union *shape* is intentionally stable — adding new
-// attack IDs requires only extending AttackId in the content schema.
-
-import type { AttackId } from '../../content/schema/attack'
+// v0.7: Action kind is now a module ID string (not restricted to AttackId).
+// This supports both attack and heal modules. The discriminated-union shape
+// is intentionally stable — adding new module types requires no type changes.
 
 export type TargetSelector = 'self' | 'nearest_enemy' | 'any_enemy'
 
@@ -13,12 +11,11 @@ export type Condition =
   | { kind: 'self_hp_below'; pct: number }
   | { kind: 'target_exists'; target: TargetSelector }
 
-export type Action = { kind: AttackId; target: TargetSelector } | { kind: 'idle' }
+/** Action references a module ID (string) or 'idle'. */
+export type Action = { kind: string; target: TargetSelector } | { kind: 'idle' }
 
-/** True when the action is a named attack (not idle). */
-export function isAttackAction(
-  action: Action,
-): action is { kind: AttackId; target: TargetSelector } {
+/** True when the action references a module (not idle). */
+export function isAttackAction(action: Action): action is { kind: string; target: TargetSelector } {
   return action.kind !== 'idle'
 }
 

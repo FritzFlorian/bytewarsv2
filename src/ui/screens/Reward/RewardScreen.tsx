@@ -22,7 +22,7 @@ import type {
   Column,
   StarterPreset,
 } from '../../../logic'
-import { getStarterPreset, RULE_SLOT_CAP } from '../../../logic'
+import { getStarterPreset, toUnitInstance, RULE_SLOT_CAP } from '../../../logic'
 import styles from './RewardScreen.module.css'
 
 // ── Props ────────────────────────────────────────────────────────────
@@ -249,16 +249,7 @@ export function RewardScreen({ offers, playerUnits, runState, onCommit }: Reward
     if (!selectedOffer || !selection) return
     if (selectedOffer.kind === 'new_unit' && selection.kind === 'new_unit') {
       const preset = getStarterPreset(selectedOffer.presetId)
-      const newUnit: Unit = {
-        id: selection.newUnitId,
-        side: 'player',
-        slot: selection.slot,
-        chassis: preset.chassis,
-        hp: preset.hp,
-        maxHp: preset.hp,
-        gambits: preset.gambits,
-        ruleSlots: preset.ruleSlots,
-      }
+      const newUnit = toUnitInstance(preset, selection.newUnitId, 'player', selection.slot)
       onCommit(selectedOffer, selection, newUnit)
     } else {
       onCommit(selectedOffer, selection)
