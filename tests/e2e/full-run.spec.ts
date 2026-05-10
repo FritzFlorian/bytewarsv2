@@ -2,8 +2,8 @@
 //   draft → map → editor → combat → reward → back to map.
 //
 // Does NOT walk the entire run to victory — that's covered by the
-// logic-level fullRunSeed.test.ts + balanceSimulation.test.ts. This
-// test only verifies the UI wiring across one full cycle.
+// logic-level balanceSimulation.test.ts. This test only verifies the
+// UI wiring across one full cycle.
 
 import { test, expect } from '@playwright/test'
 import { completeDraft } from './helpers'

@@ -7,8 +7,7 @@
 //   - Resolves combat, applies rewards (auto-pick), and keeps going
 //
 // Used by:
-//   - balanceSimulation.test.ts — runs many seeds, prints/asserts win-rate
-//   - fullRunSeed.test.ts        — pins a winning seed used by the e2e
+//   - balanceSimulation.test.ts — runs many seeds, logs win-rate
 
 import {
   createCombat,
