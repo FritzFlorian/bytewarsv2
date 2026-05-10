@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CombatEvent } from '../../../logic'
-import { isAttackAction } from '../../../logic'
+import { isModuleAction } from '../../../logic'
 import { buildSchedule } from '../../../render/playback'
 import type { PlaybackSpeed } from '../../../render/playback'
 import { playSound, startMusic } from '../../../audio/engine'
@@ -73,7 +73,7 @@ export function CombatScreen({
       const ev = se.event
       const delayMs = Math.max(0, wallStart + se.startMs - now)
 
-      if (ev.kind === 'action_used' && isAttackAction(ev.action)) {
+      if (ev.kind === 'action_used' && isModuleAction(ev.action)) {
         const attackKind = ev.action.kind
         timers.push(
           setTimeout(

@@ -15,7 +15,6 @@ function makeUnit(
   row: 'front' | 'middle' | 'back',
   column: 0 | 1 | 2,
   hp: number,
-  _maxHp: number,
   gambits: GambitList,
 ): Unit {
   return new UnitInstance(
@@ -39,12 +38,12 @@ function makeBattlefield(...units: Unit[]): Battlefield {
 }
 
 // A player unit used as the subject of most tests.
-const PLAYER = makeUnit('p1', 'player', 'front', 0, 80, 80, [])
+const PLAYER = makeUnit('p1', 'player', 'front', 0, 80, [])
 
 // Enemy units at different rows and columns.
-const ENEMY_FRONT_0 = makeUnit('e1', 'enemy', 'front', 0, 60, 60, [])
-const ENEMY_FRONT_1 = makeUnit('e2', 'enemy', 'front', 1, 60, 60, [])
-const ENEMY_BACK_0 = makeUnit('e3', 'enemy', 'back', 0, 60, 60, [])
+const ENEMY_FRONT_0 = makeUnit('e1', 'enemy', 'front', 0, 60, [])
+const ENEMY_FRONT_1 = makeUnit('e2', 'enemy', 'front', 1, 60, [])
+const ENEMY_BACK_0 = makeUnit('e3', 'enemy', 'back', 0, 60, [])
 
 // Helper to create a copy of a unit with modified fields
 function withOverrides(unit: Unit, overrides: { hp?: number; gambits?: GambitList }): Unit {

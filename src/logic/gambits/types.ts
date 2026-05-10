@@ -14,8 +14,8 @@ export type Condition =
 /** Action references a module ID (string) or 'idle'. */
 export type Action = { kind: string; target: TargetSelector } | { kind: 'idle' }
 
-/** True when the action references a module (not idle). */
-export function isAttackAction(action: Action): action is { kind: string; target: TargetSelector } {
+/** True when the action references a module (not idle). Covers both attack and heal modules. */
+export function isModuleAction(action: Action): action is { kind: string; target: TargetSelector } {
   return action.kind !== 'idle'
 }
 

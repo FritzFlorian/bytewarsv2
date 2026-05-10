@@ -3,7 +3,7 @@ import { createCombat, resolveRound } from '../../src/logic/combat/resolver'
 import type { Unit } from '../../src/logic/state/types'
 import { UnitInstance } from '../../src/logic/state/UnitInstance'
 import type { GambitList } from '../../src/logic/gambits/types'
-import { getAttackDef } from '../../src/logic/content/attackLoader'
+import { getActiveModuleDef } from '../../src/logic/content/moduleLoader'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -181,7 +181,9 @@ describe('damage values', () => {
     const dmgEvent = events.find(e => e.kind === 'damage_dealt' && e.sourceId === 'p1')
     expect(dmgEvent).toBeDefined()
     if (dmgEvent?.kind === 'damage_dealt') {
-      expect(dmgEvent.amount).toBe(getAttackDef('quick_jab').damage) // 8
+      const qjDef = getActiveModuleDef('quick_jab')
+      const expectedDmg = qjDef.actionKind === 'attack' ? qjDef.attackProperties.damage : 0
+      expect(dmgEvent.amount).toBe(expectedDmg) // 8
     }
   })
 

@@ -13,7 +13,7 @@
 
 import { useState } from 'react'
 import type { Condition, Action, TargetSelector, Rule, AttackId } from '../../../logic'
-import { isAttackAction } from '../../../logic'
+import { isModuleAction } from '../../../logic'
 import { getAttacksForChassis } from '../../../logic'
 import type { Chassis } from '../../../logic'
 import styles from './GambitSlot.module.css'
@@ -137,7 +137,7 @@ function changeConditionKind(kind: Condition['kind'], current: Condition): Condi
 
 function changeActionKind(kind: Action['kind'], current: Action): Action {
   if (kind === 'idle') return { kind: 'idle' }
-  const target = isAttackAction(current) ? current.target : 'nearest_enemy'
+  const target = isModuleAction(current) ? current.target : 'nearest_enemy'
   return { kind: kind as AttackId, target }
 }
 
@@ -177,7 +177,7 @@ export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) 
   }
 
   function handleActionTarget(target: TargetSelector) {
-    if (isAttackAction(action)) {
+    if (isModuleAction(action)) {
       onChange({ ...rule, action: { kind: action.kind, target } })
     }
   }
@@ -229,7 +229,7 @@ export function GambitSlot({ index, rule, onChange, chassis }: GambitSlotProps) 
       />
 
       {/* Action extras */}
-      {isAttackAction(action) && (
+      {isModuleAction(action) && (
         <>
           <SearchableSelect
             options={TARGET_OPTIONS}

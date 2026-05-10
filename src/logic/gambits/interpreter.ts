@@ -14,11 +14,9 @@
 // `any_enemy` picks a random living enemy using the seeded RNG (pass via rng param).
 
 import type { Unit, Battlefield } from '../state/types'
+import { ROW_ORDER } from '../state/types'
 import type { Rng } from '../rng'
-import { isAttackAction, type Action, type Condition, type TargetSelector } from './types'
-
-/** Canonical row ordering — index 0 is closest to the opponent. */
-const ROW_ORDER = ['front', 'middle', 'back'] as const
+import { isModuleAction, type Action, type Condition, type TargetSelector } from './types'
 
 /**
  * Return all living units on the opposite side, sorted nearest-first
@@ -117,7 +115,7 @@ export function chooseRule(unit: Unit, battlefield: Battlefield): ChosenRule {
     if (!evaluateCondition(rule.condition, unit, battlefield)) continue
 
     // Non-idle actions reference a module by ID — check availability.
-    if (isAttackAction(rule.action)) {
+    if (isModuleAction(rule.action)) {
       const mod = unit.activeModules.find(m => m.defId === rule.action.kind)
       if (!mod || mod.cooldownRemaining > 0) {
         continue // module not installed or on cooldown — fall through

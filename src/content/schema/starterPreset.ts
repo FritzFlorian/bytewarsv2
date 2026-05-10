@@ -33,9 +33,6 @@ const RuleSchema = z.object({
   action: ActionSchema,
 })
 
-/** @deprecated Use ChassisIdSchema from chassis.ts directly. */
-export const ChassisSchema = ChassisIdSchema
-
 export const StarterPresetSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),

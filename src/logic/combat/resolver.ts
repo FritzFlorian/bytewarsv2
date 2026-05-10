@@ -8,14 +8,12 @@
 //   - CombatState no longer carries a cooldowns field.
 
 import type { Unit, Battlefield, CombatState, SlotMap, Side } from '../state/types'
-import { slotKey } from '../state/types'
+import { slotKey, ROW_ORDER } from '../state/types'
 import type { CombatEvent } from './events'
 import { chooseRule, resolveTarget } from '../gambits/interpreter'
-import { isAttackAction } from '../gambits/types'
+import { isModuleAction } from '../gambits/types'
 import { createRng } from '../rng'
 import { getActiveModuleDef } from '../content/moduleLoader'
-
-const ROW_ORDER = ['front', 'middle', 'back'] as const
 
 function unitSortKey(u: Unit): number {
   return ROW_ORDER.indexOf(u.slot.row) * 3 + u.slot.column
@@ -100,7 +98,7 @@ export function resolveRound(state: CombatState): { state: CombatState; events: 
 
     events.push({ kind: 'rule_fired', unitId: unit.id, ruleIndex: chosenRuleIndex })
 
-    if (isAttackAction(chosenAction)) {
+    if (isModuleAction(chosenAction)) {
       const modDef = getActiveModuleDef(chosenAction.kind)
       const target = resolveTarget(chosenAction.target, unit, bf, rng)
       const targetIds = target ? [target.id] : []

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { walkingSkeletonFixture } from '../../src/logic/content/fixtures'
 import type { Condition } from '../../src/logic/gambits/types'
-import { isAttackAction } from '../../src/logic/gambits/types'
+import { isModuleAction } from '../../src/logic/gambits/types'
 
 // V0.1 vocabulary constraints
 const VALID_CONDITION_KINDS: Condition['kind'][] = ['always', 'self_hp_below', 'target_exists']
@@ -80,7 +80,7 @@ describe('walkingSkeletonFixture', () => {
         if (rule.condition.kind === 'target_exists') {
           expect(VALID_TARGET_SELECTORS).toContain(rule.condition.target)
         }
-        if (isAttackAction(rule.action)) {
+        if (isModuleAction(rule.action)) {
           expect(VALID_TARGET_SELECTORS).toContain(rule.action.target)
         }
       }

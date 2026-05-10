@@ -75,13 +75,8 @@ const siegeGambits: GambitList = [
   { condition: { kind: 'always' }, action: { kind: 'idle' } },
 ]
 
-const qaRigEliteGambits: GambitList = [
-  {
-    condition: { kind: 'target_exists', target: 'nearest_enemy' },
-    action: { kind: 'clamp', target: 'nearest_enemy' },
-  },
-  { condition: { kind: 'always' }, action: { kind: 'idle' } },
-]
+// Elite qa-rig uses the same gambits as regular qa-rig.
+const qaRigEliteGambits = qaRigGambits
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 

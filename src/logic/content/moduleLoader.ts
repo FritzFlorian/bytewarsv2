@@ -3,11 +3,7 @@
 // Loads and validates all src/content/modules/*.json at startup using
 // Vite's import.meta.glob. Throws a descriptive error if any JSON is malformed.
 
-import {
-  ModuleDefSchema,
-  ActiveModuleDefSchema,
-  PassiveModuleDefSchema,
-} from '../../content/schema/module'
+import { ModuleDefSchema } from '../../content/schema/module'
 import type { ModuleDef, ActiveModuleDef, PassiveModuleDef } from '../../content/schema/module'
 
 const moduleFiles = import.meta.glob('../../content/modules/*.json', { eager: true })
@@ -56,18 +52,14 @@ export function getAllPassiveModules(): PassiveModuleDef[] {
 
 export function getActiveModuleDef(id: string): ActiveModuleDef {
   const def = getModuleDef(id)
-  if (def.type !== 'active') throw new Error(`Module ${id} is not an active module`)
-  const parsed = ActiveModuleDefSchema.safeParse(def)
-  if (!parsed.success) throw new Error(`Module ${id} failed active schema validation`)
-  return parsed.data
+  if (def.type !== 'active') throw new Error(`Module ${id} is a ${def.type} module, not active`)
+  return def
 }
 
 export function getPassiveModuleDef(id: string): PassiveModuleDef {
   const def = getModuleDef(id)
-  if (def.type !== 'passive') throw new Error(`Module ${id} is not a passive module`)
-  const parsed = PassiveModuleDefSchema.safeParse(def)
-  if (!parsed.success) throw new Error(`Module ${id} failed passive schema validation`)
-  return parsed.data
+  if (def.type !== 'passive') throw new Error(`Module ${id} is a ${def.type} module, not passive`)
+  return def
 }
 
 /**

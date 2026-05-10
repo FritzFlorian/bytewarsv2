@@ -5,7 +5,7 @@ import {
   toUnitInstance,
 } from '../../src/logic/content/starterPresetLoader'
 import { createRng } from '../../src/logic/rng'
-import { isAttackAction } from '../../src/logic/gambits/types'
+import { isModuleAction } from '../../src/logic/gambits/types'
 
 describe('T-6.3: starter preset pool', () => {
   it('schema validates every preset (loader would throw otherwise)', () => {
@@ -36,7 +36,7 @@ describe('T-6.3: starter preset pool', () => {
     for (const p of getAllStarterPresets()) {
       const validIds = new Set(p.activeModules)
       for (const rule of p.gambits) {
-        if (isAttackAction(rule.action)) {
+        if (isModuleAction(rule.action)) {
           expect(validIds.has(rule.action.kind)).toBe(true)
         }
       }

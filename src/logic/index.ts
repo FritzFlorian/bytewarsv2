@@ -23,7 +23,7 @@ export type {
 export { slotKey, UnitInstance } from './state/types'
 
 export type { TargetSelector, Condition, Action, Rule, GambitList } from './gambits/types'
-export { isAttackAction } from './gambits/types'
+export { isModuleAction } from './gambits/types'
 export type { AttackId } from '../content/schema/attack'
 
 export type { ChassisId, ChassisDef, Availability } from '../content/schema/chassis'

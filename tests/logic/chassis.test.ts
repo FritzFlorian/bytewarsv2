@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { Chassis } from '../../src/logic/state/types'
-import { ChassisSchema, StarterPresetSchema } from '../../src/content/schema/starterPreset'
+import { ChassisIdSchema } from '../../src/content/schema/chassis'
+import { StarterPresetSchema } from '../../src/content/schema/starterPreset'
 
 // All 8 chassis ids recognised in v0.6. Writing the literal array with
 // `satisfies` ensures the list stays in sync with the `Chassis` type: any
@@ -18,14 +19,14 @@ const ALL_CHASSIS = [
 ] as const satisfies readonly Chassis[]
 
 describe('T-6.1: Chassis registration', () => {
-  it('every chassis id round-trips through ChassisSchema', () => {
+  it('every chassis id round-trips through ChassisIdSchema', () => {
     for (const c of ALL_CHASSIS) {
-      expect(ChassisSchema.parse(c)).toBe(c)
+      expect(ChassisIdSchema.parse(c)).toBe(c)
     }
   })
 
-  it('ChassisSchema rejects unknown ids', () => {
-    expect(ChassisSchema.safeParse('not-a-chassis').success).toBe(false)
+  it('ChassisIdSchema rejects unknown ids', () => {
+    expect(ChassisIdSchema.safeParse('not-a-chassis').success).toBe(false)
   })
 
   it('every chassis id round-trips through StarterPresetSchema', () => {

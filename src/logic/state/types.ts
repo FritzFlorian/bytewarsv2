@@ -21,6 +21,9 @@ export type Side = 'player' | 'enemy'
 /** Front row is closest to the opponent; back row is furthest. */
 export type Row = 'front' | 'middle' | 'back'
 
+/** Canonical row ordering — index 0 is closest to the opponent. */
+export const ROW_ORDER: readonly Row[] = ['front', 'middle', 'back'] as const
+
 /** 0 = left, 1 = centre, 2 = right (from the perspective of the owning side). */
 export type Column = 0 | 1 | 2
 
