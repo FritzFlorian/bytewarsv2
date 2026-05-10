@@ -17,14 +17,17 @@
     "id": "vacuum-sweeper",
     "name": "Sweeper Vacuum",
     "chassis": "vacuum",
-    "activeModules": ["sweep"],
+    "activeModules": ["sweep", "quick_jab"],
     "passiveModules": [],
     "gambits": [
       {
         "condition": { "kind": "target_exists", "target": "nearest_enemy" },
         "action": { "kind": "sweep", "target": "nearest_enemy" }
       },
-      { "condition": { "kind": "always" }, "action": { "kind": "idle" } }
+      {
+        "condition": { "kind": "target_exists", "target": "nearest_enemy" },
+        "action": { "kind": "quick_jab", "target": "nearest_enemy" }
+      }
     ]
   },
   {

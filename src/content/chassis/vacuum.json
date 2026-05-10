@@ -4,6 +4,6 @@
   "availability": "player",
   "baseHp": 70,
   "baseRuleSlots": 2,
-  "activeSlots": 2,
+  "activeSlots": 4,
   "passiveSlots": 3
 }
