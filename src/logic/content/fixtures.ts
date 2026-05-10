@@ -138,7 +138,7 @@ export function walkingSkeletonFixture(): WalkingSkeletonFixture {
       ['clamp'],
       [],
       qaRigGambits,
-      40,
+      25,
     ),
     makeUnit(
       'enemy-qa-rig-2',
@@ -148,7 +148,7 @@ export function walkingSkeletonFixture(): WalkingSkeletonFixture {
       ['clamp'],
       [],
       qaRigGambits,
-      40,
+      25,
     ),
   ]
 
@@ -171,7 +171,7 @@ export function bossEncounterFixture(): BossEncounterFixture {
       ['suppression'],
       [],
       overseerGambits,
-      80,
+      45,
     ),
     makeUnit(
       'boss-overseer-2',
@@ -181,7 +181,7 @@ export function bossEncounterFixture(): BossEncounterFixture {
       ['suppression'],
       [],
       overseerGambits,
-      80,
+      45,
     ),
     makeUnit(
       'boss-overseer-3',
@@ -191,7 +191,7 @@ export function bossEncounterFixture(): BossEncounterFixture {
       ['suppression'],
       [],
       overseerGambits,
-      80,
+      45,
     ),
   ]
 
@@ -217,7 +217,7 @@ function siegeBattery(): EliteEncounterFixture {
         ['siege_cannon'],
         [],
         siegeGambits,
-        90,
+        60,
       ),
       makeUnit(
         'elite-swarmer-1',
@@ -227,7 +227,7 @@ function siegeBattery(): EliteEncounterFixture {
         ['bite'],
         [],
         swarmerGambits,
-        35,
+        20,
       ),
       makeUnit(
         'elite-swarmer-2',
@@ -237,7 +237,7 @@ function siegeBattery(): EliteEncounterFixture {
         ['bite'],
         [],
         swarmerGambits,
-        35,
+        20,
       ),
     ],
   }
@@ -255,7 +255,7 @@ function heavyLine(): EliteEncounterFixture {
         ['siege_cannon'],
         [],
         siegeGambits,
-        90,
+        60,
       ),
       makeUnit(
         'elite-qa-1',
@@ -265,7 +265,7 @@ function heavyLine(): EliteEncounterFixture {
         ['clamp'],
         [],
         qaRigEliteGambits,
-        80,
+        45,
       ),
       makeUnit(
         'elite-qa-2',
@@ -275,7 +275,7 @@ function heavyLine(): EliteEncounterFixture {
         ['clamp'],
         [],
         qaRigEliteGambits,
-        80,
+        45,
       ),
     ],
   }
@@ -293,7 +293,7 @@ function swarmPack(): EliteEncounterFixture {
         ['bite'],
         [],
         swarmerGambits,
-        40,
+        20,
       ),
       makeUnit(
         'elite-swarmer-2',
@@ -303,7 +303,7 @@ function swarmPack(): EliteEncounterFixture {
         ['bite'],
         [],
         swarmerGambits,
-        40,
+        20,
       ),
       makeUnit(
         'elite-swarmer-3',
@@ -313,7 +313,7 @@ function swarmPack(): EliteEncounterFixture {
         ['bite'],
         [],
         swarmerGambits,
-        40,
+        20,
       ),
       makeUnit(
         'elite-swarmer-4',
@@ -323,7 +323,7 @@ function swarmPack(): EliteEncounterFixture {
         ['bite'],
         [],
         swarmerGambits,
-        40,
+        20,
       ),
     ],
   }
@@ -341,7 +341,7 @@ function qaSquadElite(): EliteEncounterFixture {
         ['clamp'],
         [],
         qaRigEliteGambits,
-        90,
+        50,
       ),
       makeUnit(
         'elite-qa-2',
@@ -351,7 +351,7 @@ function qaSquadElite(): EliteEncounterFixture {
         ['clamp'],
         [],
         qaRigEliteGambits,
-        90,
+        50,
       ),
       makeUnit(
         'elite-qa-3',
@@ -361,7 +361,7 @@ function qaSquadElite(): EliteEncounterFixture {
         ['clamp'],
         [],
         qaRigEliteGambits,
-        90,
+        50,
       ),
     ],
   }

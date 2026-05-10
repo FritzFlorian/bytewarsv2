@@ -6,9 +6,9 @@
 //
 // Strategy is auto-pilot, not optimal play — a human can beat more seeds.
 //
-// v0.7 M4 note: band widened to 5–90% while module drops dominate the
-// reward pool. M6 (T-7.16) will retune stats and tighten the band back
-// to the original 30–80% target.
+// v0.7 M6 (T-7.16): balance pass complete — band tightened to 30–80%.
+// Enemy HP and damage tuned down; auto-pilot now visits elites for
+// better rewards.
 
 import { describe, it, expect } from 'vitest'
 import { simulateFullRun } from './fullRunSimulation'
@@ -16,7 +16,7 @@ import { simulateFullRun } from './fullRunSimulation'
 const SEED_COUNT = 50
 
 describe('balance: full-run win rate', () => {
-  it(`auto-pilot wins between 5% and 90% of ${SEED_COUNT} seeds`, () => {
+  it(`auto-pilot wins between 30% and 80% of ${SEED_COUNT} seeds`, () => {
     let wins = 0
     let losses = 0
     for (let seed = 1; seed <= SEED_COUNT; seed++) {
@@ -28,7 +28,7 @@ describe('balance: full-run win rate', () => {
     console.log(
       `[balance] win-rate ${(winRate * 100).toFixed(1)}% (${wins}W ${losses}L / ${SEED_COUNT})`,
     )
-    expect(winRate).toBeGreaterThanOrEqual(0.05)
-    expect(winRate).toBeLessThanOrEqual(0.9)
+    expect(winRate).toBeGreaterThanOrEqual(0.3)
+    expect(winRate).toBeLessThanOrEqual(0.8)
   })
 })

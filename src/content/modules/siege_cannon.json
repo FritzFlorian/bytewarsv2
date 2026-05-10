@@ -5,7 +5,7 @@
   "availability": "enemy",
   "actionKind": "attack",
   "attackProperties": {
-    "damage": 45,
+    "damage": 30,
     "cooldown": 3,
     "initialCooldown": 1
   },

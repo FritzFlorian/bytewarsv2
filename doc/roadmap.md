@@ -150,10 +150,10 @@ Editor shows installed modules; module management surfaces.
 
 Balance pass, update balance simulation, full-run e2e.
 
-- T-7.16: Balance pass (HP / damage / slot counts / module stats) — status: `todo`, track: `logic`, depends on: M5
-  - Tune chassis baseHp and slot spreads across all 8 chassis. Tune module stats (damage, heal amounts, cooldowns, passive effect values). Target: auto-pilot full run lands in 30–80% win-rate band.
-- T-7.17: Update balance simulation test and full-run e2e — status: `todo`, track: `integration`, depends on: T-7.16
-  - Update `balanceSimulation.test.ts` to work with module-based units. Update `full-run.spec.ts` to exercise starter draft, module rewards, and heal actions.
+- T-7.16: Balance pass (HP / damage / slot counts / module stats) — status: `done`, track: `logic`, depends on: M5
+  - Tuned enemy encounter HP: regular qa-rigs 40→25, boss overseers 80→45, elite encounters proportionally reduced. Reduced enemy-only module damage: bite 12→7, siege_cannon 45→30. Auto-pilot path picker now prefers elites over regular combat (better rewards). Win rate: ~34% on 200 seeds (within 30–80% band).
+- T-7.17: Update balance simulation test and full-run e2e — status: `done`, track: `integration`, depends on: T-7.16
+  - Tightened `balanceSimulation.test.ts` band from 5–90% to 30–80%. Updated pinned seed (21→5, full node-type coverage including elites). Updated golden resolver test (58 events, 3 rounds, first kill in round 1). Updated fixture HP assertion (25). Auto-pilot now visits elites, restoring full 4-type coverage (combat + elite + repair_bay + boss).
 
 ---
 

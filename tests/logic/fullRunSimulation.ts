@@ -118,8 +118,8 @@ function pickNextNode(run: RunState): MapNode {
 
   return (
     reachable.find(n => n.type === 'repair_bay') ??
-    reachable.find(n => n.type === 'combat') ??
     reachable.find(n => n.type === 'elite') ??
+    reachable.find(n => n.type === 'combat') ??
     reachable.find(n => n.type === 'boss') ??
     reachable[0]
   )

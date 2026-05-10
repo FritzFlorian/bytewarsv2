@@ -23,9 +23,9 @@ describe('walkingSkeletonFixture', () => {
     }
   })
 
-  it('enemy units have 40 HP (T-6.16 balance pass), maxHp from chassis', () => {
+  it('enemy units have 25 HP (T-7.16 balance pass), maxHp from chassis', () => {
     for (const unit of enemyUnits) {
-      expect(unit.hp).toBe(40)
+      expect(unit.hp).toBe(25)
       // qa-rig chassis baseHp = 45
       expect(unit.maxHp).toBe(45)
     }
