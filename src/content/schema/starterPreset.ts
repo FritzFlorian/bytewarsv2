@@ -6,6 +6,7 @@
 
 import { z } from 'zod'
 import { AttackIdSchema } from './attack'
+import { ChassisIdSchema } from './chassis'
 
 const TargetSelectorSchema = z.enum(['self', 'nearest_enemy', 'any_enemy'])
 
@@ -25,16 +26,8 @@ const RuleSchema = z.object({
   action: ActionSchema,
 })
 
-export const ChassisSchema = z.enum([
-  'vacuum',
-  'butler',
-  'qa-rig',
-  'overseer',
-  'lawnbot',
-  'security_drone',
-  'swarmer',
-  'siege',
-])
+/** @deprecated Use ChassisIdSchema from chassis.ts directly. */
+export const ChassisSchema = ChassisIdSchema
 
 export const StarterPresetSchema = z.object({
   id: z.string().min(1),

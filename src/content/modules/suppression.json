@@ -1,0 +1,14 @@
+{
+  "id": "suppression",
+  "name": "Suppression",
+  "type": "active",
+  "availability": "both",
+  "rarity": 2,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 12,
+    "cooldown": 2,
+    "initialCooldown": 0
+  },
+  "sound": "suppression"
+}

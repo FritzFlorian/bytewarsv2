@@ -1,0 +1,14 @@
+{
+  "id": "mow",
+  "name": "Mow",
+  "type": "active",
+  "availability": "both",
+  "rarity": 1,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 10,
+    "cooldown": 0,
+    "initialCooldown": 0
+  },
+  "sound": "mow"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "swarmer",
+  "name": "Swarmer",
+  "availability": "enemy",
+  "baseHp": 35,
+  "baseRuleSlots": 1,
+  "activeSlots": 1,
+  "passiveSlots": 1
+}

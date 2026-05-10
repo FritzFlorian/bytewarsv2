@@ -1,0 +1,14 @@
+{
+  "id": "quick_jab",
+  "name": "Quick Jab",
+  "type": "active",
+  "availability": "both",
+  "rarity": 1,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 8,
+    "cooldown": 0,
+    "initialCooldown": 0
+  },
+  "sound": "quick_jab"
+}

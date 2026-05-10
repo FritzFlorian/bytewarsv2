@@ -1,0 +1,14 @@
+{
+  "id": "taser",
+  "name": "Taser",
+  "type": "active",
+  "availability": "both",
+  "rarity": 1,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 7,
+    "cooldown": 0,
+    "initialCooldown": 0
+  },
+  "sound": "taser"
+}

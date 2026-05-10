@@ -25,6 +25,18 @@ export type { TargetSelector, Condition, Action, Rule, GambitList } from './gamb
 export { isAttackAction } from './gambits/types'
 export type { AttackId } from '../content/schema/attack'
 
+export type { ChassisId, ChassisDef, Availability } from '../content/schema/chassis'
+export type {
+  ModuleDef,
+  ActiveModuleDef,
+  PassiveModuleDef,
+  ModuleId,
+  ActiveModuleId,
+  PassiveModuleId,
+  PassiveEffectKind,
+  PassiveEffect,
+} from '../content/schema/module'
+
 export type { CombatEvent } from './combat/events'
 
 export type { Rng } from './rng'
@@ -54,6 +66,17 @@ export {
 export type { StarterPreset, StarterPresetId } from '../content/schema/starterPreset'
 export { getAllAttacks, getAttackDef, getAttacksForChassis } from './content/attackLoader'
 export type { AttackDef } from '../content/schema/attack'
+
+export { getAllChassis, getChassisDef } from './content/chassisLoader'
+export {
+  getAllModules,
+  getModuleDef,
+  getAllActiveModules,
+  getAllPassiveModules,
+  getActiveModuleDef,
+  getPassiveModuleDef,
+  getModulesForSide,
+} from './content/moduleLoader'
 
 export type { NodeType, MapNode, MapEdge, MapGraph, BattleResult, RunState } from './map/types'
 export { generateMap } from './map/generate'

@@ -1,0 +1,14 @@
+{
+  "id": "sweep",
+  "name": "Sweep",
+  "type": "active",
+  "availability": "both",
+  "rarity": 2,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 18,
+    "cooldown": 2,
+    "initialCooldown": 0
+  },
+  "sound": "sweep"
+}

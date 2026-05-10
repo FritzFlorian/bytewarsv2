@@ -1,0 +1,13 @@
+{
+  "id": "siege_cannon",
+  "name": "Siege Cannon",
+  "type": "active",
+  "availability": "enemy",
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 45,
+    "cooldown": 3,
+    "initialCooldown": 1
+  },
+  "sound": "siege_cannon"
+}

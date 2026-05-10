@@ -1,0 +1,8 @@
+{
+  "id": "logic_co_processor",
+  "name": "Logic Co-Processor",
+  "type": "passive",
+  "availability": "both",
+  "rarity": 3,
+  "effects": [{ "kind": "extra_rule_slot", "value": 1 }]
+}

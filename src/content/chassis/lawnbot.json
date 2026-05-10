@@ -1,0 +1,9 @@
+{
+  "id": "lawnbot",
+  "name": "Lawnbot",
+  "availability": "player",
+  "baseHp": 80,
+  "baseRuleSlots": 2,
+  "activeSlots": 2,
+  "passiveSlots": 2
+}

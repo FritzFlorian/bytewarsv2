@@ -1,0 +1,14 @@
+{
+  "id": "pulse_shot",
+  "name": "Pulse Shot",
+  "type": "active",
+  "availability": "both",
+  "rarity": 3,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 24,
+    "cooldown": 2,
+    "initialCooldown": 1
+  },
+  "sound": "pulse_shot"
+}

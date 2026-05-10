@@ -1,0 +1,14 @@
+{
+  "id": "overload",
+  "name": "Overload",
+  "type": "active",
+  "availability": "both",
+  "rarity": 3,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 30,
+    "cooldown": 3,
+    "initialCooldown": 1
+  },
+  "sound": "overload"
+}

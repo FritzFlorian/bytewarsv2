@@ -1,0 +1,9 @@
+{
+  "id": "overseer",
+  "name": "Overseer",
+  "availability": "enemy",
+  "baseHp": 80,
+  "baseRuleSlots": 3,
+  "activeSlots": 2,
+  "passiveSlots": 3
+}

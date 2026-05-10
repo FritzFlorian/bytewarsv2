@@ -1,0 +1,9 @@
+{
+  "id": "qa-rig",
+  "name": "QA Rig",
+  "availability": "enemy",
+  "baseHp": 45,
+  "baseRuleSlots": 2,
+  "activeSlots": 1,
+  "passiveSlots": 2
+}

@@ -1,0 +1,13 @@
+{
+  "id": "bite",
+  "name": "Bite",
+  "type": "active",
+  "availability": "enemy",
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 12,
+    "cooldown": 0,
+    "initialCooldown": 0
+  },
+  "sound": "bite"
+}

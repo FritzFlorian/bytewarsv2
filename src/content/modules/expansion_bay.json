@@ -1,0 +1,8 @@
+{
+  "id": "expansion_bay",
+  "name": "Expansion Bay",
+  "type": "passive",
+  "availability": "both",
+  "rarity": 4,
+  "effects": [{ "kind": "extra_active_slot", "value": 1 }]
+}

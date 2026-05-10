@@ -1,0 +1,8 @@
+{
+  "id": "damage_amplifier",
+  "name": "Damage Amplifier",
+  "type": "passive",
+  "availability": "both",
+  "rarity": 2,
+  "effects": [{ "kind": "bonus_damage", "value": 5 }]
+}

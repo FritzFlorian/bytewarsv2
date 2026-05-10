@@ -1,0 +1,8 @@
+{
+  "id": "reinforced_plating",
+  "name": "Reinforced Plating",
+  "type": "passive",
+  "availability": "both",
+  "rarity": 1,
+  "effects": [{ "kind": "bonus_hp", "value": 15 }]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "butler",
+  "name": "Butler",
+  "availability": "player",
+  "baseHp": 70,
+  "baseRuleSlots": 2,
+  "activeSlots": 2,
+  "passiveSlots": 4
+}

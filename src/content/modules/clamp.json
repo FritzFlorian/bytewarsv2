@@ -1,0 +1,14 @@
+{
+  "id": "clamp",
+  "name": "Clamp",
+  "type": "active",
+  "availability": "both",
+  "rarity": 2,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 10,
+    "cooldown": 1,
+    "initialCooldown": 0
+  },
+  "sound": "clamp"
+}

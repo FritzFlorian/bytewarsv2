@@ -1,0 +1,9 @@
+{
+  "id": "security_drone",
+  "name": "Security Drone",
+  "availability": "player",
+  "baseHp": 60,
+  "baseRuleSlots": 2,
+  "activeSlots": 3,
+  "passiveSlots": 2
+}

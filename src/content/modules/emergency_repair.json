@@ -1,0 +1,14 @@
+{
+  "id": "emergency_repair",
+  "name": "Emergency Repair",
+  "type": "active",
+  "availability": "player",
+  "rarity": 4,
+  "actionKind": "heal",
+  "healProperties": {
+    "healAmount": 35,
+    "cooldown": 4,
+    "initialCooldown": 1
+  },
+  "sound": "emergency_repair"
+}

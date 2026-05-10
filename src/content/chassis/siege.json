@@ -1,0 +1,9 @@
+{
+  "id": "siege",
+  "name": "Siege",
+  "availability": "enemy",
+  "baseHp": 90,
+  "baseRuleSlots": 2,
+  "activeSlots": 1,
+  "passiveSlots": 2
+}

@@ -1,0 +1,14 @@
+{
+  "id": "quick_patch",
+  "name": "Quick Patch",
+  "type": "active",
+  "availability": "both",
+  "rarity": 1,
+  "actionKind": "heal",
+  "healProperties": {
+    "healAmount": 8,
+    "cooldown": 2,
+    "initialCooldown": 0
+  },
+  "sound": "quick_patch"
+}

@@ -1,0 +1,8 @@
+{
+  "id": "overclocked_core",
+  "name": "Overclocked Core",
+  "type": "passive",
+  "availability": "both",
+  "rarity": 4,
+  "effects": [{ "kind": "bonus_damage", "value": 10 }]
+}

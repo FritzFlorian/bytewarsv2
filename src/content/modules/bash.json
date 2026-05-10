@@ -1,0 +1,14 @@
+{
+  "id": "bash",
+  "name": "Bash",
+  "type": "active",
+  "availability": "both",
+  "rarity": 2,
+  "actionKind": "attack",
+  "attackProperties": {
+    "damage": 22,
+    "cooldown": 2,
+    "initialCooldown": 0
+  },
+  "sound": "bash"
+}
